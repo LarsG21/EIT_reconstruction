@@ -116,6 +116,21 @@ def convert_complex_dict_to_dataframe(dict):
             df = pd.concat([df, new_row], ignore_index=True)
     return df
 
+def convert_single_frequency_eit_to_df(path):
+    """
+    Converts a single frequency EIT file to a dataframe
+    """
+    voltage_dict = read_eit_data(path)
+    complex_dict = convert_voltage_dict_to_complex(voltage_dict)
+    amplitude_phase, all_amplitudes, all_phases = convert_complex_dict_to_amplitude_phase(complex_dict)
+    df = convert_complex_dict_to_dataframe(amplitude_phase)
+    # sort by measuring electrode
+    df = df.convert_dtypes()
+    df = df.sort_values(by=["measuring_electrode", "injection_pos"])
+    # reindex
+    df = df.reset_index(drop=True)
+    df = df.convert_dtypes()
+    return df
 
 
 dict = read_eit_data(path)
@@ -134,7 +149,7 @@ print(df)
 # reindex
 df = df.reset_index(drop=True)
 
-
+#
 read_protocol = pickle.load(open("protocol.pickle", "rb"))
 keep_mask = read_protocol.keep_ba
 # reverse keep_mask order
