@@ -1,8 +1,10 @@
+import time
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from data_reader import convert_single_frequency_eit_to_df
+from data_reader import convert_single_frequency_eit_file_to_df
 from pyeit import mesh
 from pyeit.eit import protocol, jac, greit, bp
 from pyeit.eit.interp2d import sim2pts
@@ -40,8 +42,8 @@ df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
 
 def plot_eit_image(path1, path2):
-    df1 = convert_single_frequency_eit_to_df(path1)
-    df2 = convert_single_frequency_eit_to_df(path2)
+    df1 = convert_single_frequency_eit_file_to_df(path1)
+    df2 = convert_single_frequency_eit_file_to_df(path2)
     df1 = pd.concat([df1, df_keep_mask], axis=1)
     df2 = pd.concat([df2, df_keep_mask], axis=1)
     df1 = df1[df1["keep"] == True].drop("keep", axis=1)
@@ -168,12 +170,12 @@ def solve_and_plot_stack(path1, path2, v0, v1):
     tri = mesh_obj.element
     delta_perm = mesh_new.perm - mesh_obj.perm
 
-    # show alpha
-    fig, ax = plt.subplots(figsize=(6, 4))
-    im = ax.tripcolor(pts[:, 0], pts[:, 1], tri, np.real(delta_perm), shading="flat")
-    fig.colorbar(im)
-    ax.set_aspect("equal")
-    ax.set_title(r"$\Delta$ Permittivity")
+    # # show alpha
+    # fig, ax = plt.subplots(figsize=(6, 4))
+    # im = ax.tripcolor(pts[:, 0], pts[:, 1], tri, np.real(delta_perm), shading="flat")
+    # fig.colorbar(im)
+    # ax.set_aspect("equal")
+    # ax.set_title(r"$\Delta$ Permittivity")
 
     """ 4. plot """
     fig, ax = plt.subplots(figsize=(6, 4))
@@ -193,10 +195,9 @@ def solve_and_plot_stack(path1, path2, v0, v1):
     plt.show()
 
 
-path = "eit_data"
 
 
-def plot_eit_images_continiously(path):
+def plot_eit_images_in_folder(path):
     old_path = os.getcwd()
     eit_path = ""
     for file_or_folder in os.listdir(path):
@@ -217,14 +218,47 @@ def plot_eit_images_continiously(path):
                 print(default_frame, current_frame)
                 plot_eit_image(os.path.join(eit_path, current_frame), os.path.join(eit_path, default_frame))
                 # last_frame = current_frame
+    # reset path
+    os.chdir(old_path)
 
+def plot_eit_video(path):
+    """
+    Plots the eit video from the given path.
+    There are new files in the folder every few seconds.
+    Do the same as above continuously.
+    :param path:
+    :return:
+    """
+    eit_path = ""
+    seen_files = []
+    for file_or_folder in os.listdir(path):
+        if os.path.isdir(os.path.join(path, file_or_folder)):
+            os.chdir(os.path.join(path, file_or_folder))
+            print(os.getcwd())
+            os.chdir((os.path.join(os.getcwd(), "setup")))
+            eit_path = os.getcwd()
+            print(eit_path)
+            break
+    default_frame = None
+    while True:
+        for current_frame in os.listdir(os.getcwd()):
+            if current_frame.endswith(".eit") and current_frame not in seen_files:
+                if default_frame is None:
+                    default_frame = current_frame
+                else:
+                    time.sleep(0.01) # wait for file to be written
+                    print(default_frame, current_frame)
+                    plot_eit_image(os.path.join(eit_path, current_frame), os.path.join(eit_path, default_frame))
+                    seen_files.append(current_frame)
+        # time.sleep(0.1)
+
+path = "eit_data"
 
 path_t1 = "setup_00002.eit"
-path_t2 = "setup_00005.eit"
+path_t2 = "setup_00006.eit"
 # plot_eit_image(path_t1, path_t2)
 
 
-# eit = greit.GREIT(mesh_obj, protocol_obj)
-# eit.setup(p=0.50, lamb=0.01, perm=1, jac_normalized=True)
+# plot_eit_images_in_folder(path)
 
-plot_eit_images_continiously(path)
+plot_eit_video(path)

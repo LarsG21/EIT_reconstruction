@@ -3,6 +3,7 @@ import pickle
 
 import numpy as np
 import pandas as pd
+import datetime
 
 path = "setup_00007.eit"
 
@@ -27,10 +28,25 @@ class EITFrame:
 def read_eit_data(path):
     """
     Reads the data from the given path and returns a dictionary with the following structure:
+    Header
     {(injection_electrode1, injection_electrode2): [voltage1, voltage2, ...], ...}
+    :param path: path to the .eit file
+    :return: dictionary in form of {(injection_electrode1, injection_electrode2): [voltage1, voltage2, ...], ...}
     """
+    metadata = {}
     with open(path) as f:
         lines = f.readlines()
+        metadata["Number_of_Metadata_Entries"] = int(lines[0].strip())
+        metadata["Fiel_Version_Number"] = lines[1].strip()
+        metadata["Dataset_Name"] = lines[2].strip()
+        metadata["Timestamp"] = lines[3].strip()
+        metadata["Minimum_frequency"] = float(lines[4].strip())  # Hz
+        metadata["Maximum_frequency"] = float(lines[5].strip())  # Hz
+        metadata["Frequency_scale"] = lines[6].strip()  # 0 = linear, 1 = logarithmic
+        metadata["Number_of_frequencies"] = float(lines[7].strip())
+        metadata["Amplitude"] = float(lines[8].strip())  # A
+        metadata["FPS"] = float(lines[9].strip())  # Frames per second
+        metadata["Phase_correction_parameter"] = float(lines[10].strip())
         # find line with "Measurement channels"
         index_start_measurement_channels = 0
         for i, line in enumerate(lines):
@@ -46,12 +62,14 @@ def read_eit_data(path):
         current_values = []
         # The file looks like this:
         # 1 2
-        # V1_RE V1_IM V2_RE V2_IM
-        # VN_RE VN_IM
+        # V1_RE V1_IM V2_RE V2_IM ... VN_RE VN_IM   <-- frequency 1
+        # V1_RE V1_IM V2_RE V2_IM ... VN_RE VN_IM   <-- frequency 2
+        # ...
         # 3 4
-        # V1_RE V1_IM V2_RE V2_IM
-        # VN_RE VN_IM
-        for line in lines[index_start_measurement_channels:]:
+        # V1_RE V1_IM V2_RE V2_IM ... VN_RE VN_IM   <-- frequency 1
+        # V1_RE V1_IM V2_RE V2_IM ... VN_RE VN_IM   <-- frequency 2
+        # ...
+        for i, line in enumerate(lines[index_start_measurement_channels:]):
             elements = line.strip().split(" ")
             if len(elements) == 2:
                 if current_key is not None:
@@ -116,7 +134,7 @@ def convert_complex_dict_to_dataframe(dict):
             df = pd.concat([df, new_row], ignore_index=True)
     return df
 
-def convert_single_frequency_eit_to_df(path):
+def convert_single_frequency_eit_file_to_df(path):
     """
     Converts a single frequency EIT file to a dataframe
     """
@@ -133,41 +151,28 @@ def convert_single_frequency_eit_to_df(path):
     return df
 
 
-dict = read_eit_data(path)
-print(dict)
-print(dict.values())
-complex_dict = convert_voltage_dict_to_complex(dict)
-print(complex_dict)
-amplitude_phase, all_amplitudes, all_phases = convert_complex_dict_to_amplitude_phase(complex_dict)
-print(amplitude_phase)
-df = convert_complex_dict_to_dataframe(amplitude_phase)
-print(df)
-# sort by measuring electrode
-df = df.convert_dtypes()
-df = df.sort_values(by=["measuring_electrode", "injection_pos"])
-print(df)
-# reindex
-df = df.reset_index(drop=True)
-
+path = "setup_1_00003.eit"
+df = convert_single_frequency_eit_file_to_df(path)
 #
-read_protocol = pickle.load(open("protocol.pickle", "rb"))
-keep_mask = read_protocol.keep_ba
-# reverse keep_mask order
-print(keep_mask)
-frame2 = pd.DataFrame(keep_mask, columns=["keep"])
-df_with_keep_mask = pd.concat([df, frame2], axis=1)
-print(df_with_keep_mask)
-
-# keep only the rows with keep=True
-
-df_only_keep = df_with_keep_mask[df_with_keep_mask["keep"] == True].drop("keep", axis=1)
-print(df_only_keep)
-
-# get col amplitude as list and save as pickle
-amplitudes = df_only_keep["amplitude"].tolist()
-# convert to numpy array
-amplitudes = np.array(amplitudes)
-pickle.dump(amplitudes, open("v1.pickle", "wb"))
+print(df)
+# read_protocol = pickle.load(open("protocol.pickle", "rb"))
+# keep_mask = read_protocol.keep_ba
+# # reverse keep_mask order
+# print(keep_mask)
+# frame2 = pd.DataFrame(keep_mask, columns=["keep"])
+# df_with_keep_mask = pd.concat([df, frame2], axis=1)
+# print(df_with_keep_mask)
+#
+# # keep only the rows with keep=True
+#
+# df_only_keep = df_with_keep_mask[df_with_keep_mask["keep"] == True].drop("keep", axis=1)
+# print(df_only_keep)
+#
+# # get col amplitude as list and save as pickle
+# amplitudes = df_only_keep["amplitude"].tolist()
+# # convert to numpy array
+# amplitudes = np.array(amplitudes)
+# pickle.dump(amplitudes, open("v1.pickle", "wb"))
 
 
 

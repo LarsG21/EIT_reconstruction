@@ -82,9 +82,7 @@ print(read_protocol)
 # calculate simulated data
 fwd = EITForward(mesh_obj, protocol_obj)
 v0 = fwd.solve_eit()
-v0 = pickle.load(open("v0.pickle", "rb"))
 v1 = fwd.solve_eit(perm=mesh_new.perm)
-v1 = pickle.load(open("v1.pickle", "rb"))
 # These are the Voltages measured at the electrodes
 # v0 is the voltage without anomaly
 # v1 is the voltage with anomaly
