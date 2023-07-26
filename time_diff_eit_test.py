@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from data_reader import convert_single_frequency_eit_file_to_df
+from data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from pyeit import mesh
 from pyeit.eit import protocol, jac, greit, bp
 from pyeit.eit.interp2d import sim2pts
@@ -40,12 +40,25 @@ keep_mask = protocol_obj.keep_ba
 print(keep_mask)
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
+default_frame = None
 
-def plot_eit_image(path1, path2):
-    df1 = convert_single_frequency_eit_file_to_df(path1)
-    df2 = convert_single_frequency_eit_file_to_df(path2)
-    df1 = pd.concat([df1, df_keep_mask], axis=1)
-    df2 = pd.concat([df2, df_keep_mask], axis=1)
+
+def plot_time_diff_eit_image(path1, path2, frequency=1000):
+    global default_frame
+    # df1 = convert_multi_frequency_eit_to_df(path1)
+    # df2 = convert_multi_frequency_eit_to_df(path2)
+    # df1 = df1[df1["frequency"] == frequency]
+    # df2 = df2[df2["frequency"] == frequency]
+    # df1 = df1.reset_index(drop=True)
+    # df2 = df2.reset_index(drop=True)
+    df1_old = convert_single_frequency_eit_file_to_df(path1)
+    if default_frame is None:
+        df2_old = convert_single_frequency_eit_file_to_df(path2)
+    else:
+        df2_old = default_frame
+
+    df1 = pd.concat([df1_old, df_keep_mask], axis=1)
+    df2 = pd.concat([df2_old, df_keep_mask], axis=1)
     df1 = df1[df1["keep"] == True].drop("keep", axis=1)
     df2 = df2[df2["keep"] == True].drop("keep", axis=1)
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
@@ -56,6 +69,30 @@ def plot_eit_image(path1, path2):
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
 
+def plot_frequencies_diff_eit_image(path, f1,f2):
+    """
+    Plot the difference between two frequencies
+    :param path1:
+    :param f1:
+    :param f2:
+    :return:
+    """
+    if not type(f1) == int or not type(f2) == int:
+        raise Exception("f1 and f2 must be integers")
+    df = convert_multi_frequency_eit_to_df(path)
+    df1 = df[df["frequency"] == f1]
+    df2 = df[df["frequency"] == f2]
+    df1 = df.reset_index(drop=True)
+    df2 = df2.reset_index(drop=True)
+
+    df1 = pd.concat([df1, df_keep_mask], axis=1)
+    df2 = pd.concat([df2, df_keep_mask], axis=1)
+    df1 = df1[df1["keep"] == True].drop("keep", axis=1)
+    df2 = df2[df2["keep"] == True].drop("keep", axis=1)
+    v0 = df1["amplitude"].to_numpy(dtype=np.float64)
+    v1 = df2["amplitude"].to_numpy(dtype=np.float64)
+
+    solve_and_plot_jack(f"{f1}", f"{f2}", v0, v1)
 
 def solve_and_plot_greit(path1, path2, v0, v1):
     """ 3. Construct using GREIT """
@@ -216,7 +253,7 @@ def plot_eit_images_in_folder(path):
                 default_frame = current_frame
             else:
                 print(default_frame, current_frame)
-                plot_eit_image(os.path.join(eit_path, current_frame), os.path.join(eit_path, default_frame))
+                plot_time_diff_eit_image(os.path.join(eit_path, current_frame), os.path.join(eit_path, default_frame))
                 # last_frame = current_frame
     # reset path
     os.chdir(old_path)
@@ -231,6 +268,9 @@ def plot_eit_video(path):
     """
     eit_path = ""
     seen_files = []
+    if len(os.listdir(path)) == 0:
+        print("No files in folder")
+        return
     for file_or_folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, file_or_folder)):
             os.chdir(os.path.join(path, file_or_folder))
@@ -239,6 +279,9 @@ def plot_eit_video(path):
             eit_path = os.getcwd()
             print(eit_path)
             break
+        else:
+            print("No folder found")
+            return
     default_frame = None
     while True:
         for current_frame in os.listdir(os.getcwd()):
@@ -247,18 +290,20 @@ def plot_eit_video(path):
                     default_frame = current_frame
                 else:
                     time.sleep(0.01) # wait for file to be written
-                    print(default_frame, current_frame)
-                    plot_eit_image(os.path.join(eit_path, current_frame), os.path.join(eit_path, default_frame))
+                    # print(default_frame, current_frame)
+                    plot_time_diff_eit_image(os.path.join(eit_path, current_frame),
+                                             os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
         # time.sleep(0.1)
 
 path = "eit_data"
 
-path_t1 = "setup_00002.eit"
-path_t2 = "setup_00006.eit"
+# path_t1 = "setup_00002.eit"
+# path_t2 = "setup_00006.eit"
 # plot_eit_image(path_t1, path_t2)
 
-
+# start = time.time()
 # plot_eit_images_in_folder(path)
-
+# end = time.time()
+# print("Time taken: ", end - start)
 plot_eit_video(path)
