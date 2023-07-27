@@ -1,3 +1,4 @@
+import os.path
 import time
 from datetime import datetime
 
@@ -93,7 +94,8 @@ def calc_average_loss_completly_white(image_data_tensor, criterion):
     return average_loss
 
 
-def plot_reconstruction(image_data_tensor, voltage_data_tensor, model, criterion, num_images=100):
+def plot_reconstruction(image_data_tensor, voltage_data_tensor, model, criterion, num_images=40,
+                        save_path=""):
     global output
     # Display all reconstructed images
     average_loss = 0
@@ -124,8 +126,10 @@ def plot_reconstruction(image_data_tensor, voltage_data_tensor, model, criterion
         plt.title("Original")
         # add colorbar
         plt.colorbar()
+        if save_path != "":
+            plt.savefig(os.path.join(save_path, f"reconstruction_{i}.png"))
         plt.show()
-        time.sleep(0.5)
+        time.sleep(0.1)
     return average_loss / num_images
 
 
@@ -150,7 +154,7 @@ def plot_loss(val_loss_list, loss_list=None, save_name=""):
 
 
 if __name__ == "__main__":
-    TRAIN = True
+    TRAIN = False
     load_model_and_continue_trainig = False
     # Step 1: Install required libraries (PyTorch)
 
@@ -214,7 +218,7 @@ if __name__ == "__main__":
     if TRAIN:
         if load_model_and_continue_trainig:
             model.load_state_dict(torch.load(
-                "Edinburgh mfEIT Dataset/models_old/model_2023-07-27_15-21-38_100_250.pth"))
+                "Edinburgh mfEIT Dataset/models_old_loss_methode/model_2023-07-27_16-11-48_250_epochs.pth"))
         num_epochs = 250
         loss_list = []
         val_loss_list = []
@@ -263,7 +267,8 @@ if __name__ == "__main__":
     else:  # load the model
         print("Loading the model")
         model = CNNModel()
-        model.load_state_dict(torch.load("Edinburgh mfEIT Dataset/models_old/model_2023-07-27_15-28-02_70_250.pth"))
+        model.load_state_dict(torch.load(
+            "Edinburgh mfEIT Dataset/models_new_loss_methode/1/model_2023-07-27_16-11-48_250_epochs.pth"))
         model.eval()
 
     # After training, you can use the model to reconstruct images
@@ -286,4 +291,4 @@ if __name__ == "__main__":
 
     # Try inference on test images
     print("Test images")
-    plot_reconstruction(test_images, test_voltage, model, criterion, num_images=40)
+    plot_reconstruction(test_images, test_voltage, model, criterion, num_images=20, save_path="Edinburgh mfEIT Dataset/models_new_loss_methode/1")
