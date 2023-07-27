@@ -82,11 +82,13 @@ all_voltages = np.concatenate((voltages1, voltages2, voltages3), axis=0)
 np.save('Edinburgh mfEIT Dataset/voltages.npy', all_voltages)
 print(len(voltages1))
 all_images1 = seperate_images(images1)
-all_images2 = seperate_images(images2)
-all_images3 = seperate_images(images3)
-all_images = np.concatenate((all_images1, all_images2, all_images3), axis=0)
+# all_images2 = seperate_images(images2)
+# all_images3 = seperate_images(images3)
+# all_images = np.concatenate((all_images1, all_images2, all_images3), axis=0)
+# binarize the images
+# all_images1 = np.where(all_images1 > 0, 1, 0)
 # save as npy
-np.save('Edinburgh mfEIT Dataset/images.npy', all_images)
+np.save('Edinburgh mfEIT Dataset/images1.npy', all_images1)
 print(len(all_images1))
 print("OK")
 
