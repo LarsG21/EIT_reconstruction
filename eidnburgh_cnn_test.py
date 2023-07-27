@@ -142,10 +142,11 @@ def plot_loss(val_loss_list, loss_list=None, save_name=""):
     """
     if loss_list is not None:
         plt.plot(loss_list)
+    plt.plot(val_loss_list)
+    if loss_list is not None:
         plt.legend(["Train", "Validation"])
     else:
         plt.legend(["Validation"])
-    plt.plot(val_loss_list)
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.show()
@@ -162,8 +163,8 @@ if __name__ == "__main__":
     # Assuming you have 'voltage_data' and 'image_data' as your numpy arrays
     # Convert them to PyTorch tensors and create DataLoader
 
-    voltage_data_np = np.load("Edinburgh mfEIT Dataset/voltages1.npy")
-    image_data_np = np.load("Edinburgh mfEIT Dataset/images1.npy")
+    voltage_data_np = np.load("Edinburgh mfEIT Dataset/voltages.npy")
+    image_data_np = np.load("Edinburgh mfEIT Dataset/images.npy")
 
     print("Overall data shape: ", voltage_data_np.shape)
 
@@ -218,8 +219,8 @@ if __name__ == "__main__":
     if TRAIN:
         if load_model_and_continue_trainig:
             model.load_state_dict(torch.load(
-                "Edinburgh mfEIT Dataset/models_old_loss_methode/model_2023-07-27_16-11-48_250_epochs.pth"))
-        num_epochs = 250
+                "Edinburgh mfEIT Dataset/models_new_loss_methode/1/model_2023-07-27_16-11-48_250_epochs.pth"))
+        num_epochs = 150
         loss_list = []
         val_loss_list = []
         for epoch in range(num_epochs):
@@ -268,7 +269,7 @@ if __name__ == "__main__":
         print("Loading the model")
         model = CNNModel()
         model.load_state_dict(torch.load(
-            "Edinburgh mfEIT Dataset/models_new_loss_methode/1/model_2023-07-27_16-11-48_250_epochs.pth"))
+            "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
         model.eval()
 
     # After training, you can use the model to reconstruct images
@@ -291,4 +292,6 @@ if __name__ == "__main__":
 
     # Try inference on test images
     print("Test images")
-    plot_reconstruction(test_images, test_voltage, model, criterion, num_images=20, save_path="Edinburgh mfEIT Dataset/models_new_loss_methode/1")
+    plot_reconstruction(test_images, test_voltage, model, criterion, num_images=20,
+                        save_path="Edinburgh mfEIT Dataset/models_new_loss_methode/2"
+                        )
