@@ -23,12 +23,12 @@ print(v3.shape)
 def seperate_images(array):
     """
     Seperates the numpy array into all the images and returns a list of images
-    :param array:
+    :param array: numpy array of images
     :return:
     """
     all_images = []
-    for i in range(0, len(images1)):
-        img = images1[i]
+    for i in range(0, len(array)):
+        img = array[i]
         img = img * 255
         img = img.astype(np.uint8)
         img = -img
@@ -74,13 +74,21 @@ def seperate_voltages(array):
 
 
 voltages1 = seperate_voltages(v1)
+voltages2 = seperate_voltages(v2)
+voltages3 = seperate_voltages(v3)
+all_voltages = np.concatenate((voltages1, voltages2, voltages3), axis=0)
+#
 # save as npy
-np.save('Edinburgh mfEIT Dataset/voltages1.npy', voltages1)
+np.save('Edinburgh mfEIT Dataset/voltages.npy', all_voltages)
 print(len(voltages1))
 all_images1 = seperate_images(images1)
+all_images2 = seperate_images(images2)
+all_images3 = seperate_images(images3)
+all_images = np.concatenate((all_images1, all_images2, all_images3), axis=0)
 # save as npy
-np.save('Edinburgh mfEIT Dataset/images1.npy', all_images1)
+np.save('Edinburgh mfEIT Dataset/images.npy', all_images)
 print(len(all_images1))
+print("OK")
 
 # voltages2 = seperate_voltages(v2)
 # print(len(voltages2))
