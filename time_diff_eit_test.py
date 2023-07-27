@@ -61,6 +61,9 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     df2 = pd.concat([df2_old, df_keep_mask], axis=1)
     df1 = df1[df1["keep"] == True].drop("keep", axis=1)
     df2 = df2[df2["keep"] == True].drop("keep", axis=1)
+    # print some statistics about the data min max mean std
+    print(df1.describe())
+
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
     v1 = df2["amplitude"].to_numpy(dtype=np.float64)
 

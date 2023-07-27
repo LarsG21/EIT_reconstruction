@@ -48,6 +48,7 @@ def seperate_images(array):
         # cv2.imshow('img3', cv2.resize(img3, (256, 256)))
         # cv2.imshow('img4', cv2.resize(img4, (256, 256)))
         # cv2.waitKey(1)
+    all_images = np.array(all_images)
     return all_images
 
 def seperate_voltages(array):
@@ -67,11 +68,18 @@ def seperate_voltages(array):
         all_volts.append(volt2)
         all_volts.append(volt3)
         all_volts.append(volt4)
+    # convert to np array
+    all_volts = np.array(all_volts)
     return all_volts
 
+
 voltages1 = seperate_voltages(v1)
+# save as npy
+np.save('Edinburgh mfEIT Dataset/voltages1.npy', voltages1)
 print(len(voltages1))
 all_images1 = seperate_images(images1)
+# save as npy
+np.save('Edinburgh mfEIT Dataset/images1.npy', all_images1)
 print(len(all_images1))
 
 # voltages2 = seperate_voltages(v2)
@@ -85,9 +93,9 @@ print(len(all_images1))
 # print(len(all_images3))
 
 
-# for img in all_images1:
-#     cv2.imshow('img1', cv2.resize(img, (256, 256)))
-#     cv2.waitKey(1)
+for img in all_images1:
+    cv2.imshow('img1', cv2.resize(img, (256, 256)))
+    cv2.waitKey(1)
 
 
 # Create a dataframe with the images and voltages
