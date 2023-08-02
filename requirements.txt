@@ -4,3 +4,6 @@ matplotlib~=3.7.0
 scipy~=1.11.1
 shapely~=2.0.1
 setuptools~=65.5.1
+opencv-python
+torch
+scikit-learn

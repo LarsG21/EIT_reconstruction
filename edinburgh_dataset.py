@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 import pandas as pd
-import torch
 
 images1 = np.load('Edinburgh mfEIT Dataset/img1.npy')
 images2 = np.load('Edinburgh mfEIT Dataset/img2.npy')

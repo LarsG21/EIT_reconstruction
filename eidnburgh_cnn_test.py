@@ -33,13 +33,15 @@ class CustomDataset(data.Dataset):
 
         return voltage, image
 
+VOLTAGE_VECTOR_LENGTH = 104
+OUTPUT_IMAGE_SIZE = 64 * 64
 
 # Step 3: Create the CNN model
 class CNNModel(nn.Module):
     def __init__(self):
         super(CNNModel, self).__init__()
         self.encoder = nn.Sequential(
-            nn.Linear(104, 128),
+            nn.Linear(VOLTAGE_VECTOR_LENGTH, 128),
             nn.ReLU(True),
             nn.Linear(128, 256),
             nn.ReLU(True),
@@ -51,7 +53,7 @@ class CNNModel(nn.Module):
             nn.ReLU(True),
             nn.Linear(256, 128),
             nn.ReLU(True),
-            nn.Linear(128, 64 * 64),
+            nn.Linear(128, OUTPUT_IMAGE_SIZE),
             # nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
         )
 
