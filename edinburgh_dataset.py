@@ -106,6 +106,10 @@ for img in all_images1:
     cv2.imshow('img1', cv2.resize(img, (256, 256)))
     cv2.waitKey(1)
 
+# Show the average image to see if its evenly distributed
+average_image = np.mean(all_images1, axis=0)
+cv2.imshow('average', cv2.resize(average_image, (256, 256)))
+cv2.waitKey(0)
 
 # Create a dataframe with the images and voltages
 

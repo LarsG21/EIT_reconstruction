@@ -141,7 +141,7 @@ if __name__ == '__main__':
         img_array.append(img)
         v0_array.append(v0)
         v1_array.append(v1)
-        np.save("v0.npy", v0)
+        np.save("Own_Simulation_Dataset/v0.npy", v0)
 
 
     end = time.time()

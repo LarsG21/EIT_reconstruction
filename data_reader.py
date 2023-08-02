@@ -250,11 +250,11 @@ def convert_single_frequency_eit_file_to_df(path):
 
 if __name__ == '__main__':
 
-    path_single = "setup_00001.eit"
+    path_single = "sample_eit_frames/setup_00001.eit"
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi = "setup_1_00001.eit"
+    path_multi = "sample_eit_frames/setup_1_00001.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 

@@ -2,9 +2,11 @@ import time
 
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
 
 from data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
+from eidnburgh_cnn_test import plot_single_reconstruction, CNNModel
 from pyeit import mesh
 from pyeit.eit import protocol, jac, greit, bp
 from pyeit.eit.interp2d import sim2pts
@@ -43,6 +45,10 @@ df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 default_frame = None
 
 
+def solve_and_plot_cnn(model, v1):
+    plot_single_reconstruction(model, v1)
+
+
 def plot_time_diff_eit_image(path1, path2, frequency=1000):
     global default_frame
     # df1 = convert_multi_frequency_eit_to_df(path1)
@@ -71,6 +77,8 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     # solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
+    solve_and_plot_cnn(model=model, v1=v1-v0)
+
 
 def plot_frequencies_diff_eit_image(path, f1,f2):
     """
@@ -137,7 +145,9 @@ def solve_and_plot_jack(path1, path2, v0, v1):
     # as in mesh generating the jac, then data must be normalized.
     eit = jac.JAC(mesh_obj, protocol_obj)
     eit.setup(p=0.5, lamb=0.01, method="kotre", perm=1, jac_normalized=True)
+    start_time = time.time()
     ds = eit.solve(v1, v0, normalize=True)
+    print(f"JAC took {(time.time() - start_time)*1000} ms")
     # ds is the delta sigma, the difference between the permittivity with and without anomaly
     # A list of 704 values
     # pts is the list of the nodes of the mesh
@@ -309,4 +319,12 @@ path = "eit_data"
 # plot_eit_images_in_folder(path)
 # end = time.time()
 # print("Time taken: ", end - start)
+
+print("Loading the model")
+model = CNNModel()
+# model.load_state_dict(torch.load(
+#     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
+model.load_state_dict(torch.load(
+    "Edinburgh mfEIT Dataset/model_2023-08-02_15-30-37_150_epochs.pth"))
+model.eval()
 plot_eit_video(path)
