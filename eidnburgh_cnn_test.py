@@ -161,12 +161,13 @@ def plot_loss(val_loss_list, loss_list=None, save_name=""):
 
 
 if __name__ == "__main__":
-    TRAIN = False
+    TRAIN = True
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     # Training parameters
-    num_epochs = 10
-    NOISE_LEVEL = 0.05
+    num_epochs = 150
+    NOISE_LEVEL = 0.03
+    # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
@@ -179,7 +180,9 @@ if __name__ == "__main__":
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    model_path = os.path.join(path, "Models", f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}")
+    model_name = "Test_noise_03_regularization_1e-5"
+    # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
         os.makedirs(model_path)
     # MODEL_PATH = "Own_Simulation_Dataset/Models"
@@ -339,7 +342,7 @@ if __name__ == "__main__":
     # plot_sample_reconstructions(train_images, train_voltage, model, criterion, num_images=20)
 
     # Try inference on test images
-    print("Test images")
+    print("Test_max_noise_05 images")
     plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
                                 save_path=model_path)
 

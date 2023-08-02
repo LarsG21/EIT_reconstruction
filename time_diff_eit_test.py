@@ -326,6 +326,6 @@ model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/model_2023-08-02_17-05-03_150_epochs.pth"))
+    "Own_Simulation_Dataset/Models/Test_noise_03_regularization_1e-5/model_2023-08-02_19-13-16_epoche_143_of_150_best_model.pth"))
 model.eval()
 plot_eit_video(path)
