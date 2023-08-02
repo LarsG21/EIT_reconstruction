@@ -319,12 +319,13 @@ path = "eit_data"
 # plot_eit_images_in_folder(path)
 # end = time.time()
 # print("Time taken: ", end - start)
-
+VOLTAGE_VECTOR_LENGTH = 896
+OUT_SIZE = 64
 print("Loading the model")
-model = CNNModel()
+model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Edinburgh mfEIT Dataset/model_2023-08-02_15-30-37_150_epochs.pth"))
+    "Own_Simulation_Dataset/Models/model_2023-08-02_17-05-03_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)

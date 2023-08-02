@@ -1,3 +1,4 @@
+import copy
 import os.path
 import time
 from datetime import datetime
@@ -12,8 +13,15 @@ import cv2
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-LOSS_SCALE_FACTOR = 1000
+from CNN_Models import CNNModel, UNetModel, CNNModelWithDropout
 
+LOSS_SCALE_FACTOR = 1000
+VOLTAGE_VECTOR_LENGTH = 896
+OUT_SIZE = 64
+
+
+# VOLTAGE_VECTOR_LENGTH = 104
+# OUT_SIZE = 64
 
 # Step 2: Prepare the dataset (assuming you have custom dataset in numpy arrays)
 class CustomDataset(data.Dataset):
@@ -33,39 +41,6 @@ class CustomDataset(data.Dataset):
         #     voltage = self.transform(voltage)
 
         return voltage, image
-
-
-# VOLTAGE_VECTOR_LENGTH = 896
-# OUT_SIZE = 64
-VOLTAGE_VECTOR_LENGTH = 104
-OUT_SIZE = 64
-
-
-# Step 2023_08_02_15_30: Create the CNN model
-class CNNModel(nn.Module):
-    def __init__(self):
-        super(CNNModel, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(VOLTAGE_VECTOR_LENGTH, 128),
-            nn.ReLU(True),
-            nn.Linear(128, 256),
-            nn.ReLU(True),
-            nn.Linear(256, 512),
-            nn.ReLU(True),
-        )
-        self.decoder = nn.Sequential(
-            nn.Linear(512, 256),
-            nn.ReLU(True),
-            nn.Linear(256, 128),
-            nn.ReLU(True),
-            nn.Linear(128, OUT_SIZE ** 2),
-            # nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
-        )
-
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
-        return x
 
 
 def calc_average_loss_completly_black(image_data_tensor, criterion):
@@ -186,14 +161,27 @@ def plot_loss(val_loss_list, loss_list=None, save_name=""):
 
 
 if __name__ == "__main__":
-    TRAIN = True
+    TRAIN = False
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    NOISE_LEVEL =0.1
-    path = "Edinburgh mfEIT Dataset"
-    # path = "Own_Simulation_Dataset"
-    model_path = os.path.join(path, "Models")
+    # Training parameters
+    num_epochs = 10
+    NOISE_LEVEL = 0.05
+    LEARNING_RATE = 0.0005
+    # Define the weight decay factor
+    weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
+    # weight_decay = 0  # Adjust this value as needed (L2 regularization)
+    # Define early stopping parameters
+    patience = 30  # Number of epochs to wait for improvement
 
+    best_val_loss = float('inf')  # Initialize with a very high value
+    counter = 0  # Counter to track epochs without improvement
+
+    # path = "Edinburgh mfEIT Dataset"
+    path = "Own_Simulation_Dataset"
+    model_path = os.path.join(path, "Models", f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}")
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
     # MODEL_PATH = "Own_Simulation_Dataset/Models"
 
     # Step 1: Install required libraries (PyTorch)
@@ -202,14 +190,14 @@ if __name__ == "__main__":
     # Assuming you have 'voltage_data' and 'image_data' as your numpy arrays
     # Convert them to PyTorch tensors and create DataLoader
 
-    voltage_data_np = np.load(os.path.join(path, "voltages.npy"))
-    image_data_np = np.load(os.path.join(path, "images.npy"))
+    # voltage_data_np = np.load(os.path.join(path, "voltages.npy"))
+    # image_data_np = np.load(os.path.join(path, "images.npy"))
 
-    # voltage_data_np = np.load("Own_Simulation_Dataset/v1_array_1.npy")
-    # image_data_np = np.load("Own_Simulation_Dataset/img_array_1.npy")
-    # v0 = np.load("Own_Simulation_Dataset/v0.npy")
-    # # subtract v0 from all voltages
-    # voltage_data_np = voltage_data_np - v0
+    voltage_data_np = np.load("Own_Simulation_Dataset/v1_array.npy")
+    image_data_np = np.load("Own_Simulation_Dataset/img_array.npy")
+    v0 = np.load("Own_Simulation_Dataset/v0.npy")
+    # subtract v0 from all voltages
+    voltage_data_np = voltage_data_np - v0
     # Now the model should learn the difference between the voltages and v0 (default state)
 
     print("Overall data shape: ", voltage_data_np.shape)
@@ -222,7 +210,7 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = CNNModel()
+    model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     print("model summary: ", model)
 
     # Step 4: Split the data into train, test, and validation sets
@@ -255,11 +243,12 @@ if __name__ == "__main__":
     val_dataloader = data.DataLoader(val_dataset, batch_size=32, shuffle=False)
     print("Number of validation samples: ", len(val_dataset))
 
-
     # Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()
     # criterion = nn.L1Loss()  # Didnt work well
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    # Initialize the optimizer with weight decay
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)
 
     loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
                                                        criterion=criterion)
@@ -272,7 +261,6 @@ if __name__ == "__main__":
         if load_model_and_continue_trainig:
             model.load_state_dict(torch.load(
                 os.path.join(model_path, "MODEL_NAME.pth")))
-        num_epochs = 150
         loss_list = []
         val_loss_list = []
         for epoch in range(num_epochs):
@@ -291,15 +279,29 @@ if __name__ == "__main__":
 
             # After each epoch, evaluate the model on the validation set
             model.eval()  # Set the model to evaluation mode
-            with torch.no_grad():       # TODO: implement early stopping
+            with torch.no_grad():
                 val_loss = 0.0
                 for batch_voltages, batch_images in val_dataloader:
                     outputs = model(batch_voltages)
                     val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
                 val_loss /= len(val_dataloader)
+                if val_loss < best_val_loss:    # Early stopping
+                    best_val_loss = val_loss
+                    counter = 0
+                    best_model = copy.deepcopy(model)
+                else:
+                    counter += 1
+                    print(f"Early stopping in {patience-counter} epochs")
+                    if counter >= patience:
+                        print("Early stopping triggered. No improvement in validation loss.")
+                        # save the model
+                        torch.save(best_model.state_dict(),
+                                      os.path.join(model_path,
+                                                    f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_epoche_{epoch}_of_{num_epochs}_best_model.pth"))
+                        break
                 val_loss_list.append(val_loss)
-                print(f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss,4)} Loss: {round(loss.item(),4)}")
+                print(f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Loss: {round(loss.item(), 4)}")
 
             loss_list.append(loss.item())
             print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
@@ -321,11 +323,11 @@ if __name__ == "__main__":
     # load the model
     else:  # load the model
         print("Loading the model")
-        model = CNNModel()
+        model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
         # model.load_state_dict(torch.load(
         #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
         model.load_state_dict(torch.load(
-            "Own_Simulation_Dataset/Models/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
+            "Own_Simulation_Dataset/Models/model2023-08-02_18-32-46/model_2023-08-02_18-33-07_10_epochs.pth"))
         model.eval()
 
     # After training, you can use the model to reconstruct images

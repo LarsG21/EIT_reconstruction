@@ -134,14 +134,17 @@ if __name__ == '__main__':
     v0_array = []
     v1_array = []
     start = time.time()
+    # Simulate 1 sample to get the v0
+    # v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
+    # np.save("Own_Simulation_Dataset/v0.npy", v0)
 
+    # Simulate the rest of the samples
     for i in range(SAMPLES):
         print(i)
         v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
         img_array.append(img)
         v0_array.append(v0)
         v1_array.append(v1)
-        np.save("Own_Simulation_Dataset/v0.npy", v0)
 
 
     end = time.time()
@@ -155,9 +158,21 @@ if __name__ == '__main__':
     v0_array = np.array(v0_array)
     print("OK")
 
+    average_image = np.mean(img_array, axis=0)
+    cv2.imshow('average', cv2.resize(average_image, (256, 256)))
+    cv2.waitKey(0)
+
     # load the data
-    # img_array = np.load("img_array_1.npy")
-    # v1_array = np.load("v1_array_1.npy")
+    # img_array1 = np.load("Own_Simulation_Dataset/img_array_1.npy")
+    # v1_array1 = np.load("Own_Simulation_Dataset/v1_array_1.npy")
+    # img_array2 = np.load("Own_Simulation_Dataset/img_array_2.npy")
+    # v1_array2 = np.load("Own_Simulation_Dataset/v1_array_2.npy")
+    #
+    # img_array = np.concatenate((img_array1, img_array2), axis=0)
+    # v1_array = np.concatenate((v1_array1, v1_array2), axis=0)
+
+    # np.save("Own_Simulation_Dataset/img_array.npy", img_array)
+    # np.save("Own_Simulation_Dataset/v1_array.npy", v1_array)
     #
     # print(img_array.shape)
     # print(v1_array.shape)
