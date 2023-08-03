@@ -34,8 +34,9 @@ def generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_per
     perm = np.random.uniform(min_perm, max_perm)
     return center, r, perm
 
-def generate_random_anomaly_list(number_of_anomalies, min_radius, max_radius, min_perm, max_perm, outer_circle_radius=0.8):
+def generate_random_anomaly_list(max_number_of_anomalies, min_radius, max_radius, min_perm, max_perm, outer_circle_radius=0.8):
     anomaly_list = []
+    number_of_anomalies = np.random.randint(1, max_number_of_anomalies)
     for i in range(number_of_anomalies):
         center, r, perm = generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_perm, outer_circle_radius)
         anomaly_list.append(PyEITAnomaly_Circle(center=center, r=r, perm=perm))
@@ -47,8 +48,8 @@ v0 = None
 def generate_sample_mesh_simulation(mesh_obj, n_el=32):
     global v0
     """ 1. problem setup """
-    anomaly_list = generate_random_anomaly_list(number_of_anomalies=1, min_radius=0.1, max_radius=0.2, min_perm=1000,
-                                                max_perm=1000, outer_circle_radius=0.8)
+    anomaly_list = generate_random_anomaly_list(max_number_of_anomalies=3, min_radius=0.1, max_radius=0.25, min_perm=1000,
+                                                max_perm=1000, outer_circle_radius=0.75)
     mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
 
 
@@ -119,7 +120,7 @@ def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
 
 if __name__ == '__main__':
     """ 0. build mesh """
-    DATA_COLLECTION_RUN = 2
+    DATA_COLLECTION_RUN = 3
     SAMPLES = 5000
     mesh_obj = mesh.create(n_el, h0=0.1)
     # The mesh has 704 elements
@@ -135,8 +136,8 @@ if __name__ == '__main__':
     v1_array = []
     start = time.time()
     # Simulate 1 sample to get the v0
-    # v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
-    # np.save("Own_Simulation_Dataset/v0.npy", v0)
+    v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
+    np.save("Own_Simulation_Dataset/v0.npy", v0)
 
     # Simulate the rest of the samples
     for i in range(SAMPLES):

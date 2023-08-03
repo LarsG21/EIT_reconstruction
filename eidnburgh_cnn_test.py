@@ -8,7 +8,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
-from torchvision import transforms
 import cv2
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
@@ -25,10 +24,9 @@ OUT_SIZE = 64
 
 # Step 2: Prepare the dataset (assuming you have custom dataset in numpy arrays)
 class CustomDataset(data.Dataset):
-    def __init__(self, voltage_data, image_data, transform=None):
+    def __init__(self, voltage_data, image_data):
         self.voltage_data = voltage_data
         self.image_data = image_data
-        self.transform = transform
 
     def __len__(self):
         return len(self.voltage_data)
@@ -155,9 +153,10 @@ def plot_loss(val_loss_list, loss_list=None, save_name=""):
         plt.legend(["Validation"])
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.show()
     if save_name != "":
         plt.savefig(save_name)
+    plt.show()
+
 
 
 if __name__ == "__main__":
@@ -165,8 +164,8 @@ if __name__ == "__main__":
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     # Training parameters
-    num_epochs = 150
-    NOISE_LEVEL = 0.03
+    num_epochs = 100
+    NOISE_LEVEL = 0.15
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
@@ -181,6 +180,7 @@ if __name__ == "__main__":
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
     model_name = "Test_noise_03_regularization_1e-5"
+    model_name = "TESTIMG"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
@@ -208,7 +208,6 @@ if __name__ == "__main__":
     voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32)
     image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32)
 
-    transform = transforms.Compose([transforms.ToTensor()])
     dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
