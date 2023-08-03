@@ -18,8 +18,8 @@ class CNNModel(nn.Module):
             nn.ReLU(True),
             nn.Linear(256, 128),
             nn.ReLU(True),
-            nn.Linear(128, output_size)
-            # nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
+            nn.Linear(128, output_size),
+            nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
         )
 
     def forward(self, x):

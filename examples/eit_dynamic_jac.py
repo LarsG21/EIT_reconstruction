@@ -21,8 +21,8 @@ if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
     mesh_obj = mesh.create(n_el, h0=0.1, fd=thorax)
 else:
-    mesh_obj = mesh.create(n_el, h0=0.1)
-
+    mesh_obj = mesh.create(n_el, h0=0.1)    # Higher h0 means less elements
+                                            # Computable in reasonable tim up to 0.06
 # extract node, element, alpha
 pts = mesh_obj.node
 tri = mesh_obj.element
@@ -30,7 +30,7 @@ x, y = pts[:, 0], pts[:, 1]
 
 """ 1. problem setup """
 # mesh_obj["alpha"] = np.random.rand(tri.shape[0]) * 200 + 100 # NOT USED
-anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.1, perm=1000.0)
+anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.2, perm=1000.0)
 
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly)
 

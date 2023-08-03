@@ -113,7 +113,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     return average_loss / num_images
 
 
-def plot_single_reconstruction(model, voltage_data):
+def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image", original_image:np.array=None):
     """
     Plots a single reconstruction using the model
     :param model:
@@ -122,6 +122,10 @@ def plot_single_reconstruction(model, voltage_data):
     """
     if type(voltage_data) == np.ndarray:
         voltage_data = torch.tensor(voltage_data, dtype=torch.float32)
+    elif type(voltage_data) == torch.Tensor:
+        # if dtype is not float32, convert it
+        if voltage_data.dtype != torch.float32:
+            voltage_data = voltage_data.type(torch.float32)
     else:
         raise TypeError(
             f"voltage_data_tensor must be either a numpy array or a torch tensor but is {type(voltage_data)}")
@@ -130,11 +134,22 @@ def plot_single_reconstruction(model, voltage_data):
     stop = time.time()
     print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
-    plt.imshow(output)
-    plt.title(f"Reconstructed image")
-    # add colorbar
-    plt.colorbar()
-    plt.show()
+    if original_image is not None:
+        plt.subplot(1, 2, 1)
+        plt.imshow(output)
+        plt.title(title)
+        plt.subplot(1, 2, 2)
+        plt.imshow(original_image)
+        plt.title("Original")
+        # add colorbar
+        plt.colorbar()
+        plt.show()
+    else:
+        plt.imshow(output)
+        plt.title(title)
+        # add colorbar
+        plt.colorbar()
+        plt.show()
 
 
 def plot_loss(val_loss_list, loss_list=None, save_name=""):
@@ -163,9 +178,10 @@ if __name__ == "__main__":
     TRAIN = True
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
+    LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 100
-    NOISE_LEVEL = 0.15
+    num_epochs = 150
+    NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
@@ -180,7 +196,7 @@ if __name__ == "__main__":
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
     model_name = "Test_noise_03_regularization_1e-5"
-    model_name = "TESTIMG"
+    model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
@@ -303,19 +319,22 @@ if __name__ == "__main__":
                                                     f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_epoche_{epoch}_of_{num_epochs}_best_model.pth"))
                         break
                 val_loss_list.append(val_loss)
-                print(f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Loss: {round(loss.item(), 4)}")
+                print(f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Training Loss: {round(loss.item(), 4)}")
 
             loss_list.append(loss.item())
-            print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
-            # plot loss every 10 epochs
-            if epoch % 10 == 0 and epoch != 0:
+            # plot loss every N epochs
+            if epoch % LOSS_PLOT_INTERVAL == 0 and epoch != 0:
                 plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name="")
                 # save the model
                 if SAVE_CHECKPOINTS:
                     torch.save(model.state_dict(),
                                os.path.join(model_path,
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
-
+                # also create a sample reconstruction with the current model
+                test_voltage_data = test_voltage[0]
+                plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
+                                           title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
+                # plot the corresponding image
         # save the final model
         torch.save(model.state_dict(),
                    os.path.join(model_path,
