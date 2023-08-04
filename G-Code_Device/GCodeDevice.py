@@ -52,22 +52,21 @@ class GCodeDevice:
         self.ser.write(str.encode("G28\r\n"))
         time.sleep(3)
         # while last line 2 lines do not contain "busy"
-        while "busy" in self._get_receive_buffer_at(-2) or\
-              "busy" in self._get_receive_buffer_at(-1):
+        while "busy" in self._get_receive_buffer_at(-2) or \
+                "busy" in self._get_receive_buffer_at(-1):
             print("Waiting for homing to finish")
             time.sleep(1)
         print("Homing finished")
         self.current_position = (0, 0, 0)
 
-
     def check_limits_with_current_position(self, x, y, z):
-        if self.current_position[0] + x > self.maximal_limits[0] or\
-           self.current_position[1] + y > self.maximal_limits[1] or\
-           self.current_position[2] + z > self.maximal_limits[2]:
+        if self.current_position[0] + x > self.maximal_limits[0] or \
+                self.current_position[1] + y > self.maximal_limits[1] or \
+                self.current_position[2] + z > self.maximal_limits[2]:
             return False
-        if self.current_position[0] + x < self.minimal_limits[0] or\
-           self.current_position[1] + y < self.minimal_limits[1] or\
-           self.current_position[2] + z < self.minimal_limits[2]:
+        if self.current_position[0] + x < self.minimal_limits[0] or \
+                self.current_position[1] + y < self.minimal_limits[1] or \
+                self.current_position[2] + z < self.minimal_limits[2]:
             return False
         return True
 
@@ -93,7 +92,6 @@ class GCodeDevice:
 
 
 def main():
-
     ender = GCodeDevice('COM3')
     kp = KeyPressModule()
     while True:
@@ -111,13 +109,7 @@ def main():
         print(ender.current_position)
         time.sleep(0.1)
 
-    # time.sleep(3)
-    # ender.move_to(0, 0, 30)
-    # time.sleep(3)
-    # ender.move_to(60, 0, 30)
-    # time.sleep(3)
-    # ender.move_relative(-20, 0, 0)
+
 
 if __name__ == '__main__':
     main()
-

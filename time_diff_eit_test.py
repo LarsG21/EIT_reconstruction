@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 
-from data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
+from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from eidnburgh_cnn_test import CNNModel
 from model_plot_utils import plot_single_reconstruction
 from pyeit import mesh
