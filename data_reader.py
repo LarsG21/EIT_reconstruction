@@ -181,6 +181,71 @@ def convert_multi_frequency_eit_to_df(path):
     return df
 
 
+# Single frequency
+
+def read_eit_data_single_frequency(path):
+    """
+    Reads the data from the given path_multi and returns a dictionary with the following structure:
+    Header
+    {(injection_electrode1, injection_electrode2): [voltage1, voltage2, ...], ...}
+    :param path: path_multi to the .eit file
+    :return: dictionary in form of {(injection_electrode1, injection_electrode2): [voltage1, voltage2, ...], ...}
+    """
+    metadata = {}
+    with open(path) as f:
+        try:
+            lines = f.readlines()
+            metadata["Number_of_Metadata_Entries"] = int(lines[0].strip())
+            metadata["Fiel_Version_Number"] = lines[1].strip()
+            metadata["Dataset_Name"] = lines[2].strip()
+            metadata["Timestamp"] = lines[3].strip()
+            metadata["Minimum_frequency"] = float(lines[4].strip())  # Hz
+            metadata["Maximum_frequency"] = float(lines[5].strip())  # Hz
+            metadata["Frequency_scale"] = lines[6].strip()  # 0 = linear, 1 = logarithmic
+            metadata["Number_of_frequencies"] = int(float(lines[7].strip()))
+            metadata["Amplitude"] = float(lines[8].strip())  # A
+            metadata["FPS"] = float(lines[9].strip())  # Frames per second
+            metadata["Phase_correction_parameter"] = float(lines[10].strip())
+        except IndexError:
+            print("IndexError: ", path)
+            print("Trying to read again...")
+            time.sleep(0.01)
+            read_eit_data_single_frequency(path)
+        # find line with "Measurement channels"
+        index_start_measurement_channels = 0
+        for i, line in enumerate(lines):
+            if line.startswith("MeasurementChannels"):
+                measurement_channels_str = line.split(":")[1]
+                measurement_channels = measurement_channels_str.split(",")
+                # strip all and convert to int
+                measurement_channels = [int(channel.strip()) for channel in measurement_channels]
+                index_start_measurement_channels = i + 2
+                break
+        data_dict = {}
+        current_key = None
+        current_values = []
+        # The file looks like this:
+        # 1 2
+        # V1_RE V1_IM V2_RE V2_IM ... VN_RE VN_IM   <-- frequency 1
+        # ...
+        # 3 4
+        # V1_RE V1_IM V2_RE V2_IM ... VN_RE VN_IM   <-- frequency 1
+        # ...
+        for i, line in enumerate(lines[index_start_measurement_channels:]):
+            elements = line.strip().split(" ")
+            if len(elements) == 2:
+                if current_key is not None:
+                    data_dict[current_key] = current_values
+                    current_values = []
+                current_key = (int(elements[0]), int(elements[1]))
+            else:
+                elements = line.strip().split("\t")
+                current_values.append([float(element) for element in elements])
+        # add last key
+        data_dict[current_key] = current_values
+
+    return data_dict
+
 
 # Convert voltage dict from IM RE to amplitude and phase
 def convert_voltage_dict_to_complex(voltage_dict):
@@ -260,12 +325,16 @@ if __name__ == '__main__':
 
 
 
-    df_single = convert_single_frequency_eit_file_to_df(path_single)
-    df_multi = convert_multi_frequency_eit_to_df(path_multi)
+    # df_single = convert_single_frequency_eit_file_to_df(path_single)
+    number_of_runs = 20
+    time = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=number_of_runs)
+    print("Time of single frequency conversion: ", time/number_of_runs)
 
-    df = convert_multi_frequency_eit_to_df(path_single)
+    # df_multi = convert_multi_frequency_eit_to_df(path_multi)
 
-    print(df)
+    # df = convert_multi_frequency_eit_to_df(path_single)
+
+    # print(df)
 
 
 # print(dict)
