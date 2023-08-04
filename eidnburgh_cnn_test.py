@@ -61,23 +61,23 @@ if __name__ == "__main__":
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 200
-    NOISE_LEVEL = 0.0
+    num_epochs = 250
+    NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
-    weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
+    weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    patience = 10  # Number of epochs to wait for improvement
+    patience = 30  # Number of epochs to wait for improvement
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    model_name = "Test_noise_03_regularization_1e-5"
-    model_name = "TESTING"
+    model_name = "Test_noise_05_regularization_1e-6"
+    # model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
@@ -93,15 +93,15 @@ if __name__ == "__main__":
     # voltage_data_np = np.load(os.path.join(path, "voltages.npy"))
     # image_data_np = np.load(os.path.join(path, "images.npy"))
 
-    voltage_data_np = np.load("Own_Simulation_Dataset/v1_array.npy")
-    image_data_np = np.load("Own_Simulation_Dataset/img_array.npy")
+    voltage_data_np = np.load("Own_Simulation_Dataset/v1_array_10.npy")
+    image_data_np = np.load("Own_Simulation_Dataset/img_array_10.npy")
     v0 = np.load("Own_Simulation_Dataset/v0.npy")
     # subtract v0 from all voltages
     voltage_data_np = voltage_data_np - v0
 
-    # reduce the number of images to 1000
-    image_data_np = image_data_np[:4000]
-    voltage_data_np = voltage_data_np[:4000]
+    # # reduce the number of images
+    # image_data_np = image_data_np[:4000]
+    # voltage_data_np = voltage_data_np[:4000]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 
@@ -227,6 +227,17 @@ if __name__ == "__main__":
         model.load_state_dict(torch.load(
             "Own_Simulation_Dataset/Models/model2023-08-02_18-32-46/model_2023-08-02_18-33-07_10_epochs.pth"))
         model.eval()
+
+    # Step 8: Evaluate the model on the test set
+    model.eval()  # Set the model to evaluation mode
+    with torch.no_grad():
+        test_loss = 0.0
+        for batch_voltages, batch_images in test_dataloader:
+            outputs = model(batch_voltages)
+            test_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+
+        test_loss /= len(test_dataloader)
+        print(f"Test Loss: {round(test_loss, 4)}")
 
     # Try inference on test images
     print("Test_max_noise_05 images")
