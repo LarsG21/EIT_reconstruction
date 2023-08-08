@@ -2,9 +2,21 @@ import collections
 import threading
 
 import serial
+import serial.tools.list_ports
 import time
 
 from KeyPressModule import KeyPressModule
+
+
+def list_serial_devices():
+    ports = serial.tools.list_ports.comports()
+    if len(ports) == 0:
+        print("No serial devices found.")
+    else:
+        print("List of serial devices:")
+        for port in ports:
+            print(f"- Port: {port.device}, Description: {port.description}, {port.manufacturer}")
+    return ports
 
 
 class GCodeDevice:
@@ -92,7 +104,16 @@ class GCodeDevice:
 
 
 def main():
-    ender = GCodeDevice('COM3')
+    devices = list_serial_devices()
+    ender = None
+    for device in devices:
+        if "USB-SERIAL CH340" in device.description:
+            ender = GCodeDevice(device.device)
+            break
+    if ender is None:
+        raise Exception("No Ender 3 found")
+    else:
+        print("Ender 3 found")
     kp = KeyPressModule()
     while True:
         key = kp.get_keypress_down()

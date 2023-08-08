@@ -46,8 +46,8 @@ df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 default_frame = None
 
 
-def solve_and_plot_cnn(model, v1):
-    plot_single_reconstruction(model, v1)
+def solve_and_plot_cnn(model, v1, original_image=None, save_path=None, title="Reconstructed image"):
+    plot_single_reconstruction(model, v1, original_image=original_image, save_path=save_path, title=title)
 
 
 def plot_time_diff_eit_image(path1, path2, frequency=1000):
@@ -73,12 +73,15 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
 
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
     v1 = df2["amplitude"].to_numpy(dtype=np.float64)
-
-    solve_and_plot_jack(path1, path2, v0, v1)
+    img_name = path1.split('\\')[-1]
+    save_path_cnn = f"{img_name}_cnn.png"
+    save_path_jac = f"{img_name}_jac.png"
+    solve_and_plot_jack(path1, path2, v0, v1,save_path=save_path_jac)
     # solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
-    # solve_and_plot_cnn(model=model, v1=v1-v0)
+    solve_and_plot_cnn(model=model, v1=v1-v0, save_path=save_path_cnn, title=save_path_jac)
+    # time.sleep(0.5)
 
 
 def plot_frequencies_diff_eit_image(path, f1,f2):
@@ -137,7 +140,7 @@ def solve_and_plot_greit(path1, path2, v0, v1):
     plt.show()
 
 
-def solve_and_plot_jack(path1, path2, v0, v1):
+def solve_and_plot_jack(path1, path2, v0, v1, save_path=None):
     """ 3. JAC solver """
     # Note: if the jac and the real-problem are generated using the same mesh,
     # then, data normalization in solve are not needed.
@@ -175,6 +178,8 @@ def solve_and_plot_jack(path1, path2, v0, v1):
         ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
     ax.set_aspect("equal")
     fig.colorbar(im, ax=axes.ravel().tolist())
+    if save_path:
+        fig.savefig(save_path, dpi=96)
     plt.show()
     # plt.draw()    # For non Pycharm Plotting
     # plt.pause(0.1)
@@ -286,9 +291,11 @@ def plot_eit_video(path):
     """
     eit_path = ""
     seen_files = []
-    if len(os.listdir(path)) == 0:
-        print("No files in folder")
-        return
+    while len(os.listdir(path)) == 0:
+        print("Waiting for files to be written")
+        time.sleep(0.5)
+    print("EIT capture started")
+    time.sleep(1)
     for file_or_folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, file_or_folder)):
             os.chdir(os.path.join(path, file_or_folder))
@@ -331,6 +338,6 @@ model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/Test_noise_03_regularization_1e-5/model_2023-08-02_19-13-16_epoche_143_of_150_best_model.pth"))
+    "Own_Simulation_Dataset/Models/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)

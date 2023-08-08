@@ -93,7 +93,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     return average_loss / num_images
 
 
-def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image", original_image:np.array=None):
+def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image", original_image:np.array=None, save_path=None):
     """
     Plots a single reconstruction using the model
     :param model:
@@ -123,13 +123,14 @@ def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image
         plt.title("Original")
         # add colorbar
         plt.colorbar()
-        plt.show()
     else:
         plt.imshow(output)
         plt.title(title)
         # add colorbar
         plt.colorbar()
-        plt.show()
+    if save_path is not None:
+        plt.savefig(save_path)
+    plt.show()
 
 
 def plot_loss(val_loss_list, loss_list=None, save_name=""):
