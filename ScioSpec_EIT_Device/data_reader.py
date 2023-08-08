@@ -285,16 +285,20 @@ def convert_complex_dict_to_amplitude_phase(complex_dict):
 
     return output_dict, all_amplitudes, all_phses
 
-def convert_complex_dict_to_dataframe(dict):
+def convert_complex_dict_to_dataframe(data_dict):
     """
     Converts the dictionary to a dataframe
     """
     col_names = ["injection_pos", "injection_neg", "measuring_electrode", "amplitude", "phase"]
-    df = pd.DataFrame(columns=col_names)
-    for key, values in dict.items():
-        for i, value in enumerate(values):
-            new_row = pd.DataFrame({"injection_pos":key[0]-1, "injection_neg":key[1]-1, "measuring_electrode": i, "amplitude": value[0], "phase": value[1]},index=[0])
-            df = pd.concat([df, new_row], ignore_index=True)
+    df_rows = []
+
+    for key, values in data_dict.items():
+        inj_pos = key[0] - 1
+        inj_neg = key[1] - 1
+        for i, (amplitude, phase) in enumerate(values):
+            df_rows.append((inj_pos, inj_neg, i, amplitude, phase))
+
+    df = pd.DataFrame.from_records(df_rows, columns=col_names)
     return df
 
 def convert_single_frequency_eit_file_to_df(path):

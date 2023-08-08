@@ -78,7 +78,7 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     # solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
-    solve_and_plot_cnn(model=model, v1=v1-v0)
+    # solve_and_plot_cnn(model=model, v1=v1-v0)
 
 
 def plot_frequencies_diff_eit_image(path, f1,f2):
@@ -176,6 +176,10 @@ def solve_and_plot_jack(path1, path2, v0, v1):
     ax.set_aspect("equal")
     fig.colorbar(im, ax=axes.ravel().tolist())
     plt.show()
+    # plt.draw()    # For non Pycharm Plotting
+    # plt.pause(0.1)
+    # # close all figures to display the next one
+    # print("done")
 
 
 def solve_and_plot_bp(path1, path2, v0, v1):
