@@ -107,12 +107,12 @@ if __name__ == "__main__":
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
     num_epochs = 150
-    NOISE_LEVEL = 0.05
+    NOISE_LEVEL = 0.01
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
-    # weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
-    weight_decay = 0  # Adjust this value as needed (L2 regularization)
+    weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
+    # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
     patience = 30  # Number of epochs to wait for improvement
 
@@ -121,8 +121,8 @@ if __name__ == "__main__":
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    # model_name = "Test_noise_05_no_regularization"
-    model_name = "TESTING"
+    model_name = "Test_no_noise_regularization1e-5"
+    # model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
@@ -131,12 +131,13 @@ if __name__ == "__main__":
 
     # Step 1: Install required libraries (PyTorch)
 
-    # Step 2: Prepare the dataset
-    # Assuming you have 'voltage_data' and 'image_data' as your numpy arrays
-    # Convert them to PyTorch tensors and create DataLoader
-
-    # voltage_data_np = np.load(os.path.join(path, "voltages.npy"))
-    # image_data_np = np.load(os.path.join(path, "images.npy"))
+    # Save settings in txt file
+    with open(os.path.join(model_path, "settings.txt"), "w") as f:
+        f.write(f"NOISE_LEVEL: {NOISE_LEVEL}\n")
+        f.write(f"LEARNING_RATE: {LEARNING_RATE}\n")
+        f.write(f"weight_decay: {weight_decay}\n")
+        f.write(f"patience: {patience}\n")
+        f.write(f"num_epochs: {num_epochs}\n")
 
     voltage_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
     image_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
@@ -192,6 +193,11 @@ if __name__ == "__main__":
     test_dataloader = data.DataLoader(test_dataset, batch_size=32, shuffle=False)
     print("Number of test samples: ", len(test_dataset))
 
+    # save number of samples in txt file
+    with open(os.path.join(model_path, "settings.txt"), "a") as f:
+        f.write(f"Number of training samples: {len(train_dataset)}\n")
+        f.write(f"Number of validation samples: {len(val_dataset)}\n")
+        f.write(f"Number of test samples: {len(test_dataset)}\n")
 
 
     # Step 6: Define the loss function and optimizer
