@@ -46,8 +46,8 @@ df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 default_frame = None
 
 
-def solve_and_plot_cnn(model, v1, original_image=None, save_path=None, title="Reconstructed image"):
-    plot_single_reconstruction(model, v1, original_image=original_image, save_path=save_path, title=title)
+def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path=None, title="Reconstructed image"):
+    plot_single_reconstruction(model, voltage_difference, original_image=original_image, save_path=save_path, title=title)
 
 
 def plot_time_diff_eit_image(path1, path2, frequency=1000):
@@ -68,19 +68,26 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     df2 = pd.concat([df2_old, df_keep_mask], axis=1)
     df1 = df1[df1["keep"] == True].drop("keep", axis=1)
     df2 = df2[df2["keep"] == True].drop("keep", axis=1)
+    # print stats about the data
+    print(path1.split('\\')[-1])
+    print(df1[["amplitude","phase"]].describe())
+    print("")
     # print some statistics about the data min max mean std
     # print(df1.describe())
 
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
     v1 = df2["amplitude"].to_numpy(dtype=np.float64)
+    difference = v1 - v0
+    plt.plot(difference)
+    plt.title("Difference between two images")
     img_name = path1.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
-    solve_and_plot_jack(path1, path2, v0, v1,save_path=save_path_jac)
+    solve_and_plot_jack(path1, path2, v0, v1)
     # solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
-    solve_and_plot_cnn(model=model, v1=v1-v0, save_path=save_path_cnn, title=save_path_jac)
+    solve_and_plot_cnn(model=model, voltage_difference=difference, save_path=save_path_cnn, title=save_path_jac)
     # time.sleep(0.5)
 
 
@@ -151,7 +158,7 @@ def solve_and_plot_jack(path1, path2, v0, v1, save_path=None):
     eit.setup(p=0.5, lamb=0.01, method="kotre", perm=1, jac_normalized=True)
     start_time = time.time()
     ds = eit.solve(v1, v0, normalize=True)
-    print(f"JAC took {(time.time() - start_time)*1000} ms")
+    # print(f"JAC took {(time.time() - start_time)*1000} ms")
     # ds is the delta sigma, the difference between the permittivity with and without anomaly
     # A list of 704 values
     # pts is the list of the nodes of the mesh
@@ -338,6 +345,6 @@ model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
+    "Own_Simulation_Dataset/Models/Test_no_noise_no_regularization/model_2023-08-02_19-00-01_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)

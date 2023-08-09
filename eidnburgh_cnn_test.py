@@ -55,19 +55,64 @@ def handle_early_stopping():
     return False
 
 
+def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dataloader, val_dataloader, save_path):
+    """
+    Evaluates the model and saves the results
+    :param model: The model to evaluate
+    :param criterion: The loss function
+    :param test_dataloader:
+    :param train_dataloader:
+    :param val_dataloader:
+    :return:
+    """
+    model.eval()  # Set the model to evaluation mode
+    with torch.no_grad():
+        test_loss = 0.0
+        for batch_voltages, batch_images in test_dataloader:
+            outputs = model(batch_voltages)
+            test_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+
+        test_loss /= len(test_dataloader)
+
+        # do the same for the train and validation set
+        train_loss = 0.0
+        for batch_voltages, batch_images in train_dataloader:
+            outputs = model(batch_voltages)
+            train_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+
+        train_loss /= len(train_dataloader)
+
+        val_loss = 0.0
+        for batch_voltages, batch_images in val_dataloader:
+            outputs = model(batch_voltages)
+            val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+
+        val_loss /= len(val_dataloader)
+
+        print(f"Test Loss: {round(test_loss, 4)}")
+        print(f"Train Loss: {round(train_loss, 4)}")
+        print(f"Val Loss: {round(val_loss, 4)}")
+        # save in txt file
+        with open(os.path.join(save_path, "test_loss.txt"), "w") as f:
+            f.write(f"Test Loss: {round(test_loss, 4)}\n")
+            f.write(f"Train Loss: {round(train_loss, 4)}\n")
+            f.write(f"Val Loss: {round(val_loss, 4)}\n")
+
+
 if __name__ == "__main__":
     TRAIN = True
+    LOADING_PATH ="Own_Simulation_Dataset/Models/Test_noise_05_regularization_1e-5_new/model_2023-08-09_10-19-32_epoche_51_of_150_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 250
+    num_epochs = 150
     NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
-    weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
-    # weight_decay = 0  # Adjust this value as needed (L2 regularization)
+    # weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
+    weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
     patience = 30  # Number of epochs to wait for improvement
 
@@ -76,8 +121,8 @@ if __name__ == "__main__":
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    model_name = "Test_noise_05_regularization_1e-6"
-    # model_name = "TESTING"
+    # model_name = "Test_noise_05_no_regularization"
+    model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
@@ -93,9 +138,9 @@ if __name__ == "__main__":
     # voltage_data_np = np.load(os.path.join(path, "voltages.npy"))
     # image_data_np = np.load(os.path.join(path, "images.npy"))
 
-    voltage_data_np = np.load("Own_Simulation_Dataset/v1_array_10.npy")
-    image_data_np = np.load("Own_Simulation_Dataset/img_array_10.npy")
-    v0 = np.load("Own_Simulation_Dataset/v0.npy")
+    voltage_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
+    image_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
+    v0 = np.load("Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
     # subtract v0 from all voltages
     voltage_data_np = voltage_data_np - v0
 
@@ -120,11 +165,11 @@ if __name__ == "__main__":
     # Step 4: Split the data into train, test, and validation sets
     # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
     # Note: Adjust the test_size and validation_size according to your preference.
-    train_voltage, test_voltage, train_images, test_images = train_test_split(
+    train_voltage, val_voltage, train_images, val_images = train_test_split(
         voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42
     )
-    train_voltage, val_voltage, train_images, val_images = train_test_split(
-        train_voltage, train_images, test_size=0.2, random_state=42
+    val_voltage, test_voltage, val_images, test_images = train_test_split(
+        val_voltage, val_images, test_size=0.2, random_state=42
     )
 
     # Step 4.1 Adding noise to the training data in % of max value
@@ -139,13 +184,15 @@ if __name__ == "__main__":
     # number of training samples
     print("Number of training samples: ", len(train_dataset))
 
+    val_dataset = CustomDataset(val_voltage, val_images)
+    val_dataloader = data.DataLoader(val_dataset, batch_size=32, shuffle=False)
+    print("Number of validation samples: ", len(val_dataset))
+
     test_dataset = CustomDataset(test_voltage, test_images)
     test_dataloader = data.DataLoader(test_dataset, batch_size=32, shuffle=False)
     print("Number of test samples: ", len(test_dataset))
 
-    val_dataset = CustomDataset(val_voltage, val_images)
-    val_dataloader = data.DataLoader(val_dataset, batch_size=32, shuffle=False)
-    print("Number of validation samples: ", len(val_dataset))
+
 
     # Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()
@@ -225,24 +272,23 @@ if __name__ == "__main__":
         # model.load_state_dict(torch.load(
         #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
         model.load_state_dict(torch.load(
-            "Own_Simulation_Dataset/Models/model2023-08-02_18-32-46/model_2023-08-02_18-33-07_10_epochs.pth"))
+            LOADING_PATH))
         model.eval()
 
     # Step 8: Evaluate the model on the test set
-    model.eval()  # Set the model to evaluation mode
-    with torch.no_grad():
-        test_loss = 0.0
-        for batch_voltages, batch_images in test_dataloader:
-            outputs = model(batch_voltages)
-            test_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+    evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
+                                    train_dataloader=train_dataloader, val_dataloader=val_dataloader,
+                                    save_path=model_path)
 
-        test_loss /= len(test_dataloader)
-        print(f"Test Loss: {round(test_loss, 4)}")
 
     # Try inference on test images
-    print("Test_max_noise_05 images")
+    SAVE_TEST_IMAGES = False
+    if SAVE_TEST_IMAGES:
+        save_path = os.path.join(model_path, "test_images")
+    else:
+        save_path = None
     plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
-                                save_path=model_path)
+                                save_path=save_path)
 
     # single_datapoint = voltage_data_np[0]
     # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)

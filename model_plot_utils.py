@@ -86,7 +86,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         plt.title("Original")
         # add colorbar
         plt.colorbar()
-        if save_path != "":
+        if save_path != "" and save_path is not None:
             plt.savefig(os.path.join(save_path, f"reconstruction_{i}.png"))
         plt.show()
         time.sleep(0.1)
