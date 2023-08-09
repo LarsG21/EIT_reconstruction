@@ -24,7 +24,24 @@ def read_data(handle, bytes_to_read):
     read_buffer = handle.read(bytes_to_read)
     return read_buffer
 
+def reset_setup(handle):
+    """
+    Resets the setup of the device
+    :param handle:
+    :return:
+    """
+    cmd = bytearray([0xC4, 0x01, 0x01, 0xC4])
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
+
 def set_eit_setup(handle, burst_count, precision):
+    """
+    Sets the EIT setup
+    :param handle:
+    :param burst_count:
+    :param precision:
+    :return:
+    """
     cmd = bytearray([0xC4, 0x01, 0x01, 0xC4])
     write_data_to_device(handle, cmd)
     read_ack(handle)
@@ -36,24 +53,32 @@ def set_eit_setup(handle, burst_count, precision):
     print(f"Cmd: {cmd}")
     write_data_to_device(handle, cmd)
     read_ack(handle)
-
-def get_eit_setup(handle):
-    cmd = bytearray([0xC5, 0x01, 0x02, 0xC5])
-    write_data_to_device(handle, cmd)
-    read_buffer = read_data(handle, 4)
-    burst_count = struct.unpack(">H", read_buffer[2:4])[0]
-    print(f"Read buffer: {read_buffer}")
-    print(f"Burst count: {burst_count}")
-
-    cmd = bytearray([0xC5, 0x01, 0x03, 0xC5])
-    write_data_to_device(handle, cmd)
-    read_buffer = read_data(handle, 4)
-    print(f"Read buffer: {read_buffer}")
-    precision = struct.unpack(">H", read_buffer[2:6])[0]
-
-    return burst_count, precision
+# def get_eit_setup(handle):
+#     cmd = bytearray([0xC5, 0x01, 0x02, 0xC5])
+#     write_data_to_device(handle, cmd)
+#     read_buffer = read_data(handle, 4)
+#     burst_count = struct.unpack(">H", read_buffer[2:4])[0]
+#     print(f"Read buffer: {read_buffer}")
+#     print(f"Burst count: {burst_count}")
+#
+#     cmd = bytearray([0xC5, 0x01, 0x03, 0xC5])
+#     write_data_to_device(handle, cmd)
+#     read_buffer = read_data(handle, 4)
+#     print(f"Read buffer: {read_buffer}")
+#     precision = struct.unpack(">H", read_buffer[2:6])[0]
+#
+#     return burst_count, precision
 
 def set_excitation_frequencies(handle, fmin, fmax, fcount, ftype):
+    """
+    Sets the excitation frequencies
+    :param handle:
+    :param fmin:
+    :param fmax:
+    :param fcount:
+    :param ftype:
+    :return:
+    """
     cmd = bytearray([0xC4, 0x0C, 0x04])
     cmd += struct.pack(">f", fmin)
     cmd += struct.pack(">f", fmax)
@@ -62,6 +87,8 @@ def set_excitation_frequencies(handle, fmin, fmax, fcount, ftype):
     cmd += bytearray([0xC4])
     write_data_to_device(handle, cmd)
     read_ack(handle)
+
+# def set_extraction_amplitude(handle):
 
 def main():
     port = "COM3"  # Replace with the correct serial port name
@@ -82,9 +109,8 @@ def main():
 
     # Set EIT Setup
     print("Set EIT Setup: Burst-Count=1, Precision=1")
-    set_eit_setup(handle, 7, 1)
+    set_eit_setup(handle, 20, 20)
     time.sleep(0.1)
-    print(get_eit_setup(handle))
 
     # # Initialize Freq.Block
     # start_frequency = 100  # 100Hz

@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    model_name = "Test_no_noise_regularization1e-5"
+    model_name = "Test_01_noise_regularization1e-5_no_sigmoid"
     # model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
@@ -138,6 +138,7 @@ if __name__ == "__main__":
         f.write(f"weight_decay: {weight_decay}\n")
         f.write(f"patience: {patience}\n")
         f.write(f"num_epochs: {num_epochs}\n")
+        f.write("\n")
 
     voltage_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
     image_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
@@ -162,6 +163,10 @@ if __name__ == "__main__":
     # # Step 3: Create the model
     model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     print("model summary: ", model)
+    # write model summary to txt file
+    with open(os.path.join(model_path, "model_summary.txt"), "w") as f:
+        f.write(str(model))
+        f.write("\n")
 
     # Step 4: Split the data into train, test, and validation sets
     # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors

@@ -78,8 +78,8 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
     v1 = df2["amplitude"].to_numpy(dtype=np.float64)
     difference = v1 - v0
-    plt.plot(difference)
-    plt.title("Difference between two images")
+    # plt.plot(difference)
+    # plt.title("Difference between two images")
     img_name = path1.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
@@ -87,8 +87,8 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     # solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
-    solve_and_plot_cnn(model=model, voltage_difference=difference, save_path=save_path_cnn, title=save_path_jac)
-    # time.sleep(0.5)
+    solve_and_plot_cnn(model=model, voltage_difference=difference)
+    time.sleep(0.5)
 
 
 def plot_frequencies_diff_eit_image(path, f1,f2):
@@ -345,6 +345,6 @@ model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/Test_no_noise_no_regularization/model_2023-08-02_19-00-01_150_epochs.pth"))
+    "Own_Simulation_Dataset/Models/Test_01_noise_regularization1e-5_no_sigmoid/model_2023-08-09_13-36-30_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)
