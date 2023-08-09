@@ -147,8 +147,8 @@ if __name__ == "__main__":
     voltage_data_np = voltage_data_np - v0
 
     # # reduce the number of images
-    # image_data_np = image_data_np[:4000]
-    # voltage_data_np = voltage_data_np[:4000]
+    image_data_np = image_data_np[:10000]
+    voltage_data_np = voltage_data_np[:10000]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 
@@ -171,18 +171,13 @@ if __name__ == "__main__":
     # Step 4: Split the data into train, test, and validation sets
     # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
     # Note: Adjust the test_size and validation_size according to your preference.
-    train_voltage, val_voltage, train_images, val_images = train_test_split(
+    train_voltage, test_voltage, train_images, test_images = train_test_split(
         voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42
     )
-    val_voltage, test_voltage, val_images, test_images = train_test_split(
-        val_voltage, val_images, test_size=0.2, random_state=42
+    train_voltage, val_voltage, train_images, val_images = train_test_split(
+        train_voltage, train_images, test_size=0.2, random_state=42
     )
 
-    # Step 4.1 Adding noise to the training data in % of max value
-    maximum = torch.max(torch.abs(train_voltage)).item()
-    noise_amplitude = NOISE_LEVEL * maximum
-    print("Absolute max value: ", torch.max(torch.abs(train_voltage)).item())
-    train_voltage = train_voltage + torch.randn(train_voltage.shape) * noise_amplitude
     # Step 5: Create the DataLoader for train, test, and validation sets
 
     train_dataset = CustomDataset(train_voltage, train_images)
@@ -190,27 +185,18 @@ if __name__ == "__main__":
     # number of training samples
     print("Number of training samples: ", len(train_dataset))
 
-    val_dataset = CustomDataset(val_voltage, val_images)
-    val_dataloader = data.DataLoader(val_dataset, batch_size=32, shuffle=False)
-    print("Number of validation samples: ", len(val_dataset))
-
     test_dataset = CustomDataset(test_voltage, test_images)
     test_dataloader = data.DataLoader(test_dataset, batch_size=32, shuffle=False)
     print("Number of test samples: ", len(test_dataset))
 
-    # save number of samples in txt file
-    with open(os.path.join(model_path, "settings.txt"), "a") as f:
-        f.write(f"Number of training samples: {len(train_dataset)}\n")
-        f.write(f"Number of validation samples: {len(val_dataset)}\n")
-        f.write(f"Number of test samples: {len(test_dataset)}\n")
-
+    val_dataset = CustomDataset(val_voltage, val_images)
+    val_dataloader = data.DataLoader(val_dataset, batch_size=32, shuffle=False)
+    print("Number of validation samples: ", len(val_dataset))
 
     # Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()
     # criterion = nn.L1Loss()  # Didnt work well
-
-    # Initialize the optimizer with weight decay
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
                                                        criterion=criterion)
@@ -225,7 +211,6 @@ if __name__ == "__main__":
                 os.path.join(model_path, "MODEL_NAME.pth")))
         loss_list = []
         val_loss_list = []
-        best_model = model
         for epoch in range(num_epochs):
             model.train()  # Set the model to training mode
             for batch_voltages, batch_images in train_dataloader:
@@ -246,62 +231,55 @@ if __name__ == "__main__":
                 val_loss = 0.0
                 for batch_voltages, batch_images in val_dataloader:
                     outputs = model(batch_voltages)
-                    val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+                    val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item()
 
-                val_loss /= len(val_dataloader)
-                out = handle_early_stopping()  # Early stopping
-                if out:
-                    break
-
+                val_loss /= len(val_dataloader) * LOSS_SCALE_FACTOR
                 val_loss_list.append(val_loss)
-                print(f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Training Loss: {round(loss.item(), 4)}")
+                print(f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {val_loss:.4f} Loss: {loss.item():.4f}")
 
             loss_list.append(loss.item())
-            # plot loss every N epochs
-            if epoch % LOSS_PLOT_INTERVAL == 0 and epoch != 0:
+            print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
+            # plot loss every 10 epochs
+            if epoch % 10 == 0 and epoch != 0 and SAVE_CHECKPOINTS:
                 plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name="")
                 # save the model
-                if SAVE_CHECKPOINTS:
-                    torch.save(model.state_dict(),
-                               os.path.join(model_path,
-                                            f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
-                # also create a sample reconstruction with the current model
-                test_voltage_data = test_voltage[0]
-                plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                                           title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
-                # plot the corresponding image
+                torch.save(model.state_dict(),
+                           f"Edinburgh mfEIT Dataset/model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
+
         # save the final model
         torch.save(model.state_dict(),
-                   os.path.join(model_path,
-                                f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{num_epochs}_epochs.pth"))
+                   f"Edinburgh mfEIT Dataset/model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{num_epochs}_epochs.pth")
         # plot the final loss
-        plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
+        plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name="Edinburgh mfEIT Dataset/loss_plot.png")
     # load the model
     else:  # load the model
         print("Loading the model")
-        model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        model = CNNModel()
         # model.load_state_dict(torch.load(
         #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
         model.load_state_dict(torch.load(
-            LOADING_PATH))
+            "Own_Simulation_Dataset/Models/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
         model.eval()
 
-    # Step 8: Evaluate the model on the test set
-    evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
-                                    train_dataloader=train_dataloader, val_dataloader=val_dataloader,
-                                    save_path=model_path)
+    # After training, you can use the model to reconstruct images
+    # by passing voltage data to the model's forward method.
 
+    # Try inference on train images
+    # Try inference on train images
+    # print("Train images")
+    # plot_sample_reconstructions(train_images, train_voltage, model, criterion, num_images=20)
 
     # Try inference on test images
-    SAVE_TEST_IMAGES = False
-    if SAVE_TEST_IMAGES:
-        save_path = os.path.join(model_path, "test_images")
-    else:
-        save_path = None
+    print("Test images")
     plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
-                                save_path=save_path)
+                                save_path="Own_Simulation_Dataset/Models/2023_08_02_15_30")
 
     # single_datapoint = voltage_data_np[0]
     # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
     # plot_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
 
+    # Try inference on test images
+    # print("2023_08_02_15_30 images")
+    # plot_reconstruction(test_images, test_voltage, model, criterion, num_images=20,
+    #                     save_path="Edinburgh mfEIT Dataset/models_new_loss_methode/2"
+    #                     )
