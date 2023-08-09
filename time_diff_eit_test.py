@@ -77,17 +77,28 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
 
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
     v1 = df2["amplitude"].to_numpy(dtype=np.float64)
+    # select from df rows where amplitude is < 0.05
+    df1_problems = df1[df1["amplitude"] < 0.05]
+    print(df1_problems["measuring_electrode"].value_counts())
+
     difference = v1 - v0
     plt.plot(difference)
-    plt.title("Difference between two images")
+    plt.title("Difference between the voltages")
+    plt.show()
+    plt.plot(v0)
+    plt.title("Voltage 0")
+    plt.show()
+    plt.plot(v1)
+    plt.title("Voltage 1")
+    plt.show()
     img_name = path1.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
     solve_and_plot_jack(path1, path2, v0, v1)
-    # solve_and_plot_greit(path1, path2, v0, v1)
+    solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
-    solve_and_plot_cnn(model=model, voltage_difference=difference, save_path=save_path_cnn, title=save_path_jac)
+    # solve_and_plot_cnn(model=model, voltage_difference=difference, title=save_path_jac)
     # time.sleep(0.5)
 
 
@@ -345,6 +356,6 @@ model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/Test_no_noise_no_regularization/model_2023-08-02_19-00-01_150_epochs.pth"))
+    "Own_Simulation_Dataset/Models/Test_no_noise_regularization1e-5/model_2023-08-09_11-30-27_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)
