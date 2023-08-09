@@ -106,7 +106,7 @@ if __name__ == "__main__":
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 150
+    num_epochs = 60
     NOISE_LEVEL = 0.01
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
@@ -114,15 +114,15 @@ if __name__ == "__main__":
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    patience = 30  # Number of epochs to wait for improvement
+    patience = num_epochs*0.1  # Number of epochs to wait for improvement
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    model_name = "Test_01_noise_regularization1e-5_no_sigmoid"
-    # model_name = "TESTING"
+    # model_name = "Test_01_noise_regularization1e-5_no_sigmoid"
+    model_name = "TESTING_NEW"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", model_name)
     if not os.path.exists(model_path):
