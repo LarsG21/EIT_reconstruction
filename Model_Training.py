@@ -17,8 +17,19 @@ LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 896
 OUT_SIZE = 64
 
-print("CUDA AVAILABLE",torch.cuda.is_available())
+# How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
 
+print("CUDA AVAILABLE",torch.cuda.is_available())
+print("Cuda device count", torch.cuda.device_count())
+print("Cuda device name", torch.cuda.get_device_name(0))
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = "cpu"
+if device == "cuda:0":
+    print("Using CUDA")
+    torch.cuda.set_device(0)   # or 1,2,3
+
+print(torch.cuda.current_device())
+# torch.cuda.set_device(0)
 
 class CustomDataset(data.Dataset):
     def __init__(self, voltage_data, image_data):
@@ -108,8 +119,8 @@ if __name__ == "__main__":
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 60
-    NOISE_LEVEL = 0.01
+    num_epochs = 20
+    NOISE_LEVEL = 0.03
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
@@ -156,14 +167,14 @@ if __name__ == "__main__":
 
     print("Overall data shape: ", voltage_data_np.shape)
 
-    voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32)
-    image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32)
+    voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to(device)
+    image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32).to(device)
 
     dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     print("model summary: ", model)
     # write model summary to txt file
     with open(os.path.join(model_path, "model_summary.txt"), "w") as f:
@@ -184,7 +195,7 @@ if __name__ == "__main__":
     maximum = torch.max(torch.abs(train_voltage)).item()
     noise_amplitude = NOISE_LEVEL * maximum
     print("Absolute max value: ", torch.max(torch.abs(train_voltage)).item())
-    train_voltage = train_voltage + torch.randn(train_voltage.shape) * noise_amplitude
+    train_voltage = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
     # Step 5: Create the DataLoader for train, test, and validation sets
 
     train_dataset = CustomDataset(train_voltage, train_images)
@@ -214,11 +225,11 @@ if __name__ == "__main__":
     # Initialize the optimizer with weight decay
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)
 
-    loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
-                                                       criterion=criterion)
-
-    loss_white_img = calc_average_loss_completly_white(image_data_tensor=image_data_tensor,
-                                                       criterion=criterion)
+    # loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
+    #                                                    criterion=criterion)
+    #
+    # loss_white_img = calc_average_loss_completly_white(image_data_tensor=image_data_tensor,
+    #                                                    criterion=criterion)
 
     if TRAIN:
         # Step 7: Define the training loop
@@ -269,8 +280,8 @@ if __name__ == "__main__":
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
                 # also create a sample reconstruction with the current model
                 test_voltage_data = test_voltage[0]
-                plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                                           title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
+                # plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
+                #                            title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
                 # plot the corresponding image
         # save the final model
         torch.save(model.state_dict(),

@@ -63,6 +63,8 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     random_indices = np.random.randint(0, len(image_data_tensor), num_images)
     for i in random_indices:
         img = image_data_tensor[i]
+        img = img.cpu()
+        output = output.cpu()
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         output = model(volt)
