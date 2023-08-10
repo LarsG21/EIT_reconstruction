@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 
 
-class CNNModel(nn.Module):
+class LinearModel(nn.Module):
     def __init__(self, input_size, output_size):
-        super(CNNModel, self).__init__()
+        super(LinearModel, self).__init__()
         self.encoder = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.ReLU(True),
@@ -28,9 +28,9 @@ class CNNModel(nn.Module):
         return x
 
 
-class CNNModelWithDropout(nn.Module):
+class LinearModelWithDropout(nn.Module):
     def __init__(self, input_size, output_size, dropout_prob=0.1):
-        super(CNNModelWithDropout, self).__init__()
+        super(LinearModelWithDropout, self).__init__()
         self.encoder = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.ReLU(True),
@@ -126,7 +126,7 @@ if __name__ == '__main__':
     input_data = torch.randn(batch_size, in_channels)
 
     # Create the model
-    model = CNNModel(in_channels, out_channels)
+    model = LinearModel(in_channels, out_channels)
 
     # Forward pass
     output = model(input_data)

@@ -9,13 +9,15 @@ import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
 
-from CNN_Models import CNNModel
+from Models import LinearModel
 from model_plot_utils import calc_average_loss_completly_black, calc_average_loss_completly_white, \
     plot_sample_reconstructions, plot_single_reconstruction, plot_loss
 
 LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 896
 OUT_SIZE = 64
+
+print("CUDA AVAILABLE",torch.cuda.is_available())
 
 
 class CustomDataset(data.Dataset):
@@ -161,7 +163,7 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     print("model summary: ", model)
     # write model summary to txt file
     with open(os.path.join(model_path, "model_summary.txt"), "w") as f:
@@ -279,7 +281,7 @@ if __name__ == "__main__":
     # load the model
     else:  # load the model
         print("Loading the model")
-        model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
         # model.load_state_dict(torch.load(
         #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
         model.load_state_dict(torch.load(

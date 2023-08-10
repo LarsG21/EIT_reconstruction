@@ -6,7 +6,7 @@ import torch
 from matplotlib import pyplot as plt
 
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from eidnburgh_cnn_test import CNNModel
+from Model_Training import LinearModel
 from model_plot_utils import plot_single_reconstruction
 from pyeit import mesh
 from pyeit.eit import protocol, jac, greit, bp
@@ -341,10 +341,10 @@ path = "eit_data"
 VOLTAGE_VECTOR_LENGTH = 896
 OUT_SIZE = 64
 print("Loading the model")
-model = CNNModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE**2)
+model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/TESTING_NEW/model_2023-08-09_17-14-15_60_epochs.pth"))
+    "Own_Simulation_Dataset/Models/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)

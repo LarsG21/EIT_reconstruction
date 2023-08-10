@@ -36,7 +36,10 @@ def generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_per
 
 def generate_random_anomaly_list(max_number_of_anomalies, min_radius, max_radius, min_perm, max_perm, outer_circle_radius=0.8):
     anomaly_list = []
-    number_of_anomalies = np.random.randint(1, max_number_of_anomalies)
+    if max_number_of_anomalies != 1:
+        number_of_anomalies = np.random.randint(1, max_number_of_anomalies)
+    else:
+        number_of_anomalies = 1
     for i in range(number_of_anomalies):
         center, r, perm = generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_perm, outer_circle_radius)
         anomaly_list.append(PyEITAnomaly_Circle(center=center, r=r, perm=perm))
@@ -48,7 +51,7 @@ v0 = None
 def generate_sample_mesh_simulation(mesh_obj, n_el=32):
     global v0
     """ 1. problem setup """
-    anomaly_list = generate_random_anomaly_list(max_number_of_anomalies=3, min_radius=0.1, max_radius=0.25, min_perm=1000,
+    anomaly_list = generate_random_anomaly_list(max_number_of_anomalies=1, min_radius=0.1, max_radius=0.25, min_perm=1000,
                                                 max_perm=1000, outer_circle_radius=0.75)
     mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
 
@@ -167,48 +170,48 @@ def look_at_dataset(img_array, v1_array, v0):
 
 if __name__ == '__main__':
     # """ 0. build mesh """
-    # DATA_COLLECTION_RUN = 0
-    # SAMPLES = 5000
-    # mesh_obj = mesh.create(n_el, h0=0.1)
-    # # The mesh has 704 elements
-    # # extract node, element, alpha
-    # pts = mesh_obj.node
-    # # pts is the list of the nodes of the mesh (with coordinates)
-    # tri = mesh_obj.element
-    # # tri is the list of the elements of the mesh (with the nodes that compose them)
-    # x, y = pts[:, 0], pts[:, 1]
-    #
-    # img_array = []
-    # v0_array = []
-    # v1_array = []
-    # # Simulate 1 sample to get the v0
-    # v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
-    # np.save("Own_Simulation_Dataset/v0.npy", v0)
-    #
-    # # Simulate the rest of the samples
-    # for i in range(10):
-    #     start = time.time()
-    #     DATA_COLLECTION_RUN += 1
-    #     for i in range(SAMPLES):
-    #         print(i)
-    #         v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
-    #         img_array.append(img)
-    #         v0_array.append(v0)
-    #         v1_array.append(v1)
-    #     print()
-    #     end = time.time()
-    #     print(f"Time elapsed for {SAMPLES} samples: {end - start}")
-    #     print("Average time per sample: ", (end - start) / SAMPLES)
-    #     img_array_np = np.array(img_array)
-    #     np.save(f"Own_Simulation_Dataset/img_array_{DATA_COLLECTION_RUN}.npy", img_array_np)
-    #     v1_array_np = np.array(v1_array)
-    #     np.save(f"Own_Simulation_Dataset/v1_array_{DATA_COLLECTION_RUN}.npy", v1_array_np)
-    #     print("OK")
+    DATA_COLLECTION_RUN = 0
+    SAMPLES = 2000
+    mesh_obj = mesh.create(n_el, h0=0.1)
+    # The mesh has 704 elements
+    # extract node, element, alpha
+    pts = mesh_obj.node
+    # pts is the list of the nodes of the mesh (with coordinates)
+    tri = mesh_obj.element
+    # tri is the list of the elements of the mesh (with the nodes that compose them)
+    x, y = pts[:, 0], pts[:, 1]
 
-    img_array = np.load("Own_Simulation_Dataset/img_array.npy")
-    v1_array = np.load("Own_Simulation_Dataset/v1_array.npy")
-    v0 = np.load("Own_Simulation_Dataset/v0.npy")
-    look_at_dataset(img_array, v1_array, v0)
+    img_array = []
+    v0_array = []
+    v1_array = []
+    # Simulate 1 sample to get the v0
+    v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
+    np.save("Own_Simulation_Dataset/v0.npy", v0)
+    #
+    # Simulate the rest of the samples
+    for i in range(10):
+        start = time.time()
+        DATA_COLLECTION_RUN += 1
+        for i in range(SAMPLES):
+            print(i)
+            v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
+            img_array.append(img)
+            v0_array.append(v0)
+            v1_array.append(v1)
+        print()
+        end = time.time()
+        print(f"Time elapsed for {SAMPLES} samples: {end - start}")
+        print("Average time per sample: ", (end - start) / SAMPLES)
+        img_array_np = np.array(img_array)
+        np.save(f"Own_Simulation_Dataset/img_array_{DATA_COLLECTION_RUN}.npy", img_array_np)
+        v1_array_np = np.array(v1_array)
+        np.save(f"Own_Simulation_Dataset/v1_array_{DATA_COLLECTION_RUN}.npy", v1_array_np)
+        print("OK")
+
+    # img_array = np.load("Own_Simulation_Dataset/3_targtets/img_array.npy")
+    # v1_array = np.load("Own_Simulation_Dataset/3_targtets/v1_array.npy")
+    # v0 = np.load("Own_Simulation_Dataset/v0.npy")
+    # look_at_dataset(img_array, v1_array, v0)
 
 
 
