@@ -9,7 +9,7 @@ import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
 
-from Models import LinearModel
+from Models import LinearModel, LinearModelWithDropout
 from model_plot_utils import calc_average_loss_completly_black, calc_average_loss_completly_white, \
     plot_sample_reconstructions, plot_single_reconstruction, plot_loss
 
@@ -113,31 +113,31 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 
 if __name__ == "__main__":
-    TRAIN = True
-    LOADING_PATH ="Own_Simulation_Dataset/Models/Test_noise_05_regularization_1e-5_new/model_2023-08-09_10-19-32_epoche_51_of_150_best_model.pth"
+    TRAIN = False
+    LOADING_PATH ="Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 20
-    NOISE_LEVEL = 0.03
+    num_epochs = 150
+    NOISE_LEVEL = 0.02
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0005
+    LEARNING_RATE = 0.0002
     # Define the weight decay factor
-    weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
+    weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    patience = num_epochs*0.1  # Number of epochs to wait for improvement
+    patience = num_epochs*0.2  # Number of epochs to wait for improvement
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    # model_name = "Test_01_noise_regularization1e-5_no_sigmoid"
-    model_name = "TESTING_NEW"
+    model_name = "Test_01_noise_regularization1e-6"
+    # model_name = "TESTING_NEW"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-    model_path = os.path.join(path, "Models", model_name)
+    model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
         os.makedirs(model_path)
     # MODEL_PATH = "Own_Simulation_Dataset/Models"
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     print("model summary: ", model)
     # write model summary to txt file
     with open(os.path.join(model_path, "model_summary.txt"), "w") as f:
@@ -292,11 +292,7 @@ if __name__ == "__main__":
     # load the model
     else:  # load the model
         print("Loading the model")
-        model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-        # model.load_state_dict(torch.load(
-        #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
-        model.load_state_dict(torch.load(
-            LOADING_PATH))
+        model.load_state_dict(torch.load(LOADING_PATH))
         model.eval()
 
     # Step 8: Evaluate the model on the test set

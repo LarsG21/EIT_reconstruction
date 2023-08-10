@@ -5,8 +5,8 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 
+from Models import LinearModelWithDropout, LinearModel
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from Model_Training import LinearModel
 from model_plot_utils import plot_single_reconstruction
 from pyeit import mesh
 from pyeit.eit import protocol, jac, greit, bp
@@ -68,18 +68,11 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     df2 = pd.concat([df2_old, df_keep_mask], axis=1)
     df1 = df1[df1["keep"] == True].drop("keep", axis=1)
     df2 = df2[df2["keep"] == True].drop("keep", axis=1)
-    # print stats about the data
-    print(path1.split('\\')[-1])
-    print(df1[["amplitude","phase"]].describe())
-    print("")
-    # print some statistics about the data min max mean std
-    # print(df1.describe())
-
     v0 = df1["amplitude"].to_numpy(dtype=np.float64)
     v1 = df2["amplitude"].to_numpy(dtype=np.float64)
     difference = v1 - v0
-    # plt.plot(difference)
-    # plt.title("Difference between two images")
+    plt.plot(difference)
+    plt.title("Difference between two images")
     img_name = path1.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
@@ -87,7 +80,7 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     # solve_and_plot_greit(path1, path2, v0, v1)
     # solve_and_plot_bp(path1, path2, v0, v1)
     # solve_and_plot_stack(path1, path2, v0, v1)
-    solve_and_plot_cnn(model=model, voltage_difference=difference)
+    # solve_and_plot_cnn(model=model, voltage_difference=difference)
     time.sleep(0.5)
 
 
@@ -341,10 +334,10 @@ path = "eit_data"
 VOLTAGE_VECTOR_LENGTH = 896
 OUT_SIZE = 64
 print("Loading the model")
-model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
+    "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 model.eval()
 plot_eit_video(path)

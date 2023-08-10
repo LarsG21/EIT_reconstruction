@@ -169,7 +169,7 @@ def look_at_dataset(img_array, v1_array, v0):
     # cv2.waitKey(0)
 
 if __name__ == '__main__':
-    # """ 0. build mesh """
+    """ 0. build mesh """
     DATA_COLLECTION_RUN = 0
     SAMPLES = 2000
     mesh_obj = mesh.create(n_el, h0=0.1)
@@ -208,8 +208,8 @@ if __name__ == '__main__':
         np.save(f"Own_Simulation_Dataset/v1_array_{DATA_COLLECTION_RUN}.npy", v1_array_np)
         print("OK")
 
-    # img_array = np.load("Own_Simulation_Dataset/3_targtets/img_array.npy")
-    # v1_array = np.load("Own_Simulation_Dataset/3_targtets/v1_array.npy")
+    # img_array = np.load("Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
+    # v1_array = np.load("Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
     # v0 = np.load("Own_Simulation_Dataset/v0.npy")
     # look_at_dataset(img_array, v1_array, v0)
 
