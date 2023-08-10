@@ -9,7 +9,7 @@ import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
 
-from Models import LinearModel, LinearModelWithDropout
+from Models import LinearModel, LinearModelWithDropout, ConvolutionalModelWithDropout
 from model_plot_utils import calc_average_loss_completly_black, calc_average_loss_completly_white, \
     plot_sample_reconstructions, plot_single_reconstruction, plot_loss
 
@@ -90,6 +90,7 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
         # do the same for the train and validation set
         train_loss = 0.0
         for batch_voltages, batch_images in train_dataloader:
+            # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
             outputs = model(batch_voltages)
             train_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
@@ -113,16 +114,16 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 
 if __name__ == "__main__":
-    TRAIN = False
+    TRAIN = True
     LOADING_PATH ="Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
     num_epochs = 150
-    NOISE_LEVEL = 0.02
+    NOISE_LEVEL = 0.1
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0002
+    LEARNING_RATE = 0.0005
     # Define the weight decay factor
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 
     # path = "Edinburgh mfEIT Dataset"
     path = "Own_Simulation_Dataset"
-    model_name = "Test_01_noise_regularization1e-6"
+    model_name = "Test_1_noise_regularization1e-6"
     # model_name = "TESTING_NEW"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
@@ -174,11 +175,16 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     print("model summary: ", model)
+    # print number of trainable parameters
+    nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print("Number of trainable parameters: ", nr_trainable_params)
     # write model summary to txt file
     with open(os.path.join(model_path, "model_summary.txt"), "w") as f:
         f.write(str(model))
+        f.write("\n")
+        f.write(f"Number of trainable parameters: {nr_trainable_params}\n")
         f.write("\n")
 
     # Step 4: Split the data into train, test, and validation sets
@@ -243,6 +249,8 @@ if __name__ == "__main__":
             model.train()  # Set the model to training mode
             for batch_voltages, batch_images in train_dataloader:
                 # Forward pass
+                # reshape the voltages to be [32, 1, INPUT_SIZE]
+                # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
                 outputs = model(batch_voltages)
 
                 # Compute loss
@@ -258,6 +266,7 @@ if __name__ == "__main__":
             with torch.no_grad():
                 val_loss = 0.0
                 for batch_voltages, batch_images in val_dataloader:
+                    # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
                     outputs = model(batch_voltages)
                     val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 

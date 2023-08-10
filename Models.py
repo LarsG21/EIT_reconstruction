@@ -58,6 +58,37 @@ class LinearModelWithDropout(nn.Module):
         x = self.decoder(x)
         return x
 
+# TODO: Implement the ConvolutionalModel class
+class ConvolutionalModelWithDropout(nn.Module):
+    def __init__(self, input_size, output_size, dropout_prob=0.1):
+        super(ConvolutionalModelWithDropout, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the first convolutional layer
+            nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the second convolutional layer
+            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the third convolutional layer
+        )
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose1d(in_channels=64, out_channels=32, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the first decoder convolutional layer
+            nn.ConvTranspose1d(in_channels=32, out_channels=16, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the second decoder convolutional layer
+            nn.ConvTranspose1d(in_channels=16, out_channels=1, kernel_size=3, padding=1),
+            nn.Linear(in_features=896, out_features=output_size)  # Adjust the input size if necessary
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
 
 
 class UNetModel(nn.Module):

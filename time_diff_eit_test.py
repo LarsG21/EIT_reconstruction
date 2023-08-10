@@ -38,6 +38,7 @@ x, y = pts[:, 0], pts[:, 1]
 """ 2. FEM simulation """
 # setup EIT scan conditions
 protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
+# TODO Find out how dist_exc work
 
 keep_mask = protocol_obj.keep_ba
 print(keep_mask)
