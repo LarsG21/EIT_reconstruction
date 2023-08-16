@@ -3,6 +3,7 @@ import time
 import serial
 import struct
 
+
 def connect_to_device(port):
     try:
         handle = serial.Serial(port, baudrate=115200, timeout=1)
@@ -11,18 +12,53 @@ def connect_to_device(port):
         print(f"Error connecting to {port}: {e}")
         return None
 
+
 def write_data_to_device(handle, cmd):
     handle.write(cmd)
     print("Sent:", " ".join(f"{byte:02X}" for byte in cmd))
 
+
 def read_ack(handle):
     read_buffer = handle.read(4)
-    print("ACK-Frame:", " ".join(f"{byte:02X}" for byte in read_buffer))
+    # print("ACK-Frame:", " ".join(f"{byte:02X}" for byte in read_buffer))
+    if read_buffer[2] == 0x83:
+        print("ACK: OK")
+    elif read_buffer[2] == 0x01:
+        print("ACK: Invalid syntax")
+    elif read_buffer[2] == 0x02:
+        print("ACK: Timeout error")
+    elif read_buffer[2] == 0x04:
+        print("ACK:  Wake-Up Message: System boot ready")
+    elif read_buffer[2] == 0x11:
+        print("ACK: CP-Socket: Valid TCP client-socket connection")
+    elif read_buffer[2] == 0x81:
+        print("ACK: Not-Acknowledge: Command has not been executed")
+    elif read_buffer[2] == 0x82:
+        print("ACK: Not-Acknowledge: Command could not be recognized")
+    elif read_buffer[2] == 0x84:
+        print("ACK:  System-Ready Message: System is operational and ready to receive data")
     return read_buffer[2] == 0x83
+
 
 def read_data(handle, bytes_to_read):
     read_buffer = handle.read(bytes_to_read)
     return read_buffer
+
+
+def read_data_until_command_ends(handle):
+    """
+    Reads data until the command ends. Command ends when the last byte is the same as the first byte.
+    :param handle:
+    :return:
+    """
+    read_buffer = bytearray()
+    read_buffer += handle.read(1)
+    while True:
+        read_buffer += handle.read(1)
+        if read_buffer[-1] == read_buffer[0]:
+            break
+    return read_buffer
+
 
 def reset_setup(handle):
     """
@@ -33,6 +69,97 @@ def reset_setup(handle):
     cmd = bytearray([0xC4, 0x01, 0x01, 0xC4])
     write_data_to_device(handle, cmd)
     read_ack(handle)
+
+
+def save_settings(handle):
+    """
+    Saves the current settings
+    :param handle:
+    :return:
+    """
+    cmd = bytearray([0x90, 0x00, 0x90])
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
+
+
+def get_options(handle, option_id):
+    """
+    Gets the options [CT] [LE] [OB] [CT]
+    :param handle: serial handle
+    :param option_id: id of the option to get
+    :return: [CT] [LE] [OB] [CD] [CT]
+            ACK
+    """
+    cmd = bytearray([0x98, 0x01, option_id, 0x98])  # Option id 0x01: Gets if timestamp is enabled
+    write_data_to_device(handle, cmd)
+    read_buffer = read_data_until_command_ends(handle)
+    # print(f"Read buffer: {read_buffer}")
+    read_ack(handle)
+    return read_buffer[-2]
+
+
+def set_options(handle, option_id, option_value):
+    cmd = bytearray([0x97, 0x02, option_id, option_value, 0x97])  # Option id 0x01: Gets if timestamp is enabled
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
+
+
+def reset_system(handle):
+    """
+    complete restart of the system
+    :param handle:
+    :return: ACK
+            Wake-Up Message
+            System-Ready-Message
+    """
+    cmd = bytearray([0xA1, 0x00, 0xA1])
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
+
+
+def get_fe_settings(handle):
+    """
+    Gets the FE settings
+    :param handle:
+    :return:
+    """
+    cmd = bytearray([0xB1, 0x00, 0xB1])
+    write_data_to_device(handle, cmd)
+    read_buffer = read_data_until_command_ends(handle)
+    print(f"Read buffer: {read_buffer}")
+    if read_ack(handle):
+        measurement_mode = read_buffer[3]
+        measurement_channel = read_buffer[4]
+        range_setting = read_buffer[5]
+        # return result as dictionary
+        return {"measurement_mode": measurement_mode, "measurement_channel": measurement_channel,
+                "range_setting": range_setting}
+    else:
+        return None
+
+
+def set_fe_settings(handle, measurment_mode, measurment_channel, range_setting):
+    """
+    Sets the FE settings
+    :param handle:
+    :param fe_settings:
+    :return:
+    """
+    cmd = bytearray([0xB0, 0x03, measurment_mode, measurment_channel, range_setting, 0xB0])
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
+
+
+def start_eit(handle):
+    """
+    Starts the EIT measurement
+    :param handle:
+    :return:
+    """
+    cmd = bytearray([0xB8, 0x00, 0xB8])
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
+
 
 def set_eit_setup(handle, burst_count, precision):
     """
@@ -46,13 +173,13 @@ def set_eit_setup(handle, burst_count, precision):
     write_data_to_device(handle, cmd)
     read_ack(handle)
     cmd = bytearray([0xC4, 0x03, 0x02]) + struct.pack(">H", burst_count) + bytearray([0xC4])
-    print(f"Cmd: {cmd}")
     write_data_to_device(handle, cmd)
     read_ack(handle)
     cmd = bytearray([0xC4, 0x05, 0x03]) + struct.pack(">H", precision) + bytearray([0xC4])
-    print(f"Cmd: {cmd}")
     write_data_to_device(handle, cmd)
     read_ack(handle)
+
+
 # def get_eit_setup(handle):
 #     cmd = bytearray([0xC5, 0x01, 0x02, 0xC5])
 #     write_data_to_device(handle, cmd)
@@ -88,6 +215,7 @@ def set_excitation_frequencies(handle, fmin, fmax, fcount, ftype):
     write_data_to_device(handle, cmd)
     read_ack(handle)
 
+
 # def set_extraction_amplitude(handle):
 
 def main():
@@ -100,17 +228,29 @@ def main():
     print("Connection established")
     handle.flush()
 
-    # Initialize Setup
-    # print("Initialize Setup.")
-    # cmd = bytearray([0xB6, 0x01, 0x01, 0xB6])
-    # write_data_to_device(handle, cmd)
-    # read_ack(handle)
-    # print()
+    # reset_setup(handle)
+    #
+    # save_settings(handle)
+    # set_options(handle, 0x01, 0x00)
+    # print(get_options(handle, option_id=0x01))
 
-    # Set EIT Setup
-    print("Set EIT Setup: Burst-Count=1, Precision=1")
-    set_eit_setup(handle, 20, 20)
-    time.sleep(0.1)
+    set_fe_settings(handle, 0x01, 0x03, 0x01)
+
+    print(get_fe_settings(handle))
+
+    # reset_system(handle)
+
+    # start_eit(handle)
+
+    # reset_setup(handle)
+    #
+    #
+    # # Set EIT Setup
+    # print("Set EIT Setup: Burst-Count=1, Precision=1")
+    # set_eit_setup(handle, 20, 20)
+    # time.sleep(0.1)
+    #
+    # start_eit(handle)
 
     # # Initialize Freq.Block
     # start_frequency = 100  # 100Hz

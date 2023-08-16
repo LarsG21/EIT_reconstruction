@@ -49,10 +49,6 @@ mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
 # setup EIT scan conditions
 protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
 
-# save protocol file as pickle
-pickle.dump(protocol_obj, open("protocol.pickle", "wb"))
-read_protocol = pickle.load(open("protocol.pickle", "rb"))
-print(read_protocol)
 
 # The protocol is the list of the electrodes to inject current and to measure voltage
 

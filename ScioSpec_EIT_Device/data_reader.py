@@ -341,29 +341,6 @@ if __name__ == '__main__':
     # print(df)
 
 
-# print(dict)
-# print(out)
-# df_complex = convert_cols_to_complex(out)
-# print(df_complex)
-# read_protocol = pickle.load(open("protocol.pickle", "rb"))
-# keep_mask = read_protocol.keep_ba
-# # reverse keep_mask order
-# print(keep_mask)
-# frame2 = pd.DataFrame(keep_mask, columns=["keep"])
-# df_with_keep_mask = pd.concat([df, frame2], axis=1)
-# print(df_with_keep_mask)
-#
-# # keep only the rows with keep=True
-#
-# df_only_keep = df_with_keep_mask[df_with_keep_mask["keep"] == True].drop("keep", axis=1)
-# print(df_only_keep)
-#
-# # get col amplitude as list and save as pickle
-# amplitudes = df_only_keep["amplitude"].tolist()
-# # convert to numpy array
-# amplitudes = np.array(amplitudes)
-# pickle.dump(amplitudes, open("v1.pickle", "wb"))
-
 
 
 
