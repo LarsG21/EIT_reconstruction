@@ -306,16 +306,84 @@ def get_eit_amplitude(handle):
     else:
         return None
 
-def reset_eit_setup(handle):
-    cmd = bytearray([0xC4, 0x01, 0x01, 0xC4])
+
+def add_extraction_setting(handle, electrode_in, electrode_out):
+    """
+    Adds an extraction sequence to the EIT setup.
+    :param handle:
+    :param electrode_in:
+    :param electrode_out:
+    :return:
+    """
+    cmd = bytearray([0xC4, 0x03, 0x06, electrode_in, electrode_out, 0xC4])
+    write_data_to_device(handle, cmd)
+    print(f"Added extraction setting from {electrode_in} to {electrode_out}")
+    read_ack(handle)
+
+
+def add_extraction_pattern(handle, num_electrodes):
+    """
+    Adds an extraction pattern to the EIT setup.
+    Uses add_extraction_setting to add settings from 1 -> 2, 2 -> 3, ..., n-1 -> n
+    Ends with n -> 1
+    :param handle:
+    :param num_electrodes:
+    :return:
+    """
+    for i in range(1, num_electrodes):
+        add_extraction_setting(handle, i, i + 1)
+    add_extraction_setting(handle, num_electrodes, 1)
+
+
+def get_extraction_pattern(handle):
+    """
+    Gets the extraction pattern from the EIT setup.
+    :param handle:
+    :return:
+    """
+    cmd = bytearray([0xC5, 0x01, 0x06, 0xC5])
+    write_data_to_device(handle, cmd)
+    read_buffer = read_data_until_command_ends(handle)
+    print(f"Read buffer: {read_buffer}")
+
+
+def set_measurement_channels(handle, channel_list):
+    """
+    Sets the measurement channels for the EIT setup.
+    :param handle:
+    :param channel_list:
+    :return:
+    """
+    cmd = bytearray([0xC4, len(channel_list), 0x08]) + bytearray(channel_list) + bytearray([0xC4])
     write_data_to_device(handle, cmd)
     read_ack(handle)
 
 
+def get_measurement_channels(handle):  # TODO: Not mentioned in the manual
+    """
+    Gets the measurement channels for the EIT setup.
+    :param handle:
+    :return:
+    """
+    cmd = bytearray([0xC5, 0x01, 0x08, 0xC5])
+    write_data_to_device(handle, cmd)
+    read_buffer = read_data_until_command_ends(handle)
+    print(f"Read buffer: {read_buffer}")
 
-def start_measurement(handle, on_off):
+def reset_eit_setup(handle):
+    cmd = bytearray([0xB8, 0x03, 0x1, 0x01, 0x00, 0xB8])
+    write_data_to_device(handle, cmd)
+    read_ack(handle)
 
-    cmd = bytearray([0xB8, 0x01, on_off, 0xB8])
+
+def start_measurement(handle, number_of_measurments):
+    # cmd = bytearray([0xB8, 0x01, on_off, 0xB8])
+    bytes_nr_measurements = number_of_measurments.to_bytes(2, byteorder='big')
+
+    # cmd = bytearray([0xB8, 0x03 , 0x01]) + bytes_nr_measurements + bytearray([0xB8])
+    # cmd = bytearray([0xB8, 0x03, 0x1, 0x01, 0x00, 0xB8])
+    cmd = bytearray([0xB8, 0x1, 0x00, 0xB8])
+
     write_data_to_device(handle, cmd)
     read_ack(handle)
 
@@ -348,95 +416,15 @@ def main():
     # print(get_eit_setup_frequency(handle))
 
     set_eit_amplitude(handle, 0.01)
-    print(get_eit_amplitude(handle))
+    # print(get_eit_amplitude(handle))
 
-    # set_fe_settings(handle, 0x01, 0x03, 0x01)
-    #
-    # print(get_fe_settings(handle))
-    #
+    add_extraction_pattern(handle, 32)
+    get_extraction_pattern(handle)
+    # generate a list from 1 to 32
+    channel_list = list(range(1, 33))
+    set_measurement_channels(handle, channel_list)
+
     start_measurement(handle, 0x01)
-
-    # reset_system(handle)
-
-    # start_eit(handle)
-
-    # reset_setup(handle)
-    #
-    #
-    # # Set EIT Setup
-    # print("Set EIT Setup: Burst-Count=1, Precision=1")
-    # set_eit_setup(handle, 20, 20)
-    # time.sleep(0.1)
-    #
-    # start_eit(handle)
-
-    # # Initialize Freq.Block
-    # start_frequency = 100  # 100Hz
-    # stop_frequency = 100e3  # 100kHz
-    # frequency_count = 80
-    # precision = 1
-    # amplitude = 0.1  # V
-    # scale = 1  # log
-    # print("Set Setup-config: Frequency-block (%fHz .. %fHz, scale=%i, prec=%f, amplitude=%fV)" %
-    #       (start_frequency, stop_frequency, scale, precision, amplitude))
-    #
-    # cmd = bytearray([0xB6, 0x16, 0x03])
-    # cmd += struct.pack(">f", start_frequency)
-    # cmd += struct.pack(">f", stop_frequency)
-    # cmd += struct.pack(">f", frequency_count)
-    # cmd.append(scale)
-    # cmd += struct.pack(">f", precision)
-    # cmd += struct.pack(">f", amplitude)
-    # cmd.append(0xB6)
-    # write_data_to_device(handle, cmd)
-    # read_ack(handle)
-    # print()
-    #
-    # # Set FrontEnd Settings
-    # print("Clear Channel Stack")
-    # cmd = bytearray([0xB0, 0x03, 0xFF, 0xFF, 0xFF])
-    # write_data_to_device(handle, cmd)
-    # read_ack(handle)
-    # print()
-    #
-    # print("Set Channel Stack: to channel 1")
-    # cmd[2] = 0x02
-    # cmd[3] = 0x01
-    # cmd[4] = 0x01
-    # write_data_to_device(handle, cmd)
-    # read_ack(handle)
-    # print()
-    #
-    # # Start Measurement
-    # number_of_specs = 1
-    # print("Start Measurement")
-    # cmd[0] = 0xB8
-    # cmd[2] = 0x01
-    # write_data_to_device(handle, cmd)
-    # read_ack(handle)
-    # print()
-    #
-    # # Receive Specs
-    # print("Receiving Specs:")
-    # read_buffer_size = 14
-    # for j in range(number_of_specs):
-    #     print("Spec#%i:" % (j + 1))
-    #     print("ch\tid\tre\tim")
-    #     for i in range(int(frequency_count)):
-    #         read_buffer = read_data(handle, read_buffer_size)
-    #         ch, id_number, re, im = struct.unpack(">BHLf", read_buffer)
-    #         print(f"{ch}\t{id_number}\t{re}\t{im}")
-    #     print()
-    #
-    # # Stop Measurement
-    # print("Stop Measurement")
-    # cmd[2] = 0x00
-    # write_data_to_device(handle, cmd)
-    # read_ack(handle)
-    # print()
-    #
-    # handle.close()
-    # print("Serial connection closed.")
 
 
 if __name__ == "__main__":
