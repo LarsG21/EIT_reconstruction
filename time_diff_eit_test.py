@@ -14,6 +14,8 @@ from pyeit.eit.interp2d import sim2pts
 from pyeit.mesh.shape import thorax
 import os
 
+from utils import wait_for_start_of_measurement
+
 """ 0. build mesh """
 n_el = 32  # nb of electrodes
 use_customize_shape = False
@@ -292,22 +294,7 @@ def plot_eit_video(path):
     """
     eit_path = ""
     seen_files = []
-    while len(os.listdir(path)) == 0:
-        print("Waiting for files to be written")
-        time.sleep(0.5)
-    print("EIT capture started")
-    time.sleep(1)
-    for file_or_folder in os.listdir(path):
-        if os.path.isdir(os.path.join(path, file_or_folder)):
-            os.chdir(os.path.join(path, file_or_folder))
-            print(os.getcwd())
-            os.chdir((os.path.join(os.getcwd(), "setup")))
-            eit_path = os.getcwd()
-            print(eit_path)
-            break
-        else:
-            print("No folder found")
-            return
+    eit_path = wait_for_start_of_measurement(path)
     default_frame = None
     while True:
         for current_frame in os.listdir(os.getcwd()):
@@ -338,7 +325,7 @@ print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model.load_state_dict(torch.load(
 #     "Edinburgh mfEIT Dataset/models_new_loss_methode/2/model_2023-07-27_16-38-33_60_150.pth"))
-model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
-model.eval()
+# model.load_state_dict(torch.load(
+#     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
+# model.eval()
 plot_eit_video(path)

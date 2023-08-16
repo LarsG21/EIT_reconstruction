@@ -1,3 +1,6 @@
+import os
+import time
+
 import numpy as np
 
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
@@ -44,3 +47,56 @@ def generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_per
     r = np.random.uniform(min_radius, max_radius)
     perm = np.random.uniform(min_perm, max_perm)
     return center, r, perm
+
+
+def wait_for_start_of_measurement(path):
+    """
+    Waits for the first file to be written. Searches for the setup folder and returns the path to it.
+    :param eit_path:
+    :param path:
+    :return:
+    """
+    eit_path = ""
+    while len(os.listdir(path)) == 0:
+        print("Waiting for files to be written")
+        time.sleep(0.5)
+    print("EIT capture started")
+    time.sleep(1)
+    for file_or_folder in os.listdir(path):
+        if os.path.isdir(os.path.join(path, file_or_folder)):
+            os.chdir(os.path.join(path, file_or_folder))
+            print(os.getcwd())
+            os.chdir((os.path.join(os.getcwd(), "setup")))
+            eit_path = os.getcwd()
+            print(eit_path)
+            break
+    return eit_path
+
+
+def get_newest_file(path):
+    """
+    Returns the newest file in a directory and deletes all other files
+    :param path:
+    :return:
+    """
+    files = os.listdir(path)
+    paths = [os.path.join(path, basename) for basename in files]
+    newest = max(paths, key=os.path.getctime)
+    # delete all files except the newest
+    for file in files:
+        if file != os.path.basename(newest):
+            os.remove(os.path.join(path, file))
+    return newest
+
+
+def wait_for_n_secs_with_print(n_secs):
+    """
+    Waits for n seconds and prints the remaining time
+    :param n_secs:
+    :return:
+    """
+    for i in range(n_secs):
+        print("Waiting for {} seconds".format(n_secs - i))
+        time.sleep(1)
+    print("Waiting finished")
+    return True

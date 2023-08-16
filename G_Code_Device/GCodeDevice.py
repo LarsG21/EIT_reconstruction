@@ -5,7 +5,6 @@ import serial
 import serial.tools.list_ports
 import time
 
-from KeyPressModule import KeyPressModule
 
 
 def list_serial_devices():
@@ -21,10 +20,11 @@ def list_serial_devices():
 
 class GCodeDevice:
 
-    def __init__(self, com_port, baud_rate=115200, timeout=1):
+    def __init__(self, com_port, baud_rate=115200, timeout=1, movement_speed=6000, home_on_init=True):
         self.ser = serial.Serial(com_port, baud_rate, timeout=timeout)
         self._receive_buffer = collections.deque(maxlen=100)
         self._send_buffer = collections.deque(maxlen=100)
+        self.movement_speed = movement_speed  # mm/min
 
         self.current_position = (0, 0, 0)  # x, y, z
 
@@ -35,7 +35,8 @@ class GCodeDevice:
         reader.start()
 
         time.sleep(1)
-        self.home()
+        if home_on_init:
+            self.home()
 
     def _read_serial(self):
         while True:
@@ -82,12 +83,23 @@ class GCodeDevice:
             return False
         return True
 
+    def check_limits(self, x, y, z):
+        if x > self.maximal_limits[0] or \
+                y > self.maximal_limits[1] or \
+                z > self.maximal_limits[2]:
+            return False
+        if x < self.minimal_limits[0] or \
+                y < self.minimal_limits[1] or \
+                z < self.minimal_limits[2]:
+            return False
+        return True
+
     def move_to(self, x, y, z):
-        if not self.check_limits_with_current_position(x, y, z):
-            print("ERROR: Trying to move outside of limits")
+        if not self.check_limits(x, y, z):
+            print(f"ERROR: Trying to move outside of limits {x}, {y}, {z}")
             return
         print(f"Moving to {x}, {y}, {z}")
-        self.ser.write(str.encode(f"G0 X{x} Y{y} Z{z} F6000\r\n"))
+        self.ser.write(str.encode(f"G0 X{x} Y{y} Z{z} F{self.movement_speed}\r\n"))
         self.current_position = (x, y, z)
 
     def move_relative(self, x, y, z):
@@ -96,7 +108,7 @@ class GCodeDevice:
             return
         print(f"Moving to {x}, {y}, {z}")
         self.ser.write(str.encode(f"G91\r\n"))
-        self.ser.write(str.encode(f"G0 X{x} Y{y} Z{z} F6000\r\n"))
+        self.ser.write(str.encode(f"G0 X{x} Y{y} Z{z} F{self.movement_speed}\r\n"))
         self.current_position = (self.current_position[0] + x,
                                  self.current_position[1] + y,
                                  self.current_position[2] + z)
@@ -115,6 +127,7 @@ def main():
     else:
         print("Ender 3 found")
     kp = KeyPressModule()
+    print(ender.maximal_limits[0])
     while True:
         key = kp.get_keypress_down()
         if key == 'w':
@@ -133,4 +146,5 @@ def main():
 
 
 if __name__ == '__main__':
+    from KeyPressModule import KeyPressModule
     main()
