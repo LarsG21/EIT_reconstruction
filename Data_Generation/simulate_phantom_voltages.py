@@ -12,6 +12,7 @@ import numpy as np
 import pyeit.eit.jac as jac
 import pyeit.mesh as mesh
 from Data_Generation.utils import generate_random_anomaly_list
+from plot_utils import plot_results_fem_forward
 from pyeit.eit.fem import EITForward
 from pyeit.eit.interp2d import sim2pts
 import pyeit.eit.protocol as protocol
@@ -43,8 +44,7 @@ def generate_sample_mesh_simulation(mesh_obj, n_el=32):
     # flip the image vertically because the mesh is flipped vertically
     img = np.flip(img, axis=0)
 
-
-    PLOT = False
+    PLOT = True
     if PLOT:
         cv2.imshow("img", cv2.resize(img, (256, 256)))
 
@@ -64,6 +64,7 @@ def generate_sample_mesh_simulation(mesh_obj, n_el=32):
     if PLOT:
         solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1)
         cv2.waitKey(1000)
+        plot_results_fem_forward(mesh=mesh_new, line=protocol_obj.ex_mat[0])
 
     return v0, v1, img
 
@@ -123,7 +124,7 @@ if __name__ == '__main__':
     """ 0. build mesh """
     DATA_COLLECTION_RUN = 0
     SAMPLES = 2000
-    mesh_obj = mesh.create(n_el, h0=0.1)
+    mesh_obj = mesh.create(n_el, h0=0.1)  # TODO: Experiment with higher mesh resolutions
     # The mesh has 704 elements
     # extract node, element, alpha
     pts = mesh_obj.node
