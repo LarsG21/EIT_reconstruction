@@ -19,16 +19,20 @@ OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
 
-print("CUDA AVAILABLE",torch.cuda.is_available())
-print("Cuda device count", torch.cuda.device_count())
-print("Cuda device name", torch.cuda.get_device_name(0))
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# device = "cpu"
-if device == "cuda:0":
-    print("Using CUDA")
-    torch.cuda.set_device(0)   # or 1,2,3
+if torch.cuda.is_available():
+    print("Torch is using CUDA")
+    print("Cuda device count", torch.cuda.device_count())
+    print("Cuda device name", torch.cuda.get_device_name(0))
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = "cpu"
+    if device == "cuda:0":
+        print("Using CUDA")
+        torch.cuda.set_device(0)  # or 1,2,3
 
-print(torch.cuda.current_device())
+    print(torch.cuda.current_device())
+else:
+    print("Using CPU")
+    device = "cpu"
 # torch.cuda.set_device(0)
 
 class CustomDataset(data.Dataset):
@@ -134,9 +138,9 @@ if __name__ == "__main__":
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
-    path = "Own_Simulation_Dataset"
-    model_name = "Test_1_noise_regularization1e-6"
-    # model_name = "TESTING_NEW"
+    path = "../Own_Simulation_Dataset"
+    # model_name = "Test_1_noise_regularization1e-6"
+    model_name = "TESTING_NEW"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -154,9 +158,9 @@ if __name__ == "__main__":
         f.write(f"num_epochs: {num_epochs}\n")
         f.write("\n")
 
-    voltage_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
-    image_data_np = np.load("Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
-    v0 = np.load("Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
+    voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
+    image_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
+    v0 = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
     # subtract v0 from all voltages
     voltage_data_np = voltage_data_np - v0
 
@@ -175,7 +179,7 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     print("model summary: ", model)
     # print number of trainable parameters
     nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

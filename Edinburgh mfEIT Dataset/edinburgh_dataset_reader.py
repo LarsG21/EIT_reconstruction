@@ -2,13 +2,13 @@ import numpy as np
 import cv2
 import pandas as pd
 
-images1 = np.load('Edinburgh mfEIT Dataset/img1.npy')
-images2 = np.load('Edinburgh mfEIT Dataset/img2.npy')
-images3 = np.load('Edinburgh mfEIT Dataset/img3.npy')
+images1 = np.load('img1.npy')
+images2 = np.load('img2.npy')
+images3 = np.load('img3.npy')
 
-v1 = np.load('Edinburgh mfEIT Dataset/V1.npy')
-v2 = np.load('Edinburgh mfEIT Dataset/V2.npy')
-v3 = np.load('Edinburgh mfEIT Dataset/V3.npy')
+v1 = np.load('V1.npy')
+v2 = np.load('V2.npy')
+v3 = np.load('V3.npy')
 
 
 print(images1.shape)
@@ -78,7 +78,7 @@ voltages3 = seperate_voltages(v3)
 all_voltages = np.concatenate((voltages1, voltages2, voltages3), axis=0)
 #
 # save as npy
-np.save('Edinburgh mfEIT Dataset/voltages.npy', all_voltages)
+np.save('voltages.npy', all_voltages)
 print(len(voltages1))
 all_images1 = seperate_images(images1)
 # all_images2 = seperate_images(images2)
@@ -87,7 +87,7 @@ all_images1 = seperate_images(images1)
 # binarize the images
 # all_images1 = np.where(all_images1 > 0, 1, 0)
 # save as npy
-np.save('Edinburgh mfEIT Dataset/images1.npy', all_images1)
+np.save('images1.npy', all_images1)
 print(len(all_images1))
 print("OK")
 

@@ -5,9 +5,9 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 
-from Models import LinearModelWithDropout, LinearModel
+from Model_Training.Models import LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from model_plot_utils import plot_single_reconstruction
+from Model_Training.model_plot_utils import plot_single_reconstruction
 from pyeit import mesh
 from pyeit.eit import protocol, jac, greit, bp
 from pyeit.eit.interp2d import sim2pts
