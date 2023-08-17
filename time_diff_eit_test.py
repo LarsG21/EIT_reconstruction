@@ -14,10 +14,11 @@ from pyeit.eit.interp2d import sim2pts
 from pyeit.mesh.shape import thorax
 import os
 
-from utils import wait_for_start_of_measurement
+from utils import wait_for_start_of_measurement, get_relevant_voltages
 
 """ 0. build mesh """
 n_el = 32  # nb of electrodes
+protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
 use_customize_shape = False
 if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
@@ -37,14 +38,7 @@ tri = mesh_obj.element
 # tri is the list of the elements of the mesh (with the nodes that compose them)
 x, y = pts[:, 0], pts[:, 1]
 
-""" 2. FEM simulation """
-# setup EIT scan conditions
-protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
-# TODO Find out how dist_exc work
 
-keep_mask = protocol_obj.keep_ba
-print(keep_mask)
-df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
 default_frame = None
 
@@ -66,13 +60,8 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
         df2_old = convert_single_frequency_eit_file_to_df(path2)
     else:
         df2_old = default_frame
-
-    df1 = pd.concat([df1_old, df_keep_mask], axis=1)
-    df2 = pd.concat([df2_old, df_keep_mask], axis=1)
-    df1 = df1[df1["keep"] == True].drop("keep", axis=1)
-    df2 = df2[df2["keep"] == True].drop("keep", axis=1)
-    v0 = df1["amplitude"].to_numpy(dtype=np.float64)
-    v1 = df2["amplitude"].to_numpy(dtype=np.float64)
+    v0 = get_relevant_voltages(df1_old, protocol_obj)
+    v1 = get_relevant_voltages(df2_old, protocol_obj)
     difference = v1 - v0
     plt.plot(difference)
     plt.title("Difference between two images")
@@ -102,13 +91,8 @@ def plot_frequencies_diff_eit_image(path, f1,f2):
     df2 = df[df["frequency"] == f2]
     df1 = df.reset_index(drop=True)
     df2 = df2.reset_index(drop=True)
-
-    df1 = pd.concat([df1, df_keep_mask], axis=1)
-    df2 = pd.concat([df2, df_keep_mask], axis=1)
-    df1 = df1[df1["keep"] == True].drop("keep", axis=1)
-    df2 = df2[df2["keep"] == True].drop("keep", axis=1)
-    v0 = df1["amplitude"].to_numpy(dtype=np.float64)
-    v1 = df2["amplitude"].to_numpy(dtype=np.float64)
+    v0 = get_relevant_voltages(df1, protocol_obj)
+    v1 = get_relevant_voltages(df2, protocol_obj)
 
     solve_and_plot_jack(f"{f1}", f"{f2}", v0, v1)
 

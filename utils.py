@@ -1,6 +1,9 @@
 import os
 import time
 
+import numpy as np
+import pandas as pd
+
 
 def wait_for_start_of_measurement(path):
     """
@@ -24,3 +27,19 @@ def wait_for_start_of_measurement(path):
             print(eit_path)
             break
     return eit_path
+
+
+def get_relevant_voltages(df, protocol_obj):
+    """
+    This function takes a dataframe and returns the voltages that are relevant for the reconstruction
+    Removes voltages of the injection electrodes.
+    :param df:
+    :return:
+    """
+    # TODO Find out how dist_exc work
+    keep_mask = protocol_obj.keep_ba
+    df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
+    df = pd.concat([df, df_keep_mask], axis=1)
+    df1 = df[df["keep"] == True].drop("keep", axis=1)
+    v = df1["amplitude"].to_numpy(dtype=np.float64)
+    return v

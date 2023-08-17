@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 
@@ -10,6 +11,8 @@ from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from pyeit.eit import protocol
 from utils import wait_for_start_of_measurement
+
+TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 n_el = 32
 protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
@@ -125,7 +128,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         print(f"Sample {i} collected")
     # save the images and voltages in a dataframe
     df = pd.DataFrame({"images": images, "voltages": voltages})
-    df.to_pickle(f"Data_measured{time.time()}.pkl")
+    df.to_pickle(f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
 
 
 def calculate_moving_time(last_position: np.ndarray, center_for_moving: np.ndarray):
@@ -158,7 +161,7 @@ def main():
     else:
         print("Ender 3 found")
 
-    collect_data(gcode_device=ender, number_of_samples=10, eit_data_path="../eit_data")
+    collect_data(gcode_device=ender, number_of_samples=20, eit_data_path="../eit_data")
 
 
 if __name__ == '__main__':

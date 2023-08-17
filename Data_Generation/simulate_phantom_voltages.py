@@ -112,8 +112,10 @@ def look_at_dataset(img_array, v1_array, v0):
         # show voltage difference and image in one plot
         plt.subplot(1, 2, 1)
         plt.imshow(img*10)
+        plt.title('image')
         plt.subplot(1, 2, 2)
         plt.plot(voltage_differece)
+        plt.title('voltage difference')
         plt.show()
         cv2.imshow('img', cv2.resize(img*10, (256, 256)))
 
@@ -122,50 +124,45 @@ def look_at_dataset(img_array, v1_array, v0):
 
 if __name__ == '__main__':
     """ 0. build mesh """
-    DATA_COLLECTION_RUN = 0
-    SAMPLES = 2000
-    mesh_obj = mesh.create(n_el, h0=0.1)  # TODO: Experiment with higher mesh resolutions
-    # The mesh has 704 elements
-    # extract node, element, alpha
-    pts = mesh_obj.node
-    # pts is the list of the nodes of the mesh (with coordinates)
-    tri = mesh_obj.element
-    # tri is the list of the elements of the mesh (with the nodes that compose them)
-    x, y = pts[:, 0], pts[:, 1]
-
-    img_array = []
-    v0_array = []
-    v1_array = []
-    # Simulate 1 sample to get the v0
-    v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
-    np.save("../Own_Simulation_Dataset/v0.npy", v0)
+    # DATA_COLLECTION_RUN = 0
+    # SAMPLES = 2000
+    # mesh_obj = mesh.create(n_el, h0=0.1)  # TODO: Experiment with higher mesh resolutions
+    # # The mesh has 704 elements
+    # # extract node, element, alpha
+    # pts = mesh_obj.node
+    # # pts is the list of the nodes of the mesh (with coordinates)
+    # tri = mesh_obj.element
+    # # tri is the list of the elements of the mesh (with the nodes that compose them)
+    # x, y = pts[:, 0], pts[:, 1]
     #
-    # Simulate the rest of the samples
-    for i in range(10):
-        start = time.time()
-        DATA_COLLECTION_RUN += 1
-        for i in range(SAMPLES):
-            print(i)
-            v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
-            img_array.append(img)
-            v0_array.append(v0)
-            v1_array.append(v1)
-        print()
-        end = time.time()
-        print(f"Time elapsed for {SAMPLES} samples: {end - start}")
-        print("Average time per sample: ", (end - start) / SAMPLES)
-        img_array_np = np.array(img_array)
-        np.save(f"Own_Simulation_Dataset/img_array_{DATA_COLLECTION_RUN}.npy", img_array_np)
-        v1_array_np = np.array(v1_array)
-        np.save(f"Own_Simulation_Dataset/v1_array_{DATA_COLLECTION_RUN}.npy", v1_array_np)
-        print("OK")
+    # img_array = []
+    # v0_array = []
+    # v1_array = []
+    # # Simulate 1 sample to get the v0
+    # v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
+    # np.save("../Own_Simulation_Dataset/v0.npy", v0)
+    # #
+    # # Simulate the rest of the samples
+    # for i in range(10):
+    #     start = time.time()
+    #     DATA_COLLECTION_RUN += 1
+    #     for i in range(SAMPLES):
+    #         print(i)
+    #         v0, v1, img = generate_sample_mesh_simulation(mesh_obj=mesh_obj, n_el=32)
+    #         img_array.append(img)
+    #         v0_array.append(v0)
+    #         v1_array.append(v1)
+    #     print()
+    #     end = time.time()
+    #     print(f"Time elapsed for {SAMPLES} samples: {end - start}")
+    #     print("Average time per sample: ", (end - start) / SAMPLES)
+    #     img_array_np = np.array(img_array)
+    #     np.save(f"Own_Simulation_Dataset/img_array_{DATA_COLLECTION_RUN}.npy", img_array_np)
+    #     v1_array_np = np.array(v1_array)
+    #     np.save(f"Own_Simulation_Dataset/v1_array_{DATA_COLLECTION_RUN}.npy", v1_array_np)
+    #     print("OK")
 
-    # img_array = np.load("Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
-    # v1_array = np.load("Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
-    # v0 = np.load("Own_Simulation_Dataset/v0.npy")
-    # look_at_dataset(img_array, v1_array, v0)
-
-
-
-
-
+    img_array = np.load("../Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
+    v1_array = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
+    v0 = np.load("../Own_Simulation_Dataset/v0.npy")
+    look_at_dataset(img_array, v1_array, v0)
