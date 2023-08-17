@@ -57,7 +57,12 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
 
     PLOT = True
     if PLOT:
-        cv2.imshow("img", cv2.resize(img, (256, 256)))
+        img_show = img.copy()
+        # plot big circle
+        # convert to color image
+        img_show = np.stack([img_show, img_show, img_show], axis=2)
+        cv2.circle(img_show, (img_size // 2, img_size // 2), int(img_size / 2), (255, 0, 255), 1)
+        cv2.imshow("img", cv2.resize(img_show, (256, 256)))
         cv2.waitKey(100)
 
     """ 3. send gcode to the device """
@@ -139,7 +144,7 @@ def calculate_moving_time(last_position: np.ndarray, center_for_moving: np.ndarr
     :return:
     """
     MOVING_SEED_Z = 5  # in mm per second
-    MOVING_SEED_X = 50  # in mm per second
+    MOVING_SEED_X = 60  # in mm per second
 
     time_to_move = int(np.linalg.norm(last_position[0] - center_for_moving[0]) / MOVING_SEED_X +
                        np.linalg.norm(last_position[1] - center_for_moving[1]) / MOVING_SEED_Z)
