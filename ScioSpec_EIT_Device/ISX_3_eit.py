@@ -378,11 +378,11 @@ def reset_eit_setup(handle):
 
 def start_measurement(handle, number_of_measurments):
     # cmd = bytearray([0xB8, 0x01, on_off, 0xB8])
-    bytes_nr_measurements = number_of_measurments.to_bytes(2, byteorder='big')
+    # bytes_nr_measurements = number_of_measurments.to_bytes(2, byteorder='big')
 
     # cmd = bytearray([0xB8, 0x03 , 0x01]) + bytes_nr_measurements + bytearray([0xB8])
     # cmd = bytearray([0xB8, 0x03, 0x1, 0x01, 0x00, 0xB8])
-    cmd = bytearray([0xB8, 0x1, 0x00, 0xB8])
+    cmd = bytearray([0xB8, 0x03, 0x02, 0x00, 0x00, 0xB8])
 
     write_data_to_device(handle, cmd)
     read_ack(handle)
