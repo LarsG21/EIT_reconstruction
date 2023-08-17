@@ -24,12 +24,12 @@ def get_relevant_voltages(df, protocol_obj):
     return v
 
 # read df from pickle
-df = pd.read_pickle("Data_measured2023-08-17 15_47_59.pkl")
+df = pd.read_pickle("Data_measured2023-08-17 17_43_24.pkl")
 
 img_array = df["images"].to_numpy()
 voltages_df = df["voltages"]
 
-path_vo = "../eit_data/20230817 15.44.29/setup/setup_00062.eit"
+path_vo = "v0.eit"
 v0_df = convert_single_frequency_eit_file_to_df(path_vo)
 v0 = get_relevant_voltages(v0_df, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std"))
 

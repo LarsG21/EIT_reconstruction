@@ -38,8 +38,6 @@ def get_relevant_voltages(df, protocol_obj):
     """
     # TODO Find out how dist_exc work
     keep_mask = protocol_obj.keep_ba
-    df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
-    df = pd.concat([df, df_keep_mask], axis=1)
-    df1 = df[df["keep"] == True].drop("keep", axis=1)
-    v = df1["amplitude"].to_numpy(dtype=np.float64)
+    v = df["amplitude"].to_numpy(dtype=np.float64)
+    v = v[keep_mask]
     return v

@@ -88,6 +88,8 @@ def get_newest_file(path):
     """
     files = os.listdir(path)
     paths = [os.path.join(path, basename) for basename in files]
+    # select only files that g´have ending .eit
+    paths = [path for path in paths if path.endswith(".eit")]
     newest = max(paths, key=os.path.getctime)
     # delete all files except the newest
     for file in files:
@@ -141,7 +143,16 @@ def look_at_dataset(img_array, v1_array, v0):
 
 
 def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
-    """ 3. JAC solver """
+    """
+    Solves the EIT problem using the jac method.
+    :param mesh_new:
+    :param mesh_obj:
+    :param protocol_obj:
+    :param v0: The voltages measured without the anomaly (already selected relevant electrodes)
+    :param v1: The voltages measured with the anomaly (already selected relevant electrodes)
+    :return:
+    """
+
     # Note: if the jac and the real-problem are generated using the same mesh,
     # then, data normalization in solve are not needed.
     # However, when you generate jac from a known mesh, but in real-problem
