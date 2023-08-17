@@ -7,14 +7,11 @@ from __future__ import absolute_import, division, print_function
 import time
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-import pyeit.eit.jac as jac
 import pyeit.mesh as mesh
-from Data_Generation.utils import generate_random_anomaly_list
+from Data_Generation.utils import generate_random_anomaly_list, solve_eit_using_jac, look_at_dataset
 from plot_utils import plot_results_fem_forward
 from pyeit.eit.fem import EITForward
-from pyeit.eit.interp2d import sim2pts
 import pyeit.eit.protocol as protocol
 
 n_el = 32
@@ -68,59 +65,6 @@ def generate_sample_mesh_simulation(mesh_obj, n_el=32):
 
     return v0, v1, img
 
-
-def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
-    """ 3. JAC solver """
-    # Note: if the jac and the real-problem are generated using the same mesh,
-    # then, data normalization in solve are not needed.
-    # However, when you generate jac from a known mesh, but in real-problem
-    # (mostly) the shape and the electrode positions are not exactly the same
-    # as in mesh generating the jac, then data must be normalized.
-    eit = jac.JAC(mesh_obj, protocol_obj)
-    eit.setup(p=0.5, lamb=0.01, method="kotre", perm=1, jac_normalized=True)
-    ds = eit.solve(v1, v0, normalize=True)
-    ds_n = sim2pts(pts, tri, np.real(ds))
-    # plot ground truth
-    fig, axes = plt.subplots(1, 2, constrained_layout=True)
-    fig.set_size_inches(9, 4)
-    ax = axes[0]
-    delta_perm = mesh_new.perm - mesh_obj.perm
-    im = ax.tripcolor(x, y, tri, np.real(delta_perm), shading="flat")
-    ax.set_aspect("equal")
-    # plot EIT reconstruction
-    ax = axes[1]
-    im = ax.tripcolor(x, y, tri, ds_n, shading="flat")
-    for i, e in enumerate(mesh_obj.el_pos):
-        ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
-    ax.set_aspect("equal")
-    fig.colorbar(im, ax=axes.ravel().tolist())
-    # plt.savefig('../doc/images/demo_jac.png', dpi=96)
-    plt.show()
-
-
-
-def look_at_dataset(img_array, v1_array, v0):
-    print(img_array.shape)
-    print(v1_array.shape)
-    average_image = np.mean(img_array, axis=0)*10
-    # clip between 0 and 255
-    average_image = np.clip(average_image, 0, 255)
-
-    cv2.imshow('average', cv2.resize(average_image, (256, 256)))
-    for i, img in enumerate(img_array):
-        voltage_differece = v1_array[i] - v0
-        # show voltage difference and image in one plot
-        plt.subplot(1, 2, 1)
-        plt.imshow(img*10)
-        plt.title('image')
-        plt.subplot(1, 2, 2)
-        plt.plot(voltage_differece)
-        plt.title('voltage difference')
-        plt.show()
-        cv2.imshow('img', cv2.resize(img*10, (256, 256)))
-
-        cv2.waitKey(100)
-    # cv2.waitKey(0)
 
 if __name__ == '__main__':
     """ 0. build mesh """

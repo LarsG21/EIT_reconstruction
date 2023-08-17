@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-from Data_Generation.simulate_phantom_voltages import look_at_dataset
+from Data_Generation.utils import look_at_dataset
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from pyeit.eit import protocol
 

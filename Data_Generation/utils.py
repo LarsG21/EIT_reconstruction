@@ -1,7 +1,14 @@
+from __future__ import division, absolute_import, print_function
+
 import os
 import time
 
+import cv2
 import numpy as np
+from matplotlib import pyplot as plt
+
+from pyeit.eit import jac as jac
+from pyeit.eit.interp2d import sim2pts
 
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
@@ -100,3 +107,68 @@ def wait_for_n_secs_with_print(n_secs):
         time.sleep(1)
     print("Waiting finished")
     return True
+
+
+def look_at_dataset(img_array, v1_array, v0):
+    """
+    Shows the images and voltage difference of a dataset
+    :param img_array: The images with the anomaly
+    :param v1_array: The voltages measured with the anomaly
+    :param v0: The voltages measured without the anomaly
+    :return:
+    """
+    print(img_array.shape)
+    print(v1_array.shape)
+    average_image = np.mean(img_array, axis=0) * 10
+    # clip between 0 and 255
+    average_image = np.clip(average_image, 0, 255)
+
+    cv2.imshow('average', cv2.resize(average_image, (256, 256)))
+    for i, img in enumerate(img_array):
+        voltage_differece = v1_array[i] - v0
+        # show voltage difference and image in one plot
+        plt.subplot(1, 2, 1)
+        plt.imshow(img * 10)
+        plt.title('image')
+        plt.subplot(1, 2, 2)
+        plt.plot(voltage_differece)
+        plt.title('voltage difference')
+        plt.show()
+        cv2.imshow('img', cv2.resize(img * 10, (256, 256)))
+
+        cv2.waitKey(100)
+    # cv2.waitKey(0)
+
+
+def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
+    """ 3. JAC solver """
+    # Note: if the jac and the real-problem are generated using the same mesh,
+    # then, data normalization in solve are not needed.
+    # However, when you generate jac from a known mesh, but in real-problem
+    # (mostly) the shape and the electrode positions are not exactly the same
+    # as in mesh generating the jac, then data must be normalized.
+    pts = mesh_obj.node
+    # pts is the list of the nodes of the mesh (with coordinates)
+    tri = mesh_obj.element
+    # tri is the list of the elements of the mesh (with the nodes that compose them)
+    x, y = pts[:, 0], pts[:, 1]
+    eit = jac.JAC(mesh_obj, protocol_obj)
+    eit.setup(p=0.5, lamb=0.01, method="kotre", perm=1, jac_normalized=True)
+    ds = eit.solve(v1, v0, normalize=True)
+    ds_n = sim2pts(pts, tri, np.real(ds))
+    # plot ground truth
+    fig, axes = plt.subplots(1, 2, constrained_layout=True)
+    fig.set_size_inches(9, 4)
+    ax = axes[0]
+    delta_perm = mesh_new.perm - mesh_obj.perm
+    im = ax.tripcolor(x, y, tri, np.real(delta_perm), shading="flat")
+    ax.set_aspect("equal")
+    # plot EIT reconstruction
+    ax = axes[1]
+    im = ax.tripcolor(x, y, tri, ds_n, shading="flat")
+    for i, e in enumerate(mesh_obj.el_pos):
+        ax.annotate(str(i + 1), xy=(x[e], y[e]), color="r")
+    ax.set_aspect("equal")
+    fig.colorbar(im, ax=axes.ravel().tolist())
+    # plt.savefig('../doc/images/demo_jac.png', dpi=96)
+    plt.show()
