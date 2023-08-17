@@ -42,6 +42,9 @@ RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 v0 = None
 
 
+# TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
+
+
 def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray):
     """
     Generates a sample simulation of electrode voltages with a random anomaly.
@@ -121,8 +124,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     print(file_path)
     v0_df = convert_single_frequency_eit_file_to_df(file_path)
     # save df to pickle
-    save_path = os.path.join(save_path, "v0_df")
-    v0_df.to_pickle(save_path)  # TODO: Change save path
+    save_path_v0 = os.path.join(save_path, "v0_df")
+    v0_df.to_pickle(save_path_v0)  # TODO: Change save path
     v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
     time.sleep(1)
     for i in range(number_of_samples):
@@ -134,8 +137,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         print(f"Sample {i} collected")
     # save the images and voltages in a dataframe
     df = pd.DataFrame({"images": images, "voltages": voltages})
-    save_path = os.path.join(save_path, "Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
-    df.to_pickle(save_path)
+    save_path_data = os.path.join(save_path, f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+    df.to_pickle(save_path_data)
 
 
 def calculate_moving_time(last_position: np.ndarray, center_for_moving: np.ndarray):
@@ -168,7 +171,7 @@ def main():
     else:
         print("Ender 3 found")
     TEST_NAME = "Test"
-    collect_data(gcode_device=ender, number_of_samples=5,
+    collect_data(gcode_device=ender, number_of_samples=3,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
