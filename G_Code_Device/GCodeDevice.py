@@ -1,11 +1,27 @@
 import collections
 import threading
 
+import numpy as np
 import serial
 import serial.tools.list_ports
 import time
 
 
+def calculate_moving_time(last_position: np.ndarray, center_for_moving: np.ndarray):
+    """
+    Calculates the time to move from the last position to the new position.
+    :param last_centers:
+    :param center_for_moving:
+    :return:
+    """
+    MOVING_SEED_Z = 5  # in mm per second
+    MOVING_SEED_X = 50  # in mm per second
+
+    time_to_move = int(np.linalg.norm(last_position[0] - center_for_moving[0]) / MOVING_SEED_X +
+                       np.linalg.norm(last_position[1] - center_for_moving[1]) / MOVING_SEED_Z)
+    print("time_to_move", time_to_move)
+
+    return time_to_move
 
 def list_serial_devices():
     ports = serial.tools.list_ports.comports()
@@ -114,7 +130,6 @@ class GCodeDevice:
                                  self.current_position[2] + z)
         self.ser.write(str.encode(f"G90\r\n"))
 
-
 def main():
     devices = list_serial_devices()
     ender = None
@@ -128,6 +143,10 @@ def main():
         print("Ender 3 found")
     kp = KeyPressModule()
     print(ender.maximal_limits[0])
+    # X = 20
+    # Z = 200
+    # calculate_moving_time(np.array([0, 0]), np.array([X, Z]))
+    # ender.move_to(X, 0, Z)
     while True:
         key = kp.get_keypress_down()
         if key == 'w':

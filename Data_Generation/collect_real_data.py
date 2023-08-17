@@ -27,7 +27,7 @@ img_size = 64
 RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
 
-def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, move_time: int = 25):
+def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray):
     """
     Generates a sample simulation of electrode voltages with a random anomaly.
     """
@@ -64,9 +64,8 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, move_time: int 
     center_for_moving = center_for_moving.astype(int)
     print("center_for_moving", center_for_moving)
     gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
-
-    wait_for_n_secs_with_print(
-        move_time)  # TODO make this time dependent on the distance between the last position and the new position
+    move_time = calculate_moving_time(last_position, center_for_moving) + 2  # 2 seconds for safety and measurement
+    wait_for_n_secs_with_print(move_time)
     """ 4. collect data """
 
     # v1 = ....
@@ -114,17 +113,12 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     """
     images = []
     voltages = []
-    last_centers = [np.array([0, 0]), np.array([100, 100])]
+    last_centers = [np.array([0, 0])]
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     for i in range(number_of_samples):
-        if len(last_centers) >= 2:
-            time_to_move = int(np.linalg.norm(last_centers[-1] - last_centers[-2]) * 0.12)  # TODO: Find good factor
-            print(f"Time to move: {time_to_move}")
-        else:
-            time_to_move = 25
         img, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
-                                                        move_time=time_to_move)
+                                                        last_position=last_centers[-1])
         images.append(img)
         voltages.append(v1)
         last_centers.append(center_for_moving)
@@ -132,6 +126,23 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     # save the images and voltages in a dataframe
     df = pd.DataFrame({"images": images, "voltages": voltages})
     df.to_pickle(f"Data_measured{time.time()}.pkl")
+
+
+def calculate_moving_time(last_position: np.ndarray, center_for_moving: np.ndarray):
+    """
+    Calculates the time to move from the last position to the new position.
+    :param last_position: Last position in the format [x, z] in mm
+    :param center_for_moving: New position in the format [x, z] in mm
+    :return:
+    """
+    MOVING_SEED_Z = 5  # in mm per second
+    MOVING_SEED_X = 50  # in mm per second
+
+    time_to_move = int(np.linalg.norm(last_position[0] - center_for_moving[0]) / MOVING_SEED_X +
+                       np.linalg.norm(last_position[1] - center_for_moving[1]) / MOVING_SEED_Z)
+    print("time_to_move", time_to_move)
+
+    return time_to_move
 
 
 def main():
@@ -147,7 +158,7 @@ def main():
     else:
         print("Ender 3 found")
 
-    collect_data(gcode_device=ender, number_of_samples=5, eit_data_path="../eit_data")
+    collect_data(gcode_device=ender, number_of_samples=10, eit_data_path="../eit_data")
 
 
 if __name__ == '__main__':
