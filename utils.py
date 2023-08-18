@@ -20,9 +20,11 @@ def wait_for_start_of_measurement(path):
     time.sleep(1)
     for file_or_folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, file_or_folder)):
-            os.chdir(os.path.join(path, file_or_folder))
+            os.chdir(os.path.join(path, file_or_folder))  # Move into folder with the name of the current date
             print(os.getcwd())
-            os.chdir((os.path.join(os.getcwd(), "setup")))
+            for file_or_folder in os.listdir(os.getcwd()):  # Move into folder with the name of the setup
+                if os.path.isdir(os.path.join(os.getcwd(), file_or_folder)):
+                    os.chdir(os.path.join(os.getcwd(), file_or_folder))
             eit_path = os.getcwd()
             print(eit_path)
             break
