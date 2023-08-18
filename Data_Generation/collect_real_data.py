@@ -26,8 +26,8 @@ TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 n_el = 32
 mesh_obj = mesh.create(n_el, h0=0.1)
-protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
-# TODO Find out how dist_exc work
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
+# Dist_exc is the distance between the excitation and measurement electrodes (in number of electrodes)
 
 keep_mask = protocol_obj.keep_ba
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
@@ -99,7 +99,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
     v0_solve = v0[keep_mask]
     v1_solve = v1[keep_mask]
-    solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0_solve, v1_solve)
+    solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
 
     return img, v1, center_for_moving
 
@@ -171,7 +171,7 @@ def main():
     else:
         print("Ender 3 found")
     TEST_NAME = "Test"
-    collect_data(gcode_device=ender, number_of_samples=3,
+    collect_data(gcode_device=ender, number_of_samples=100,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 

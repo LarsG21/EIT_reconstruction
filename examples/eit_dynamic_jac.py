@@ -36,7 +36,7 @@ mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly)
 
 """ 2. FEM simulation """
 # setup EIT scan conditions
-protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 
 # calculate simulated data
 fwd = EITForward(mesh_obj, protocol_obj)

@@ -38,8 +38,12 @@ def get_relevant_voltages(df, protocol_obj):
     :param df:
     :return:
     """
-    # TODO Find out how dist_exc work
+    # TODO: Verify again, that this is correct !
     keep_mask = protocol_obj.keep_ba
+    # pd.concat([df,pd.DataFrame(keep_mask)], axis=1)
+    # keep only where measuring electrodes != injection_pos and != injection_neg
+    # df = df[df["injection_pos"] != df["measuring_electrode"]]
+    # df = df[df["injection_neg"] != df["measuring_electrode"]]
     v = df["amplitude"].to_numpy(dtype=np.float64)
     v = v[keep_mask]
     return v
