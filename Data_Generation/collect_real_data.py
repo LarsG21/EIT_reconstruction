@@ -149,6 +149,12 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         voltages.append(v1)
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
+        # save the images and voltages in a dataframe every 50 samples
+        if i % 50 == 0:
+            df = pd.DataFrame({"images": images, "voltages": voltages})
+            save_path_data = os.path.join(save_path,
+                                          f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+            df.to_pickle(save_path_data)
     # save the images and voltages in a dataframe
     df = pd.DataFrame({"images": images, "voltages": voltages})
     save_path_data = os.path.join(save_path, f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")

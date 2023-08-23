@@ -1,16 +1,10 @@
 from __future__ import division, absolute_import, print_function
 
-import numpy as np
-from PIL.Image import Image
-from matplotlib import pyplot as plt
-
 from pyeit.eit.fem import Forward
 from pyeit.eit.interp2d import pdegrad, sim2pts
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 def plot_results_fem_forward(mesh, line):
