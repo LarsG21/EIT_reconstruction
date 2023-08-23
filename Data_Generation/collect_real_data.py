@@ -27,7 +27,9 @@ TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 n_el = 32
 mesh_obj = mesh.create(n_el, h0=0.1)
-protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
+dist_exc = 1
+step_meas = 1
+protocol_obj = protocol.create(n_el, dist_exc=dist_exc, step_meas=step_meas, parser_meas="std")
 # Dist_exc is the distance between the excitation and measurement electrodes (in number of electrodes)
 
 keep_mask = protocol_obj.keep_ba
@@ -120,7 +122,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     # create txt file with the metadata
     metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
-                "dist_exc": protocol_obj.dist_exc, "step_meas": protocol_obj.step_meas,
+                "dist_exc": dist_exc, "step_meas": step_meas,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
         file.write(json.dumps(metadata))
@@ -149,8 +151,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         voltages.append(v1)
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
-        # save the images and voltages in a dataframe every 50 samples
-        if i % 50 == 0:
+        # save the images and voltages in a dataframe every 10 samples
+        if i % 2 == 0:
             df = pd.DataFrame({"images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
@@ -192,7 +194,7 @@ def main():
     else:
         print("Ender 3 found")
     TEST_NAME = "Test_1000_Samples"
-    collect_data(gcode_device=ender, number_of_samples=1000,
+    collect_data(gcode_device=ender, number_of_samples=10,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
