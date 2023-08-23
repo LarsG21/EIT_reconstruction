@@ -130,6 +130,22 @@ class GCodeDevice:
                                  self.current_position[2] + z)
         self.ser.write(str.encode(f"G90\r\n"))
 
+    def calculate_moving_time(self, last_position: np.ndarray, center_for_moving: np.ndarray):
+        """
+        Calculates the time to move from the last position to the new position.
+        :param last_position: Last position in the format [x, z] in mm
+        :param center_for_moving: New position in the format [x, z] in mm
+        :return:
+        """
+        MOVING_SEED_Z = 5  # in mm per second
+        MOVING_SEED_X = 60  # in mm per second
+
+        time_to_move = int(np.linalg.norm(last_position[0] - center_for_moving[0]) / MOVING_SEED_X +
+                           np.linalg.norm(last_position[1] - center_for_moving[1]) / MOVING_SEED_Z)
+        print("time_to_move", time_to_move)
+
+        return time_to_move
+
 def main():
     devices = list_serial_devices()
     ender = None

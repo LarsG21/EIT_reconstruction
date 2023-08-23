@@ -90,7 +90,8 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     center_for_moving = center_for_moving.astype(int)
     print("center_for_moving", center_for_moving)
     gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
-    move_time = calculate_moving_time(last_position, center_for_moving) + 4  # 4 seconds for safety and measurement
+    move_time = gcode_device.calculate_moving_time(last_position,
+                                                   center_for_moving) + 4  # 4 seconds for safety and measurement
     wait_for_n_secs_with_print(move_time)
     """ 4. collect data """
     # get the newest file in the folder
@@ -152,7 +153,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
         # save the images and voltages in a dataframe every 10 samples
-        if i % 2 == 0:
+        if i % 50 == 0:
             df = pd.DataFrame({"images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
@@ -163,21 +164,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     df.to_pickle(save_path_data)
 
 
-def calculate_moving_time(last_position: np.ndarray, center_for_moving: np.ndarray):
-    """
-    Calculates the time to move from the last position to the new position.
-    :param last_position: Last position in the format [x, z] in mm
-    :param center_for_moving: New position in the format [x, z] in mm
-    :return:
-    """
-    MOVING_SEED_Z = 5  # in mm per second
-    MOVING_SEED_X = 60  # in mm per second
 
-    time_to_move = int(np.linalg.norm(last_position[0] - center_for_moving[0]) / MOVING_SEED_X +
-                       np.linalg.norm(last_position[1] - center_for_moving[1]) / MOVING_SEED_Z)
-    print("time_to_move", time_to_move)
-
-    return time_to_move
 
 
 def main():
@@ -194,7 +181,7 @@ def main():
     else:
         print("Ender 3 found")
     TEST_NAME = "Test_1000_Samples"
-    collect_data(gcode_device=ender, number_of_samples=10,
+    collect_data(gcode_device=ender, number_of_samples=3000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 

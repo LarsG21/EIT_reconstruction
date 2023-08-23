@@ -17,4 +17,4 @@ def calculate_time_for_overall_data_collection(number_of_samples, time_per_sampl
 
 
 if __name__ == '__main__':
-    calculate_time_for_overall_data_collection(number_of_samples=10000, time_per_sample=20)
+    calculate_time_for_overall_data_collection(number_of_samples=3000, time_per_sample=20)
