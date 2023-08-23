@@ -124,7 +124,7 @@ if __name__ == "__main__":
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 150
+    num_epochs = 100
     NOISE_LEVEL = 0.1
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
@@ -138,9 +138,10 @@ if __name__ == "__main__":
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
+    # path = "../Collected_Data/Test3"
     path = "../Own_Simulation_Dataset"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "TESTING_NEW"
+    model_name = "SMALL_TRAININGSET_1000"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -161,12 +162,15 @@ if __name__ == "__main__":
     voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
     image_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
     v0 = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
+    # voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+    # image_data_np = np.load(os.path.join(path, "img_array.npy"))
+    # v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
     voltage_data_np = voltage_data_np - v0
 
     # # reduce the number of images
-    # image_data_np = image_data_np[:4000]
-    # voltage_data_np = voltage_data_np[:4000]
+    image_data_np = image_data_np[:1000]
+    voltage_data_np = voltage_data_np[:1000]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 

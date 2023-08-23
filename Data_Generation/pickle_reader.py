@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -45,12 +47,42 @@ def reconstruct_multiple_voltages(voltage_array, v0, img_array=None):
             plt.show()
 
 
-if __name__ == '__main__':
-    # read df from pickle
-    df = pd.read_pickle("Data_measured2023-08-23 15_05_04.pkl")
-    img_array = df["images"].to_numpy()
+def convert_df_to_separate_npy_files(df, save_path):
+    """
+    Converts the dataframe to seperate npy files
+    :param df: Dataframe with images and voltages
+    :param save_path: Path to save the npy files
+    :return:
+    """
+    img_array = df["images"].to_list()
+    img_array = np.array(img_array)
     voltages_df = df["voltages"]
     path_vo = "v0.eit"
+    v0_df = convert_single_frequency_eit_file_to_df(path_vo)
+    v0 = get_relevant_voltages(v0_df, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std"))
+
+    # save v0 to npy
+    np.save(os.path.join(save_path, "v0.npy"), v0)
+
+    # apply get_relevant_voltages to all voltages
+    voltage_array = np.array(
+        [get_relevant_voltages(v, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std")) for v in
+         voltages_df])
+    # save voltages to npy
+    np.save(os.path.join(save_path, "v1_array.npy"), voltage_array)
+    # save images to npy
+    np.save(os.path.join(save_path, "img_array.npy"), img_array)
+
+
+if __name__ == '__main__':
+    # read df from pickle
+    df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
+    img_array = df["images"].to_list()
+    img_array = np.array(img_array)
+    voltages_df = df["voltages"]
+    path_vo = "v0.eit"
+
+    convert_df_to_separate_npy_files(df, save_path="../Collected_Data/Test3/")
     v0_df = convert_single_frequency_eit_file_to_df(path_vo)
     v0 = get_relevant_voltages(v0_df, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std"))
 
@@ -59,5 +91,5 @@ if __name__ == '__main__':
         [get_relevant_voltages(v, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std")) for v in
          voltages_df])
 
-    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
-    # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
+    # look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
+    reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)

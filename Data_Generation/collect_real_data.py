@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import time
 
@@ -87,7 +88,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     center_for_moving = center_for_moving.astype(int)
     print("center_for_moving", center_for_moving)
     gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
-    move_time = calculate_moving_time(last_position, center_for_moving) + 2  # 2 seconds for safety and measurement
+    move_time = calculate_moving_time(last_position, center_for_moving) + 4  # 4 seconds for safety and measurement
     wait_for_n_secs_with_print(move_time)
     """ 4. collect data """
     # get the newest file in the folder
@@ -116,6 +117,13 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     global v0
     if not os.path.exists(save_path):
         os.makedirs(save_path)  # TODO: First move to the center of the tank for calibration
+    # create txt file with the metadata
+    metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
+                "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
+                "dist_exc": protocol_obj.dist_exc, "step_meas": protocol_obj.step_meas,
+                }
+    with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
+        file.write(json.dumps(metadata))
     print("Moving to the center of the tank for calibration")
     gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
     print("Move enter so that target is in the center of the tank and press enter")
@@ -177,8 +185,8 @@ def main():
         raise Exception("No Ender 3 found")
     else:
         print("Ender 3 found")
-    TEST_NAME = "Test3"
-    collect_data(gcode_device=ender, number_of_samples=20,
+    TEST_NAME = "Test_1000_Samples"
+    collect_data(gcode_device=ender, number_of_samples=1000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
