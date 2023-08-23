@@ -82,6 +82,8 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     """ 3. send gcode to the device """
     # convert center from [-1, 1] to [0, max_moving_space]
     center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
+    # invert x axis
+    center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
     center_for_moving = center_for_moving.astype(int)
     print("center_for_moving", center_for_moving)
     gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
@@ -113,10 +115,14 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     """
     global v0
     if not os.path.exists(save_path):
-        os.makedirs(save_path)
+        os.makedirs(save_path)  # TODO: First move to the center of the tank for calibration
+    print("Moving to the center of the tank for calibration")
+    gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
+    print("Move enter so that target is in the center of the tank and press enter")
+    wait_for_n_secs_with_print(30)
     images = []
     voltages = []
-    last_centers = [np.array([0, 0])]
+    last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(4)
@@ -165,13 +171,14 @@ def main():
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
                                 home_on_init=True)
+            ender.maximal_limits = [200, 200, 200]
             break
     if ender is None:
         raise Exception("No Ender 3 found")
     else:
         print("Ender 3 found")
-    TEST_NAME = "Test"
-    collect_data(gcode_device=ender, number_of_samples=100,
+    TEST_NAME = "Test3"
+    collect_data(gcode_device=ender, number_of_samples=20,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 

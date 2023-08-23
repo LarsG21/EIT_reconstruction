@@ -72,9 +72,9 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
     solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
-    solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
-    solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
-    solve_and_plot_cnn(model=model, voltage_difference=difference)
+    # solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
+    # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
+    # solve_and_plot_cnn(model=model, voltage_difference=difference)
     # solve_and_plot_cnn(model=model, voltage_difference=difference)
     # time.sleep(0.5)
 
