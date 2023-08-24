@@ -54,7 +54,7 @@ class CustomDataset(data.Dataset):
 
 
 def handle_early_stopping():
-    global best_val_loss, counter, best_model
+    global best_val_loss, counter, best_model, model
     if val_loss < best_val_loss:  # Early stopping
         best_val_loss = val_loss
         counter = 0
@@ -68,6 +68,7 @@ def handle_early_stopping():
             torch.save(best_model.state_dict(),
                        os.path.join(model_path,
                                     f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_epoche_{epoch}_of_{num_epochs}_best_model.pth"))
+            model = best_model  # load the best model
             return True
     return False
 
@@ -118,8 +119,8 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 
 if __name__ == "__main__":
-    TRAIN = False
-    LOADING_PATH = "../Collected_Data/Test_1000_Samples/Models/LinearModelDropout/TESTING/model_2023-08-24_15-45-32_epoche_443_of_1000_best_model.pth"
+    TRAIN = True
+    LOADING_PATH = "../Collected_Data/Test_1000_Samples/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 50
@@ -141,7 +142,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Test_1000_Samples"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "TESTING"
+    model_name = "Run1"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):

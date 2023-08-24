@@ -49,7 +49,7 @@ def reconstruct_multiple_voltages(voltage_array, v0, img_array=None):
 
 def convert_df_to_separate_npy_files(df, save_path):
     """
-    Converts the dataframe to seperate npy files
+    Converts the dataframe to separate npy files. These can be used in Model Training.
     :param df: Dataframe with images and voltages
     :param save_path: Path to save the npy files
     :return:
@@ -90,6 +90,7 @@ def combine_multiple_pickles(path):
             else:
                 complete_df = pd.concat([complete_df, df_new])
     complete_df.to_pickle(os.path.join(path, "combined.pkl"))
+    print(f"Length of combined df: {len(complete_df)}")
     return complete_df
 
 if __name__ == '__main__':
