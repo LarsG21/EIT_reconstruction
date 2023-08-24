@@ -176,7 +176,6 @@ def main():
         print("Ender 3 found")
     kp = KeyPressModule()
     print(ender.maximal_limits[0])
-    calibration_procedure(ender)
     # X = 20
     # Z = 200
     # calculate_moving_time(np.array([0, 0]), np.array([X, Z]))

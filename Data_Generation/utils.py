@@ -47,10 +47,11 @@ def generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_per
     """
     if max_radius + outer_circle_radius > 1:
         raise ValueError("max_radius + outer_circle_radius > 1 --> anomaly can be outside the circle")
-    center = [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]
-    # allow only center position that are inside a circle of radius 1
-    while np.linalg.norm(center) > outer_circle_radius:
-        center = [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]
+    angle = np.random.uniform(0, 2 * np.pi)
+    radius = np.random.uniform(0, outer_circle_radius)
+    x = radius * np.cos(angle)
+    y = radius * np.sin(angle)
+    center = np.array([x, y])
     r = np.random.uniform(min_radius, max_radius)
     perm = np.random.uniform(min_perm, max_perm)
     return center, r, perm
@@ -183,3 +184,8 @@ def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
     fig.colorbar(im, ax=axes.ravel().tolist())
     # plt.savefig('../doc/images/demo_jac.png', dpi=96)
     plt.show()
+
+
+if __name__ == '__main__':
+    for i in range(100):
+        print(generate_random_anomaly_parameters(0.1, 0.1, 0.1, 0.1, 0.8))

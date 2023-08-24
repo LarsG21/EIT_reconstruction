@@ -44,10 +44,13 @@ RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
 v0 = None
 
+# METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
 VOLTAGE_FREQUENCY = 1000
 CURRENT = 0.1
+CONDUCTIVITY_BG = 0.1  # in S/m     # TODO: Measure this
+CONDUCTIVITY_TARGET = 1000  # in S/m
 
 
 # TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
@@ -129,6 +132,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
+                "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
                 "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
@@ -155,11 +159,13 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
         # save the images and voltages in a dataframe every 10 samples
-        if i % 50 == 0:
+        if i % 20 == 0:
             df = pd.DataFrame({"images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
             df.to_pickle(save_path_data)
+            images = []
+            voltages = []
     # save the images and voltages in a dataframe
     df = pd.DataFrame({"images": images, "voltages": voltages})
     save_path_data = os.path.join(save_path, f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
@@ -207,9 +213,9 @@ def main():
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                home_on_init=False
+                                # home_on_init=False
                                 )
-            ender.maximal_limits = [200, 200, 200]
+            ender.maximal_limits = [RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM]
             break
     if ender is None:
         raise Exception("No Ender 3 found")
