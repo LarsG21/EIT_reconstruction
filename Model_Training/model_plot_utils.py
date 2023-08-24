@@ -95,6 +95,38 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     return average_loss / num_images
 
 
+def plot_difference_images(image_data_tensor, voltage_data_tensor, model, num_images=40):
+    """
+    Creates a few random reconstructions subtracts them from the original image and plots them
+    :param image_data_tensor:
+    :param voltage_data_tensor:
+    :param model:
+    :param criterion:
+    :param num_images:
+    :param save_path:
+    :return:
+    """
+    random_indices = np.random.randint(0, len(image_data_tensor), num_images)
+    for i in random_indices:
+        img = image_data_tensor[i]
+        img = img.cpu()
+        # output = output.cpu()
+        img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
+        volt = voltage_data_tensor[i]
+        output = model(volt)
+        output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
+        cv2.imshow("Reconstructed Image", cv2.resize(output, (256, 256)))
+        cv2.imshow("Original Image", cv2.resize(img_numpy, (256, 256)))
+        difference = img_numpy - output
+        # plot comparison with matplotlib
+        plt.imshow(difference)
+        plt.title(f"Difference")
+        # add colorbar
+        plt.colorbar()
+        plt.show()
+        time.sleep(0.1)
+
+
 def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image", original_image:np.array=None, save_path=None):
     """
     Plots a single reconstruction using the model

@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 from Models import LinearModel, LinearModelWithDropout, ConvolutionalModelWithDropout
 from model_plot_utils import calc_average_loss_completly_black, calc_average_loss_completly_white, \
-    plot_sample_reconstructions, plot_single_reconstruction, plot_loss
+    plot_sample_reconstructions, plot_single_reconstruction, plot_loss, plot_difference_images
 
 LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 896
@@ -118,37 +118,34 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 
 if __name__ == "__main__":
-    TRAIN = True
-    LOADING_PATH ="Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"
+    TRAIN = False
+    LOADING_PATH = "../Collected_Data/Test_1000_Samples/Models/LinearModelDropout/TESTING/model_2023-08-24_15-45-32_epoche_443_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 10
+    LOSS_PLOT_INTERVAL = 50
     # Training parameters
-    num_epochs = 100
-    NOISE_LEVEL = 0.1
+    num_epochs = 1000
+    NOISE_LEVEL = 0.00
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0005
     # Define the weight decay factor
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    patience = num_epochs*0.2  # Number of epochs to wait for improvement
+    patience = num_epochs * 0.1  # Number of epochs to wait for improvement
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
-    # path = "../Collected_Data/Test3"
-    path = "../Own_Simulation_Dataset"
+    path = "../Collected_Data/Test_1000_Samples"
+    # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "SMALL_TRAININGSET_1000"
+    model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
         os.makedirs(model_path)
-    # MODEL_PATH = "Own_Simulation_Dataset/Models"
-
-    # Step 1: Install required libraries (PyTorch)
 
     # Save settings in txt file
     with open(os.path.join(model_path, "settings.txt"), "w") as f:
@@ -159,12 +156,12 @@ if __name__ == "__main__":
         f.write(f"num_epochs: {num_epochs}\n")
         f.write("\n")
 
-    voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
-    image_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
-    v0 = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
-    # voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
-    # image_data_np = np.load(os.path.join(path, "img_array.npy"))
-    # v0 = np.load(os.path.join(path, "v0.npy"))
+    # voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
+    # image_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
+    # v0 = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
+    voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+    image_data_np = np.load(os.path.join(path, "img_array.npy"))
+    v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
     voltage_data_np = voltage_data_np - v0
 
@@ -279,8 +276,8 @@ if __name__ == "__main__":
                     val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
                 val_loss /= len(val_dataloader)
-                out = handle_early_stopping()  # Early stopping
-                if out:
+                stop = handle_early_stopping()  # Early stopping
+                if stop:
                     break
 
                 val_loss_list.append(val_loss)
@@ -297,8 +294,8 @@ if __name__ == "__main__":
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
                 # also create a sample reconstruction with the current model
                 test_voltage_data = test_voltage[0]
-                # plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                #                            title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
+                plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
+                                           title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
                 # plot the corresponding image
         # save the final model
         torch.save(model.state_dict(),
@@ -326,6 +323,7 @@ if __name__ == "__main__":
         save_path = None
     plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
                                 save_path=save_path)
+    # plot_difference_images(test_images, test_voltage, model, num_images=20)
 
     # single_datapoint = voltage_data_np[0]
     # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
