@@ -72,24 +72,37 @@ def convert_df_to_separate_npy_files(df, save_path):
     np.save(os.path.join(save_path, "v1_array.npy"), voltage_array)
     # save images to npy
     np.save(os.path.join(save_path, "img_array.npy"), img_array)
+    return v0, voltage_array, img_array
 
+
+def combine_multiple_pickles(path):
+    """
+    Combines multiple pickles to one pickle.
+    :param path:
+    :return:
+    """
+    complete_df = None
+    for file in os.listdir(path):
+        if file.endswith(".pkl") and file != "combined.pkl":
+            df_new = pd.read_pickle(os.path.join(path, file))
+            if complete_df is None:
+                complete_df = df_new
+            else:
+                complete_df = pd.concat([complete_df, df_new])
+    complete_df.to_pickle(os.path.join(path, "combined.pkl"))
+    return complete_df
 
 if __name__ == '__main__':
     # read df from pickle
-    df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
+    # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
+    df = combine_multiple_pickles(path="../Collected_Data/Test_1000_Samples")
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     path_vo = "v0.eit"
 
-    convert_df_to_separate_npy_files(df, save_path="../Collected_Data/Test3/")
-    v0_df = convert_single_frequency_eit_file_to_df(path_vo)
-    v0 = get_relevant_voltages(v0_df, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std"))
+    v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
+                                                                    save_path="../Collected_Data/Test_1000_Samples/")
 
-    # apply get_relevant_voltages to all voltages
-    voltage_array = np.array(
-        [get_relevant_voltages(v, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std")) for v in
-         voltages_df])
-
-    # look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
-    reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
+    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
+    # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
