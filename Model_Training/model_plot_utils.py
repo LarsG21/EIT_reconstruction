@@ -80,14 +80,21 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         cv2.waitKey(1)
         print(f"Loss: {loss}")
         # plot comparison with matplotlib
-        plt.subplot(1, 2, 1)
-        plt.imshow(output)
+        # setting different parameters to adjust each grid
+        fig, ax = plt.subplots(nrows=1, ncols=2,
+                               gridspec_kw={
+                                   'width_ratios': [2, 2],
+                                   # 'height_ratios': [1, 1],
+                                   'wspace': 0.4,
+                                   'hspace': 0.4})
         plt.title(f"Loss: {loss}")
-        plt.subplot(1, 2, 2)
-        plt.imshow(img_numpy)
-        plt.title("Original")
+        im0 = ax[0].imshow(img_numpy)
+        ax[0].set_title(f"Original Image")
+        im1 = ax[1].imshow(output)
+        ax[1].set_title(f"Reconstructed Image")
         # add colorbar
-        plt.colorbar()
+        plt.colorbar(im0, ax=ax[0])
+        plt.colorbar(im1, ax=ax[1])
         if save_path != "" and save_path is not None:
             plt.savefig(os.path.join(save_path, f"reconstruction_{i}.png"))
         plt.show()
