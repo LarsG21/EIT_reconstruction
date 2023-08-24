@@ -110,12 +110,16 @@ class GCodeDevice:
             return False
         return True
 
-    def move_to(self, x, y, z):
+    def move_to(self, x, y, z, blocking_wait_till_finished=False):
         if not self.check_limits(x, y, z):
             print(f"ERROR: Trying to move outside of limits {x}, {y}, {z}")
             return
         print(f"Moving to {x}, {y}, {z}")
         self.ser.write(str.encode(f"G0 X{x} Y{y} Z{z} F{self.movement_speed}\r\n"))
+        if blocking_wait_till_finished:
+            moving_time = calculate_moving_time(np.array([self.current_position[0],
+                                                          self.current_position[0]]), np.array((x, z)))
+            self.wait_for_n_secs_with_print(moving_time)
         self.current_position = (x, y, z)
 
     def move_relative(self, x, y, z):
@@ -146,6 +150,19 @@ class GCodeDevice:
 
         return time_to_move
 
+    def wait_for_n_secs_with_print(self, n_secs):
+        """
+        Waits for n seconds and prints the remaining time
+        :param n_secs:
+        :return:
+        """
+        for i in range(n_secs):
+            print("Waiting for {} seconds".format(n_secs - i))
+            time.sleep(1)
+        print("Waiting finished")
+        return True
+
+
 def main():
     devices = list_serial_devices()
     ender = None
@@ -159,24 +176,25 @@ def main():
         print("Ender 3 found")
     kp = KeyPressModule()
     print(ender.maximal_limits[0])
+    calibration_procedure(ender)
     # X = 20
     # Z = 200
     # calculate_moving_time(np.array([0, 0]), np.array([X, Z]))
     # ender.move_to(X, 0, Z)
-    while True:
-        key = kp.get_keypress_down()
-        if key == 'w':
-            ender.move_relative(0, 0, 10)
-        elif key == 's':
-            ender.move_relative(0, 0, -10)
-        elif key == 'a':
-            ender.move_relative(-10, 0, 0)
-        elif key == 'd':
-            ender.move_relative(10, 0, 0)
-        elif key == 'h':
-            ender.home()
-        print(ender.current_position)
-        time.sleep(0.1)
+    # while True:
+    #     key = kp.get_keypress_down()
+    #     if key == 'w':
+    #         ender.move_relative(0, 0, 10)
+    #     elif key == 's':
+    #         ender.move_relative(0, 0, -10)
+    #     elif key == 'a':
+    #         ender.move_relative(-10, 0, 0)
+    #     elif key == 'd':
+    #         ender.move_relative(10, 0, 0)
+    #     elif key == 'h':
+    #         ender.home()
+    #     print(ender.current_position)
+    #     time.sleep(0.1)
 
 
 

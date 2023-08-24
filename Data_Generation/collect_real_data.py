@@ -44,6 +44,11 @@ RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
 v0 = None
 
+TARGET = "CYLINDER"
+MATERIAL_TARGET = "PLA"
+VOLTAGE_FREQUENCY = 1000
+CURRENT = 0.1
+
 
 # TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
 
@@ -55,7 +60,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     """ 1. problem setup """
     anomaly_list = generate_random_anomaly_list(max_number_of_anomalies=1, min_radius=RELATIVE_RADIUS_TARGET,
                                                 max_radius=RELATIVE_RADIUS_TARGET, min_perm=1000,
-                                                max_perm=1000, outer_circle_radius=0.75)
+                                                max_perm=1000, outer_circle_radius=1 - RELATIVE_RADIUS_TARGET)
 
     if len(anomaly_list) > 1:
         raise Exception("More than one anomaly generated")
@@ -79,7 +84,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
         # convert to color image
         img_show = np.stack([img_show, img_show, img_show], axis=2)
         cv2.circle(img_show, (img_size // 2, img_size // 2), int(img_size / 2), (255, 0, 255), 1)
-        cv2.imshow("img", cv2.resize(img_show, (256, 256)))
+        cv2.imshow("Target Location", cv2.resize(img_show, (256, 256)))
         cv2.waitKey(100)
 
     """ 3. send gcode to the device """
@@ -122,15 +127,12 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         os.makedirs(save_path)  # TODO: First move to the center of the tank for calibration
     # create txt file with the metadata
     metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
+                "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
-                "dist_exc": dist_exc, "step_meas": step_meas,
+                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
         file.write(json.dumps(metadata))
-    print("Moving to the center of the tank for calibration")
-    gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
-    print("Move enter so that target is in the center of the tank and press enter")
-    wait_for_n_secs_with_print(30)
     images = []
     voltages = []
     last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
@@ -164,7 +166,39 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     df.to_pickle(save_path_data)
 
 
-
+def calibration_procedure(gcode_device):
+    """
+    Moves the Target to specific positions for calibration.
+    :param gcode_device:
+    :return:
+    """
+    print("Moving to the center of the tank for calibration")
+    limit_x = gcode_device.maximal_limits[0]
+    limit_z = gcode_device.maximal_limits[2]
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    print("Move enter so that target is in the center of the tank.")
+    input("Press Enter to continue...")
+    # move to top of the tank
+    print("Moving to the top of the tank")
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z - RADIUS_TARGET_IN_MM / 2)
+    input("Press Enter to continue...")
+    # move to the bottom of the tank#
+    print("Moving to the bottom of the tank")
+    gcode_device.move_to(x=limit_x / 2, y=0, z=0 + RADIUS_TARGET_IN_MM / 2)
+    input("Press Enter to continue...")
+    # move to the center of the tank
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    # move to the right of the tank
+    print("Moving to the right of the tank")
+    gcode_device.move_to(x=0 + RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+    # move to the left of the tank
+    print("Moving to the left of the tank")
+    gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+    # move to the center of the tank
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
 
 
 def main():
@@ -173,7 +207,8 @@ def main():
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                home_on_init=True)
+                                home_on_init=False
+                                )
             ender.maximal_limits = [200, 200, 200]
             break
     if ender is None:
@@ -181,7 +216,8 @@ def main():
     else:
         print("Ender 3 found")
     TEST_NAME = "Test_1000_Samples"
-    collect_data(gcode_device=ender, number_of_samples=3000,
+    calibration_procedure(ender)
+    collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
