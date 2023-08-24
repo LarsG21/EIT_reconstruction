@@ -76,7 +76,8 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     # map center from [-1, 1] to [0, img_size]
     center_for_image = (center + 1) * img_size / 2
     center_for_image = center_for_image.astype(int)
-    cv2.circle(img, tuple(center_for_image), int(anomaly.r * img_size / 2), 1, -1)
+    if gcode_device is not None:
+        cv2.circle(img, tuple(center_for_image), int(anomaly.r * img_size / 2), 1, -1)
     # flip the image vertically because the mesh is flipped vertically
     img = np.flip(img, axis=0)
 
@@ -91,16 +92,20 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
         cv2.waitKey(100)
 
     """ 3. send gcode to the device """
-    # convert center from [-1, 1] to [0, max_moving_space]
-    center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
-    # invert x axis
-    center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
-    center_for_moving = center_for_moving.astype(int)
-    print("center_for_moving", center_for_moving)
-    gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
-    move_time = gcode_device.calculate_moving_time(last_position,
-                                                   center_for_moving) + 4  # 4 seconds for safety and measurement
-    wait_for_n_secs_with_print(move_time)
+    if gcode_device is not None:
+        # convert center from [-1, 1] to [0, max_moving_space]
+        center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
+        # invert x axis
+        center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
+        center_for_moving = center_for_moving.astype(int)
+        print("center_for_moving", center_for_moving)
+        gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
+        move_time = gcode_device.calculate_moving_time(last_position,
+                                                       center_for_moving) + 4  # 4 seconds for safety and measurement
+        wait_for_n_secs_with_print(move_time)
+    else:
+        time.sleep(2)
+        center_for_moving = last_position
     """ 4. collect data """
     # get the newest file in the folder
     file_path = get_newest_file(eit_path)
@@ -139,7 +144,10 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         file.write(json.dumps(metadata))
     images = []
     voltages = []
-    last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
+    if gcode_device is None:
+        last_centers = [np.array([0, 0])]
+    else:
+        last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(4)
@@ -172,6 +180,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
             df.to_pickle(save_path_data)
+            print(f"Saved data to {save_path_data}")
             images = []
             voltages = []
     # save the images and voltages in a dataframe
@@ -216,21 +225,26 @@ def calibration_procedure(gcode_device):
 
 
 def main():
+    COLLECT_NEGATIVE_SAMPLES = True
     devices = list_serial_devices()
     ender = None
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                # home_on_init=False
+                                home_on_init=False
                                 )
             ender.maximal_limits = [RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM]
+            calibration_procedure(ender)
             break
     if ender is None:
-        raise Exception("No Ender 3 found")
+        if COLLECT_NEGATIVE_SAMPLES:
+            print("No Ender 3 found")
+            print("Collecting negative samples without target")
+        else:
+            raise Exception("No Ender 3 found")
     else:
         print("Ender 3 found")
-    TEST_NAME = "Test_1000_Samples"
-    calibration_procedure(ender)
+    TEST_NAME = "Negative_Samples_without_target"
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
