@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModel
+from Model_Training.Models import LinearModel, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from Model_Training.model_plot_utils import plot_single_reconstruction
 from pyeit import mesh
@@ -42,7 +42,7 @@ def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path
     plot_single_reconstruction(model, voltage_difference, original_image=original_image, save_path=save_path, title=title)
 
 
-def plot_time_diff_eit_image(path1, path2, frequency=1000):
+def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     global default_frame
     # df1 = convert_multi_frequency_eit_to_df(path1)
     # df2 = convert_multi_frequency_eit_to_df(path2)
@@ -50,33 +50,27 @@ def plot_time_diff_eit_image(path1, path2, frequency=1000):
     # df2 = df2[df2["frequency"] == frequency]
     # df1 = df1.reset_index(drop=True)
     # df2 = df2.reset_index(drop=True)
-    df1_old = convert_single_frequency_eit_file_to_df(path1)
+    df_v1 = convert_single_frequency_eit_file_to_df(v1_path)
     if default_frame is None:
-        df2_old = convert_single_frequency_eit_file_to_df(path2)
+        df_v0 = convert_single_frequency_eit_file_to_df(v0_path)
     else:
-        df2_old = default_frame
-    # plot df["amplitude"]
-    # plt.plot(df1_old["amplitude"])
-    # plt.title("Voltages RAW")
-    # plt.show()
-    v0 = get_relevant_voltages(df1_old, protocol_obj)
-    v1 = get_relevant_voltages(df2_old, protocol_obj)
+        df_v0 = default_frame
+    v1 = get_relevant_voltages(df_v1, protocol_obj)
+    v0 = get_relevant_voltages(df_v0, protocol_obj)
     difference = v1 - v0
-    plt.plot(difference)
-    plt.title("v1 - v0")
+    # plt.plot(difference)
+    # plt.title("v1 - v0")
     # plt.plot(v1)
     # # plt.plot(v0)
     # plt.title("Voltages")
     # plt.show()
-    img_name = path1.split('\\')[-1]
+    img_name = v1_path.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
-    solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
+    # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
-    # solve_and_plot_cnn(model=model, voltage_difference=difference)
-    # solve_and_plot_cnn(model=model, voltage_difference=difference)
-    # time.sleep(0.5)
+    solve_and_plot_cnn(model=model, voltage_difference=difference)
 
 
 def plot_frequencies_diff_eit_image(path, f1,f2):
@@ -144,9 +138,10 @@ def plot_eit_video(path):
                 else:
                     time.sleep(0.01) # wait for file to be written
                     # print(default_frame, current_frame)
-                    plot_time_diff_eit_image(os.path.join(eit_path, current_frame),
-                                             os.path.join(eit_path, default_frame))
+                    plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
+                                             v0_path=os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
+                    time.sleep(0.5)
         # time.sleep(0.1)
 
 path = "eit_data"
@@ -162,10 +157,10 @@ path = "eit_data"
 VOLTAGE_VECTOR_LENGTH = 896
 OUT_SIZE = 64
 print("Loading the model")
-# model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+# model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 model.load_state_dict(torch.load(
-    "Own_Simulation_Dataset/Models/Linear_Model/2023_08_02_15_30/model_2023-08-02_15-30-37_150_epochs.pth"))
+    "Collected_Data/Test_1000_Samples/Models/LinearModelDropout/Run2_with_negative_set/model_2023-08-24_17-01-47_epoche_267_of_300_best_model.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 # model.eval()
