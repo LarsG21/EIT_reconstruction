@@ -14,7 +14,7 @@ from model_plot_utils import calc_average_loss_completly_black, calc_average_los
     plot_sample_reconstructions, infer_single_reconstruction, plot_loss, plot_difference_images
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 896
+VOLTAGE_VECTOR_LENGTH = 928
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -120,15 +120,15 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 if __name__ == "__main__":
     TRAIN = True
-    LOADING_PATH = "../Collected_Data/Data_24_08/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
+    LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 50
     # Training parameters
-    num_epochs = 500
+    num_epochs = 300
     NOISE_LEVEL = 0.00
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0002
+    LEARNING_RATE = 0.0004
     # Define the weight decay factor
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
@@ -139,10 +139,10 @@ if __name__ == "__main__":
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
-    path = "../Collected_Data/Data_25_08"
+    path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Run1_with_negative_set"
+    model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):

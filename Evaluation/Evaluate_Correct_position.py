@@ -19,7 +19,7 @@ from pyeit.eit import protocol
 from utils import find_center_of_mass
 
 n_el = 32  # nb of electrodes
-protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 keep_mask = protocol_obj.keep_ba
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 # Dist_exc is the distance between the excitation and measurement electrodes (in number of electrodes)
@@ -111,13 +111,13 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
 
 def main():
     global model, v0
-    VOLTAGE_VECTOR_LENGTH = 896
+    VOLTAGE_VECTOR_LENGTH = 928
     OUT_SIZE = 64
     print("Loading the model")
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model.load_state_dict(torch.load(
-        "../Collected_Data/Data_25_08/Models/LinearModelDropout/Run1_with_negative_set/model_2023-08-25_13-24-55_500_epochs.pth"))
+        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/TESTING/model_2023-08-25_17-28-39_epoche_438_of_500_best_model.pth"))
     devices = list_serial_devices()
     ender = None
     for device in devices:

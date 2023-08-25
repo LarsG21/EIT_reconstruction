@@ -36,7 +36,6 @@ def reconstruct_multiple_voltages(voltage_array, v0, img_array=None):
     :return:
     """
     mesh_obj = mesh.create(32, h0=0.1)
-    protocol_obj = protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std")
     if img_array is None:
         for v1 in voltage_array:
             solve_and_plot_jack(v0=v0, v1=v1, mesh_obj=mesh_obj, protocol_obj=protocol_obj)
@@ -58,15 +57,14 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     v0_df = convert_single_frequency_eit_file_to_df(path_vo)
-    v0 = get_relevant_voltages(v0_df, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std"))
+    v0 = get_relevant_voltages(v0_df, protocol_obj=protocol_obj)
 
     # save v0 to npy
     np.save(os.path.join(save_path, "v0.npy"), v0)
 
     # apply get_relevant_voltages to all voltages
     voltage_array = np.array(
-        [get_relevant_voltages(v, protocol_obj=protocol.create(32, dist_exc=8, step_meas=1, parser_meas="std")) for v in
-         voltages_df])
+        [get_relevant_voltages(v, protocol_obj=protocol_obj) for v in voltages_df])
     # save voltages to npy
     np.save(os.path.join(save_path, "v1_array.npy"), voltage_array)
     # save images to npy
@@ -95,16 +93,19 @@ def combine_multiple_pickles(path):
 if __name__ == '__main__':
     # read df from pickle
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
-    path = "../Collected_Data/Data_25_08"
+    protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
+
+    # path = "../Collected_Data/Data_25_08_20mm_target"
+    path = "../Collected_Data/Combined_dataset"
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     path_vo = "v0.eit"
-
+    # shuffle dataframe
+    df = df.sample(frac=1).reset_index(drop=True)
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
-
     look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
