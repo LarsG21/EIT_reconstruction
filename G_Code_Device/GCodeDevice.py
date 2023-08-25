@@ -180,20 +180,20 @@ def main():
     # Z = 200
     # calculate_moving_time(np.array([0, 0]), np.array([X, Z]))
     # ender.move_to(X, 0, Z)
-    # while True:
-    #     key = kp.get_keypress_down()
-    #     if key == 'w':
-    #         ender.move_relative(0, 0, 10)
-    #     elif key == 's':
-    #         ender.move_relative(0, 0, -10)
-    #     elif key == 'a':
-    #         ender.move_relative(-10, 0, 0)
-    #     elif key == 'd':
-    #         ender.move_relative(10, 0, 0)
-    #     elif key == 'h':
-    #         ender.home()
-    #     print(ender.current_position)
-    #     time.sleep(0.1)
+    while True:
+        key = kp.get_keypress_down()
+        if key == 'w':
+            ender.move_relative(0, 0, 10)
+        elif key == 's':
+            ender.move_relative(0, 0, -10)
+        elif key == 'a':
+            ender.move_relative(-10, 0, 0)
+        elif key == 'd':
+            ender.move_relative(10, 0, 0)
+        elif key == 'h':
+            ender.home()
+        print(ender.current_position)
+        time.sleep(0.1)
 
 
 
