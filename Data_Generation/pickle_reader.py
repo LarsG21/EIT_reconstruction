@@ -95,14 +95,15 @@ def combine_multiple_pickles(path):
 if __name__ == '__main__':
     # read df from pickle
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
-    df = combine_multiple_pickles(path="../Collected_Data/Test_1000_Samples")
+    path = "../Collected_Data/Data_25_08"
+    df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     path_vo = "v0.eit"
 
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
-                                                                    save_path="../Collected_Data/Test_1000_Samples/",
+                                                                    save_path=path,
                                                                     path_vo=path_vo)
 
     look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)

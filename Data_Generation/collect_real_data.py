@@ -155,8 +155,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     print(file_path)
     v0_df = convert_single_frequency_eit_file_to_df(file_path)
     # save df to pickle
-    save_path_v0 = os.path.join(save_path, "v0_df")
-    v0_df.to_pickle(save_path_v0)  # TODO: Change save path
+    save_path_v0 = os.path.join(save_path, "v0_df.pickle")
+    v0_df.to_pickle(save_path_v0)
     v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
     time.sleep(1)
     for i in range(number_of_samples):

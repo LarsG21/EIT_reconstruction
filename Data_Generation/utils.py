@@ -87,6 +87,7 @@ def get_newest_file(path):
     :param path:
     :return:
     """
+    cwd = os.getcwd()
     files = os.listdir(path)
     paths = [os.path.join(path, basename) for basename in files]
     # select only files that g´have ending .eit
@@ -96,6 +97,7 @@ def get_newest_file(path):
     for file in files:
         if file != os.path.basename(newest):
             os.remove(os.path.join(path, file))
+    os.chdir(cwd)
     return newest
 
 

@@ -2,17 +2,16 @@ import time
 
 import numpy as np
 import torch
-from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModel, LinearModelWithDropout
+from Model_Training.Models import LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from Model_Training.model_plot_utils import plot_single_reconstruction
+from plot_utils import solve_and_plot_cnn
 from pyeit import mesh
 from pyeit.eit import protocol
 from pyeit.mesh.shape import thorax
 import os
 
-from reconstruction_algorithims import solve_and_plot_jack, solve_and_plot_greit, solve_and_plot_bp
+from reconstruction_algorithims import solve_and_plot_jack
 from utils import wait_for_start_of_measurement, get_relevant_voltages
 
 """ 0. build mesh """
@@ -36,10 +35,6 @@ delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 
 
 default_frame = None
-
-
-def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path=None, title="Reconstructed image"):
-    plot_single_reconstruction(model, voltage_difference, original_image=original_image, save_path=save_path, title=title)
 
 
 def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
@@ -70,7 +65,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
-    solve_and_plot_cnn(model=model, voltage_difference=difference)
+    solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
+
 
 
 def plot_frequencies_diff_eit_image(path, f1,f2):
@@ -141,7 +137,6 @@ def plot_eit_video(path):
                     plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
                                              v0_path=os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
-                    time.sleep(0.5)
         # time.sleep(0.1)
 
 path = "eit_data"
@@ -160,7 +155,7 @@ print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 model.load_state_dict(torch.load(
-    "Collected_Data/Test_1000_Samples/Models/LinearModelDropout/Run2_with_negative_set/model_2023-08-24_17-01-47_epoche_267_of_300_best_model.pth"))
+    "Collected_Data/Data_25_08/Models/LinearModelDropout/Run1_with_negative_set/model_2023-08-25_13-24-55_500_epochs.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 # model.eval()
