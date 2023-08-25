@@ -134,9 +134,14 @@ def plot_difference_images(image_data_tensor, voltage_data_tensor, model, num_im
         time.sleep(0.1)
 
 
-def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image", original_image:np.array=None, save_path=None):
+def infer_single_reconstruction(model, voltage_data, title="Reconstructed image", original_image: np.array = None,
+                                save_path=None, detection_threshold=0, show=True):
     """
     Plots a single reconstruction using the model
+    :param title:
+    :param original_image: if given, both images will be plotted
+    :param save_path: save path for the image
+    :param detection_threshold: everything below this value will be set to 0
     :param model:
     :param voltage_data:
     :return:
@@ -155,6 +160,8 @@ def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image
     stop = time.time()
     print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
+    # pull everything under 0.2 to 0
+    output[output < detection_threshold] = 0
     if original_image is not None:
         plt.subplot(1, 2, 1)
         plt.imshow(output)
@@ -171,7 +178,9 @@ def plot_single_reconstruction(model, voltage_data, title = "Reconstructed image
         plt.colorbar()
     if save_path is not None:
         plt.savefig(save_path)
-    plt.show()
+    if show:
+        plt.show()
+    return output
 
 
 def plot_loss(val_loss_list, loss_list=None, save_name=""):

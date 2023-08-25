@@ -1,10 +1,16 @@
 from __future__ import division, absolute_import, print_function
 
+import cv2
+from matplotlib import pyplot as plt
+
+from Model_Training.model_plot_utils import infer_single_reconstruction
 from pyeit.eit.fem import Forward
 from pyeit.eit.interp2d import pdegrad, sim2pts
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+from utils import find_center_of_mass
 
 
 def plot_results_fem_forward(mesh, line):
@@ -88,3 +94,20 @@ def plot_results_fem_forward(mesh, line):
     plt.close(fig_equipotential)
     plt.close(fig_e_field)
     return equi_potential_image, e_field_image
+
+
+def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path=None, title="Reconstructed image",
+                       chow_center_of_mass=False):
+    img = infer_single_reconstruction(model, voltage_difference, title=title, original_image=original_image,
+                                      save_path=save_path, detection_threshold=0.2, show=False)
+    SCALE_FACTOR = 4
+    # upscale image by 2
+    imshow = cv2.resize(img, (0, 0), fx=SCALE_FACTOR, fy=SCALE_FACTOR)
+    # add circle to image
+    cv2.circle(imshow, (imshow.shape[0] // 2, imshow.shape[0] // 2), imshow.shape[0] // 2, 1, 1)
+    if chow_center_of_mass:
+        center_of_mass = find_center_of_mass(img)
+        cv2.circle(imshow, (center_of_mass[1] * SCALE_FACTOR, center_of_mass[0] * SCALE_FACTOR), 5, 1, -1)
+    plt.imshow(imshow)
+    plt.show()
+    return img

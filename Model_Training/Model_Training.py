@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 from Models import LinearModel, LinearModelWithDropout, ConvolutionalModelWithDropout
 from model_plot_utils import calc_average_loss_completly_black, calc_average_loss_completly_white, \
-    plot_sample_reconstructions, plot_single_reconstruction, plot_loss, plot_difference_images
+    plot_sample_reconstructions, infer_single_reconstruction, plot_loss, plot_difference_images
 
 LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 896
@@ -120,29 +120,29 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 if __name__ == "__main__":
     TRAIN = True
-    LOADING_PATH = "../Collected_Data/Test_1000_Samples/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
+    LOADING_PATH = "../Collected_Data/Data_24_08/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 50
     # Training parameters
-    num_epochs = 1000
+    num_epochs = 500
     NOISE_LEVEL = 0.00
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0005
+    LEARNING_RATE = 0.0002
     # Define the weight decay factor
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    patience = num_epochs * 0.1  # Number of epochs to wait for improvement
+    patience = num_epochs * 0.15  # Number of epochs to wait for improvement
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
-    path = "../Collected_Data/Test_1000_Samples"
+    path = "../Collected_Data/Data_25_08"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Run1"
+    model_name = "Run1_with_negative_set"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -167,8 +167,8 @@ if __name__ == "__main__":
     voltage_data_np = voltage_data_np - v0
 
     # # reduce the number of images
-    image_data_np = image_data_np[:1000]
-    voltage_data_np = voltage_data_np[:1000]
+    # image_data_np = image_data_np[:2000]
+    # voltage_data_np = voltage_data_np[:2000]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 
@@ -295,8 +295,8 @@ if __name__ == "__main__":
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
                 # also create a sample reconstruction with the current model
                 test_voltage_data = test_voltage[0]
-                plot_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                                           title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
+                infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
+                                            title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
                 # plot the corresponding image
         # save the final model
         torch.save(model.state_dict(),

@@ -47,3 +47,15 @@ def get_relevant_voltages(df, protocol_obj):
     v = df["amplitude"].to_numpy(dtype=np.float64)
     v = v[keep_mask]
     return v
+
+
+def find_center_of_mass(img):
+    """
+    Find center of mass of image (To detect position of anomaly)
+    :param img:
+    :return:
+    """
+    center_of_mass = np.array(np.where(img == np.max(img)))
+    center_of_mass = np.mean(center_of_mass, axis=1)
+    center_of_mass = center_of_mass.astype(int)
+    return center_of_mass

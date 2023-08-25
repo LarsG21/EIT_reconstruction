@@ -132,7 +132,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     """
     global v0
     if not os.path.exists(save_path):
-        os.makedirs(save_path)  # TODO: First move to the center of the tank for calibration
+        os.makedirs(save_path)
     # create txt file with the metadata
     metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
