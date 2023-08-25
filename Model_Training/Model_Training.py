@@ -125,15 +125,15 @@ if __name__ == "__main__":
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 50
     # Training parameters
-    num_epochs = 300
+    num_epochs = 600
     NOISE_LEVEL = 0.00
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0004
+    LEARNING_RATE = 0.0003
     # Define the weight decay factor
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    patience = num_epochs * 0.15  # Number of epochs to wait for improvement
+    patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "TESTING"
+    model_name = "Run_1_40_mm"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -228,7 +228,6 @@ if __name__ == "__main__":
         f.write(f"Number of training samples: {len(train_dataset)}\n")
         f.write(f"Number of validation samples: {len(val_dataset)}\n")
         f.write(f"Number of test samples: {len(test_dataset)}\n")
-
 
     # Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()

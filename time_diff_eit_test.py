@@ -16,7 +16,7 @@ from utils import wait_for_start_of_measurement, get_relevant_voltages
 
 """ 0. build mesh """
 n_el = 32  # nb of electrodes
-protocol_obj = protocol.create(n_el, dist_exc=8, step_meas=1, parser_meas="std")
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 # Dist_exc is the distance between the excitation and measurement electrodes (in number of electrodes)
 
 use_customize_shape = False
@@ -149,13 +149,13 @@ path = "eit_data"
 # plot_eit_images_in_folder(path)
 # end = time.time()
 # print("Time taken: ", end - start)
-VOLTAGE_VECTOR_LENGTH = 896
+VOLTAGE_VECTOR_LENGTH = 928
 OUT_SIZE = 64
 print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 model.load_state_dict(torch.load(
-    "Collected_Data/Data_25_08_40mm_target/Models/LinearModelDropout/Run1_with_negative_set/model_2023-08-25_13-24-55_500_epochs.pth"))
+    "Collected_Data/Combined_dataset/Models/LinearModelDropout/Run_1_40_mm/model_2023-08-25_17-47-49_epoche_562_of_600_best_model.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 # model.eval()
