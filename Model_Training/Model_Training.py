@@ -120,13 +120,15 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 if __name__ == "__main__":
     TRAIN = True
+    ADD_AUGMENTATION = True
+    NUMBER_OF_AUGMENTATIONS = 10
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 50
     # Training parameters
-    num_epochs = 600
-    NOISE_LEVEL = 0.00
+    num_epochs = 300
+    NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
     # Define the weight decay factor
@@ -142,7 +144,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Run_1_40_mm"
+    model_name = "Run_with_augmentations"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -155,6 +157,8 @@ if __name__ == "__main__":
         f.write(f"weight_decay: {weight_decay}\n")
         f.write(f"patience: {patience}\n")
         f.write(f"num_epochs: {num_epochs}\n")
+        f.write(f"Augmentations: {ADD_AUGMENTATION}\n")
+        f.write(f"Number of augmentations: {NUMBER_OF_AUGMENTATIONS}\n")
         f.write("\n")
 
     # voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
@@ -167,8 +171,8 @@ if __name__ == "__main__":
     voltage_data_np = voltage_data_np - v0
 
     # # reduce the number of images
-    # image_data_np = image_data_np[:2000]
-    # voltage_data_np = voltage_data_np[:2000]
+    # image_data_np = image_data_np[:100]
+    # voltage_data_np = voltage_data_np[:100]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 
@@ -203,12 +207,20 @@ if __name__ == "__main__":
         val_voltage, val_images, test_size=0.2, random_state=42
     )
 
-    # Step 4.1 Adding noise to the training data in % of max value
-    maximum = torch.max(torch.abs(train_voltage)).item()
-    noise_amplitude = NOISE_LEVEL * maximum
-    print("Absolute max value: ", torch.max(torch.abs(train_voltage)).item())
-    train_voltage = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
     # Step 5: Create the DataLoader for train, test, and validation sets
+    if ADD_AUGMENTATION:
+        # Step 4.1 Adding noise to the training data in % of max value
+        std_of_data = torch.std(train_voltage).item()
+        noise_amplitude = NOISE_LEVEL * std_of_data
+        print("Absolute max value: ", std_of_data)
+        train_voltages_combined = train_voltage
+        train_images_combined = train_images
+        for i in range(NUMBER_OF_AUGMENTATIONS):
+            train_voltage_augmented = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
+            train_voltages_combined = torch.cat((train_voltages_combined, train_voltage_augmented), dim=0)
+            train_images_combined = torch.cat((train_images_combined, train_images), dim=0)
+        train_voltage = train_voltages_combined
+        train_images = train_images_combined
 
     train_dataset = CustomDataset(train_voltage, train_images)
     train_dataloader = data.DataLoader(train_dataset, batch_size=32, shuffle=False)
@@ -294,8 +306,8 @@ if __name__ == "__main__":
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
                 # also create a sample reconstruction with the current model
                 test_voltage_data = test_voltage[0]
-                infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                                            title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
+                # infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
+                #                             title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
                 # plot the corresponding image
         # save the final model
         torch.save(model.state_dict(),
@@ -316,13 +328,13 @@ if __name__ == "__main__":
 
 
     # Try inference on test images
-    SAVE_TEST_IMAGES = False
+    SAVE_TEST_IMAGES = True
     if SAVE_TEST_IMAGES:
         save_path = os.path.join(model_path, "test_images")
     else:
         save_path = None
     plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
-                                save_path=save_path)
+                                save_path=model_path)
     # plot_difference_images(test_images, test_voltage, model, num_images=20)
 
     # single_datapoint = voltage_data_np[0]

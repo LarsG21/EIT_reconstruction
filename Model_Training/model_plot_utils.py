@@ -64,10 +64,10 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     for i in random_indices:
         img = image_data_tensor[i]
         img = img.cpu()
-        # output = output.cpu()
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         output = model(volt)
+        output = output.cpu()
         output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         cv2.imshow("Reconstructed Image", cv2.resize(output, (256, 256)))
         cv2.imshow("Original Image", cv2.resize(img_numpy, (256, 256)))
