@@ -2,6 +2,7 @@ import time
 
 import numpy as np
 import torch
+from matplotlib import pyplot as plt
 
 from Model_Training.Models import LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
@@ -31,9 +32,6 @@ anomaly = []
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly, background=1.0)
 delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 
-
-
-
 default_frame = None
 
 
@@ -46,13 +44,13 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
         df_v0 = default_frame
     v1 = get_relevant_voltages(df_v1, protocol_obj)
     v0 = get_relevant_voltages(df_v0, protocol_obj)
-    difference = v1 - v0
-    # plt.plot(difference)
-    # plt.title("v1 - v0")
-    # plt.plot(v1)
-    # plt.plot(v0)
-    # plt.title("Voltages")
-    # plt.show()
+    difference = (v1 - v0) / v0
+    plt.plot(difference)
+    plt.title("v1 - v0")
+    plt.plot(v1)
+    plt.plot(v0)
+    plt.title("Voltages")
+    plt.show()
     img_name = v1_path.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
@@ -65,8 +63,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
 
 
-
-def plot_frequencies_diff_eit_image(path, f1,f2):
+def plot_frequencies_diff_eit_image(path, f1, f2):
     """
     Plot the difference between two frequencies
     :param f1:
@@ -110,6 +107,7 @@ def plot_eit_images_in_folder(path):
     # reset path
     os.chdir(old_path)
 
+
 def plot_eit_video(path):
     """
     Plots the eit video from the given path.
@@ -128,12 +126,13 @@ def plot_eit_video(path):
                 if default_frame is None:
                     default_frame = current_frame
                 else:
-                    time.sleep(0.01) # wait for file to be written
+                    time.sleep(0.01)  # wait for file to be written
                     # print(default_frame, current_frame)
                     plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
                                              v0_path=os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
         # time.sleep(0.1)
+
 
 path = "eit_data"
 

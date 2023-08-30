@@ -53,15 +53,16 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     :param save_path: Path to save the npy files
     :return:
     """
+    AVERGA_V0_FRAME = False
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     v0_df = convert_single_frequency_eit_file_to_df(path_vo)
     # v0 = get_relevant_voltages(v0_df, protocol_obj=protocol_obj)
     v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
+    if AVERGA_V0_FRAME:
+        plt.plot(v0)
 
-    # save v0 to npy
-    np.save(os.path.join(save_path, "v0.npy"), v0)
 
     # apply get_relevant_voltages to all voltages
     # voltage_array = np.array(
@@ -69,6 +70,14 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     voltage_array = np.array(voltages_df.to_list())
     # save voltages to npy
     np.save(os.path.join(save_path, "v1_array.npy"), voltage_array)
+    if AVERGA_V0_FRAME:
+        # v0 = average over all v1
+        v0_mean = np.mean(voltage_array, axis=0)
+        v0 = v0_mean
+        plt.plot(v0_mean)
+        plt.legend(["v0", "v0_mean"])
+        plt.show()
+    np.save(os.path.join(save_path, "v0.npy"), v0)
     # save images to npy
     np.save(os.path.join(save_path, "img_array.npy"), img_array)
     return v0, voltage_array, img_array
@@ -98,7 +107,7 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Data_25_08_20mm_target"
-    path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/Negative_Samples_without_target"
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
     img_array = np.array(img_array)

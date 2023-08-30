@@ -171,7 +171,7 @@ if __name__ == "__main__":
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
     v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
-    voltage_data_np = voltage_data_np - v0
+    voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
 
     # # reduce the number of images
     # image_data_np = image_data_np[:200]

@@ -13,7 +13,8 @@ from pyeit.eit.interp2d import sim2pts
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
 
-def generate_random_anomaly_list(max_number_of_anomalies, min_radius, max_radius, min_perm, max_perm, outer_circle_radius=0.8):
+def generate_random_anomaly_list(max_number_of_anomalies, min_radius, max_radius, min_perm, max_perm,
+                                 outer_circle_radius=0.8):
     """
     Generates a list of random anomalies
     :param max_number_of_anomalies: maximum number of anomalies
@@ -30,7 +31,8 @@ def generate_random_anomaly_list(max_number_of_anomalies, min_radius, max_radius
     else:
         number_of_anomalies = 1
     for i in range(number_of_anomalies):
-        center, r, perm = generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_perm, outer_circle_radius)
+        center, r, perm = generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_perm,
+                                                             outer_circle_radius)
         anomaly_list.append(PyEITAnomaly_Circle(center=center, r=r, perm=perm))
     return anomaly_list
 
@@ -130,7 +132,7 @@ def look_at_dataset(img_array, v1_array, v0):
 
     cv2.imshow('average', cv2.resize(average_image, (256, 256)))
     for i, img in enumerate(img_array):
-        voltage_differece = v1_array[i] - v0
+        voltage_differece = (v1_array[i] - v0) / v0
         # show voltage difference and image in one plot
         plt.subplot(1, 2, 1)
         plt.imshow(img * 10)
