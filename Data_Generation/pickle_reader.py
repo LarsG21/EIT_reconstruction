@@ -57,14 +57,16 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     v0_df = convert_single_frequency_eit_file_to_df(path_vo)
-    v0 = get_relevant_voltages(v0_df, protocol_obj=protocol_obj)
+    # v0 = get_relevant_voltages(v0_df, protocol_obj=protocol_obj)
+    v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
 
     # save v0 to npy
     np.save(os.path.join(save_path, "v0.npy"), v0)
 
     # apply get_relevant_voltages to all voltages
-    voltage_array = np.array(
-        [get_relevant_voltages(v, protocol_obj=protocol_obj) for v in voltages_df])
+    # voltage_array = np.array(
+    #     [get_relevant_voltages(v, protocol_obj=protocol_obj) for v in voltages_df])
+    voltage_array = np.array(voltages_df.to_list())
     # save voltages to npy
     np.save(os.path.join(save_path, "v1_array.npy"), voltage_array)
     # save images to npy

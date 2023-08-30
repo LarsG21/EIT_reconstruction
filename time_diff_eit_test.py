@@ -56,7 +56,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     # plt.plot(difference)
     # plt.title("v1 - v0")
     # plt.plot(v1)
-    # # plt.plot(v0)
+    # plt.plot(v0)
     # plt.title("Voltages")
     # plt.show()
     img_name = v1_path.split('\\')[-1]
@@ -72,7 +72,6 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
 def plot_frequencies_diff_eit_image(path, f1,f2):
     """
     Plot the difference between two frequencies
-    :param path1:
     :param f1:
     :param f2:
     :return:
@@ -149,13 +148,16 @@ path = "eit_data"
 # plot_eit_images_in_folder(path)
 # end = time.time()
 # print("Time taken: ", end - start)
-VOLTAGE_VECTOR_LENGTH = 928
+# VOLTAGE_VECTOR_LENGTH = 928
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+# model.load_state_dict(torch.load(
+#     "Collected_Data/Combined_dataset/Models/LinearModelDropout/Run_1_40_mm/model_2023-08-25_17-47-49_epoche_562_of_600_best_model.pth"))
 model.load_state_dict(torch.load(
-    "Collected_Data/Combined_dataset/Models/LinearModelDropout/Run_1_40_mm/model_2023-08-25_17-47-49_epoche_562_of_600_best_model.pth"))
+    "Collected_Data/Combined_dataset/Models/LinearModelDropout/Noise_and_rotation_augmentation_all_data/model_2023-08-30_13-45-54_70_300.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 # model.eval()

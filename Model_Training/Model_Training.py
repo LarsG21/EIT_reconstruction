@@ -9,9 +9,9 @@ import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
 
-from Models import LinearModel, LinearModelWithDropout, ConvolutionalModelWithDropout
-from model_plot_utils import calc_average_loss_completly_black, calc_average_loss_completly_white, \
-    plot_sample_reconstructions, infer_single_reconstruction, plot_loss, plot_difference_images
+from data_augmentation import add_noise_augmentation, add_rotation_augmentation
+from Models import LinearModelWithDropout
+from model_plot_utils import plot_sample_reconstructions, plot_loss
 
 LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 928
@@ -119,36 +119,15 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-def add_noise_augmentation(train_voltage, train_images, number_of_augmentations=1, noise_level=0.1):
-    """"
-    Adds noise to the training data and augments the data
-    :param train_voltage: The training voltages
-    :param train_images: The training images
-    :param number_of_augmentations: How many copies of the training data should be created
-    :param noise_level: The noise level in % of the standard deviation of the data
-    :return: The augmented training voltages and images
-    """
-    # Step 4.1 Adding noise to the training data in % of max value
-    std_of_data = torch.std(train_voltage).item()
-    noise_amplitude = noise_level * std_of_data
-    print("Absolute max value: ", std_of_data)
-    train_voltages_combined = train_voltage
-    train_images_combined = train_images
-    for i in range(number_of_augmentations):
-        train_voltage_augmented = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
-        train_voltages_combined = torch.cat((train_voltages_combined, train_voltage_augmented), dim=0)
-        train_images_combined = torch.cat((train_images_combined, train_images), dim=0)
-    return train_voltages_combined, train_images_combined
-
-
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
-    NUMBER_OF_AUGMENTATIONS = 10
+    NUMBER_OF_NOISE_AUGMENTATIONS = 10
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
-    SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 50
+    SAVE_CHECKPOINTS = True
+    LOSS_PLOT_INTERVAL = 10
     # Training parameters
     num_epochs = 300
     NOISE_LEVEL = 0.05
@@ -167,7 +146,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Run_with_raw_data_no_voltage_selection"
+    model_name = "30_08_with_noise_and_rotation_augmentation"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -181,7 +160,8 @@ if __name__ == "__main__":
         f.write(f"patience: {patience}\n")
         f.write(f"num_epochs: {num_epochs}\n")
         f.write(f"Augmentations: {ADD_AUGMENTATION}\n")
-        f.write(f"Number of augmentations: {NUMBER_OF_AUGMENTATIONS}\n")
+        f.write(f"Number of augmentations: {NUMBER_OF_NOISE_AUGMENTATIONS}\n")
+        f.write(f"Number of rotation augmentations: {NUMBER_OF_ROTATION_AUGMENTATIONS}\n")
         f.write("\n")
 
     # voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
@@ -194,8 +174,8 @@ if __name__ == "__main__":
     voltage_data_np = voltage_data_np - v0
 
     # # reduce the number of images
-    # image_data_np = image_data_np[:100]
-    # voltage_data_np = voltage_data_np[:100]
+    # image_data_np = image_data_np[:200]
+    # voltage_data_np = voltage_data_np[:200]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 
@@ -233,8 +213,10 @@ if __name__ == "__main__":
     if ADD_AUGMENTATION:
         # augment the training data
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                             NUMBER_OF_AUGMENTATIONS, NOISE_LEVEL)
+                                                             NUMBER_OF_NOISE_AUGMENTATIONS, NOISE_LEVEL)
 
+        train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+                                                                NUMBER_OF_ROTATION_AUGMENTATIONS)
     train_dataset = CustomDataset(train_voltage, train_images)
     train_dataloader = data.DataLoader(train_dataset, batch_size=32, shuffle=False)
     # number of training samples

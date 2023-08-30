@@ -45,7 +45,7 @@ def get_relevant_voltages(df, protocol_obj):
     # df = df[df["injection_pos"] != df["measuring_electrode"]]
     # df = df[df["injection_neg"] != df["measuring_electrode"]]
     v = df["amplitude"].to_numpy(dtype=np.float64)
-    v = v[keep_mask]
+    # v = v[keep_mask]
     return v
 
 
