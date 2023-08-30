@@ -118,6 +118,28 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
+def add_noise_augmentation(train_voltage, train_images, number_of_augmentations=1, noise_level=0.1):
+    """"
+    Adds noise to the training data and augments the data
+    :param train_voltage: The training voltages
+    :param train_images: The training images
+    :param number_of_augmentations: How many copies of the training data should be created
+    :param noise_level: The noise level in % of the standard deviation of the data
+    :return: The augmented training voltages and images
+    """
+    # Step 4.1 Adding noise to the training data in % of max value
+    std_of_data = torch.std(train_voltage).item()
+    noise_amplitude = noise_level * std_of_data
+    print("Absolute max value: ", std_of_data)
+    train_voltages_combined = train_voltage
+    train_images_combined = train_images
+    for i in range(number_of_augmentations):
+        train_voltage_augmented = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
+        train_voltages_combined = torch.cat((train_voltages_combined, train_voltage_augmented), dim=0)
+        train_images_combined = torch.cat((train_images_combined, train_images), dim=0)
+    return train_voltage, train_images
+
+
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
@@ -201,26 +223,16 @@ if __name__ == "__main__":
     # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
     # Note: Adjust the test_size and validation_size according to your preference.
     train_voltage, val_voltage, train_images, val_images = train_test_split(
-        voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42
-    )
+        voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42)
+
     val_voltage, test_voltage, val_images, test_images = train_test_split(
-        val_voltage, val_images, test_size=0.2, random_state=42
-    )
+        val_voltage, val_images, test_size=0.2, random_state=42)
 
     # Step 5: Create the DataLoader for train, test, and validation sets
     if ADD_AUGMENTATION:
-        # Step 4.1 Adding noise to the training data in % of max value
-        std_of_data = torch.std(train_voltage).item()
-        noise_amplitude = NOISE_LEVEL * std_of_data
-        print("Absolute max value: ", std_of_data)
-        train_voltages_combined = train_voltage
-        train_images_combined = train_images
-        for i in range(NUMBER_OF_AUGMENTATIONS):
-            train_voltage_augmented = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
-            train_voltages_combined = torch.cat((train_voltages_combined, train_voltage_augmented), dim=0)
-            train_images_combined = torch.cat((train_images_combined, train_images), dim=0)
-        train_voltage = train_voltages_combined
-        train_images = train_images_combined
+        # augment the training data
+        train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
+                                                             NUMBER_OF_AUGMENTATIONS, NOISE_LEVEL)
 
     train_dataset = CustomDataset(train_voltage, train_images)
     train_dataloader = data.DataLoader(train_dataset, batch_size=32, shuffle=False)
