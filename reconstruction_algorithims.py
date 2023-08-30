@@ -35,8 +35,10 @@ def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only, pa
     name1 = path1_for_name_only.split("\\")[-1]
     name2 = path2_for_name_only.split("\\")[-1]
     plt.title(f"{name1} - {name2}")
-
-    im = axes.imshow(np.real(ds), interpolation="none", cmap=plt.cm.viridis)
+    image = np.real(ds)
+    # flip the image upside down
+    image = np.flipud(image)
+    im = axes.imshow(image, interpolation="none", cmap=plt.cm.viridis)
     axes.axis("equal")
 
     fig.colorbar(im, ax=axes)

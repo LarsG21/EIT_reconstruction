@@ -235,7 +235,7 @@ def main():
                                 home_on_init=False
                                 )
             ender.maximal_limits = [RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM]
-            # calibration_procedure(ender)
+            calibration_procedure(ender)
             break
     if ender is None:
         if COLLECT_NEGATIVE_SAMPLES:

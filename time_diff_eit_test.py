@@ -11,7 +11,7 @@ from pyeit.eit import protocol
 from pyeit.mesh.shape import thorax
 import os
 
-from reconstruction_algorithims import solve_and_plot_jack
+from reconstruction_algorithims import solve_and_plot_jack, solve_and_plot_greit
 from utils import wait_for_start_of_measurement, get_relevant_voltages
 
 """ 0. build mesh """
@@ -39,12 +39,6 @@ default_frame = None
 
 def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     global default_frame
-    # df1 = convert_multi_frequency_eit_to_df(path1)
-    # df2 = convert_multi_frequency_eit_to_df(path2)
-    # df1 = df1[df1["frequency"] == frequency]
-    # df2 = df2[df2["frequency"] == frequency]
-    # df1 = df1.reset_index(drop=True)
-    # df2 = df2.reset_index(drop=True)
     df_v1 = convert_single_frequency_eit_file_to_df(v1_path)
     if default_frame is None:
         df_v0 = convert_single_frequency_eit_file_to_df(v0_path)
@@ -62,8 +56,11 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     img_name = v1_path.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
+    v0_traditional_algorithims = v0[protocol_obj.keep_ba]
+    v1_traditional_algorithims = v1[protocol_obj.keep_ba]
     # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
-    # solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
+    solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+                         mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
 
@@ -157,7 +154,7 @@ model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT
 # model.load_state_dict(torch.load(
 #     "Collected_Data/Combined_dataset/Models/LinearModelDropout/Run_1_40_mm/model_2023-08-25_17-47-49_epoche_562_of_600_best_model.pth"))
 model.load_state_dict(torch.load(
-    "Collected_Data/Combined_dataset/Models/LinearModelDropout/Noise_and_rotation_augmentation_all_data/model_2023-08-30_13-45-54_70_300.pth"))
+    "Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_40_60mm_target_with_augmentation_balanced/model_2023-08-30_15-42-22_200_epochs.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 # model.eval()
