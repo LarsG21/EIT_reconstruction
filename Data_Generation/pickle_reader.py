@@ -77,7 +77,7 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
         plt.plot(v0_mean)
         plt.legend(["v0", "v0_mean"])
         plt.show()
-    np.save(os.path.join(save_path, "v0.npy"), v0)
+    # np.save(os.path.join(save_path, "v0.npy"), v0)    # Dont save anymore ! Use averaged V0 from Negative_Sample_set
     # save images to npy
     np.save(os.path.join(save_path, "img_array.npy"), img_array)
     return v0, voltage_array, img_array
