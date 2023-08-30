@@ -14,7 +14,8 @@ from model_plot_utils import calc_average_loss_completly_black, calc_average_los
     plot_sample_reconstructions, infer_single_reconstruction, plot_loss, plot_difference_images
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 928
+# VOLTAGE_VECTOR_LENGTH = 928
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -137,7 +138,7 @@ def add_noise_augmentation(train_voltage, train_images, number_of_augmentations=
         train_voltage_augmented = train_voltage + noise_amplitude * torch.randn(train_voltage.shape).to(device)
         train_voltages_combined = torch.cat((train_voltages_combined, train_voltage_augmented), dim=0)
         train_images_combined = torch.cat((train_images_combined, train_images), dim=0)
-    return train_voltage, train_images
+    return train_voltages_combined, train_images_combined
 
 
 if __name__ == "__main__":
@@ -166,7 +167,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Run_with_augmentations"
+    model_name = "Run_with_raw_data_no_voltage_selection"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
