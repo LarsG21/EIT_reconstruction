@@ -99,7 +99,8 @@ def plot_results_fem_forward(mesh, line):
 def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path=None, title="Reconstructed image",
                        chow_center_of_mass=False):
     img = infer_single_reconstruction(model, voltage_difference, title=title, original_image=original_image,
-                                      save_path=save_path, detection_threshold=0.2, show=False)
+                                      save_path=save_path, detection_threshold=0.25, show=False)
+    # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
     SCALE_FACTOR = 4
     # upscale image by 2
     imshow = cv2.resize(img, (0, 0), fx=SCALE_FACTOR, fy=SCALE_FACTOR)

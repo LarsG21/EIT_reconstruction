@@ -111,22 +111,22 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
 
 def main():
     global model, v0
-    VOLTAGE_VECTOR_LENGTH = 928
+    VOLTAGE_VECTOR_LENGTH = 1024
     OUT_SIZE = 64
     print("Loading the model")
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model.load_state_dict(torch.load(
-        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/TESTING/model_2023-08-25_17-28-39_epoche_438_of_500_best_model.pth"))
+        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_40_60mm_target_with_augmentation_balanced/model_2023-08-30_15-42-22_200_epochs.pth"))
     devices = list_serial_devices()
     ender = None
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                home_on_init=False
+                                # home_on_init=False
                                 )
             ender.maximal_limits = [RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM]
-            # calibration_procedure(ender)
+            calibration_procedure(ender)
             break
     if ender is None:
         raise Exception("No Ender 3 found")

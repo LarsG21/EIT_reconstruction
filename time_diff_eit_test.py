@@ -47,19 +47,19 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     difference = (v1 - v0)
     # plt.plot(difference)
     difference = difference / v0
-    plt.plot(difference)
-    # plt.title("v1 - v0")
-    plt.title("Voltage difference")
-    # plt.legend(["v1 - v0", "(v1-v0)/v0"])
-    plt.show()
+    # plt.plot(difference)
+    # # plt.title("v1 - v0")
+    # plt.title("Voltage difference")
+    # # plt.legend(["v1 - v0", "(v1-v0)/v0"])
+    # plt.show()
     img_name = v1_path.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
     v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     v1_traditional_algorithims = v1[protocol_obj.keep_ba]
     # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
-    solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-                         mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
+    # solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+    #                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
 
@@ -152,9 +152,7 @@ print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 # model.load_state_dict(torch.load(
-#     "Collected_Data/Combined_dataset/Models/LinearModelDropout/Run_1_40_mm/model_2023-08-25_17-47-49_epoche_562_of_600_best_model.pth"))
-model.load_state_dict(torch.load(
-    "Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_40_60mm_target_with_augmentation_balanced/model_2023-08-30_15-42-22_200_epochs.pth"))
+#     "Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_40_60mm_target_with_augmentation_balanced/model_2023-08-30_15-42-22_200_epochs.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 # model.eval()

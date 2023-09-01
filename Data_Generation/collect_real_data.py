@@ -35,7 +35,7 @@ protocol_obj = protocol.create(n_el, dist_exc=dist_exc, step_meas=step_meas, par
 keep_mask = protocol_obj.keep_ba
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
-RADIUS_TARGET_IN_MM = 60
+RADIUS_TARGET_IN_MM = 20
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -245,7 +245,7 @@ def main():
             raise Exception("No Ender 3 found")
     else:
         print("Ender 3 found")
-    TEST_NAME = "Data_30_08_60mm_target"
+    TEST_NAME = "Data_01_09_20mm_target"
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
