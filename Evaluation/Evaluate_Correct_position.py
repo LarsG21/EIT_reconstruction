@@ -55,8 +55,8 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     print(file_path)
     df_1 = convert_single_frequency_eit_file_to_df(file_path)
     v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
-    v1 = v1[keep_mask]
-    difference = v1 - v0
+    # v1 = v1[keep_mask]
+    difference = (v1 - v0) / v0
     img_reconstructed = solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
     return img_reconstructed, v1, center_for_moving
 
@@ -115,26 +115,27 @@ def main():
     OUT_SIZE = 64
     print("Loading the model")
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model.load_state_dict(torch.load(
-        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_40_60mm_target_with_augmentation_balanced/model_2023-08-30_15-42-22_200_epochs.pth"))
+        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_with_noise_and_rotation_augmentation/model_2023-08-30_14-15-52_200_epochs.pth"))
     devices = list_serial_devices()
     ender = None
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                # home_on_init=False
+                                home_on_init=False
                                 )
-            ender.maximal_limits = [RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM]
-            calibration_procedure(ender)
+            MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM / 2 + 1
+            ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
+            # calibration_procedure(ender)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
     else:
         print("Ender 3 found")
-    v0_df = convert_single_frequency_eit_file_to_df("v0.eit")
-    v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
-    v0 = v0[keep_mask]
+    # v0_df = convert_single_frequency_eit_file_to_df("v0.eit")
+    # v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
+    v0 = np.load("../Collected_Data/Combined_dataset/v0.npy")
+    # v0 = v0[keep_mask]
 
     compare_multiple_positions(gcode_device=ender, number_of_samples=4000,
                                eit_data_path="../eit_data", )
