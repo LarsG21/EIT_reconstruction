@@ -36,6 +36,7 @@ else:
     print("Using CPU")
     device = "cpu"
 # torch.cuda.set_device(0)
+# device = "cpu"
 
 
 def handle_early_stopping():
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     print("model summary: ", model)
     # print number of trainable parameters
     nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -197,10 +198,10 @@ if __name__ == "__main__":
     if ADD_AUGMENTATION:
         # augment the training data
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                             NUMBER_OF_NOISE_AUGMENTATIONS, NOISE_LEVEL)
+                                                             NUMBER_OF_NOISE_AUGMENTATIONS, NOISE_LEVEL, device=device)
 
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-                                                                NUMBER_OF_ROTATION_AUGMENTATIONS)
+                                                                NUMBER_OF_ROTATION_AUGMENTATIONS, device=device)
     train_dataset = CustomDataset(train_voltage, train_images)
     train_dataloader = data.DataLoader(train_dataset, batch_size=32, shuffle=False)
     # number of training samples

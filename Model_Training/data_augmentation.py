@@ -49,7 +49,7 @@ def add_noise_augmentation(train_voltage, train_images, number_of_augmentations,
 
 
 def add_rotation_augmentation(train_voltage, train_images, number_of_augmentations=1, show_examples=False,
-                              save_examples=False):
+                              save_examples=False, device="cpu"):
     """
     Rotates the training data and augments the data
     :param train_voltage:
@@ -64,14 +64,21 @@ def add_rotation_augmentation(train_voltage, train_images, number_of_augmentatio
     # rotate all images by 90° using rotate function scipy
     train_voltage_rotated_combined = train_voltage
     train_images_rotated_combined = train_images
+    train_voltage_rotated_combined = train_voltage_rotated_combined.cpu()
+    train_images_rotated_combined = train_images_rotated_combined.cpu()
     for i in range(number_of_augmentations):
         train_images_rotated, train_voltage_rotated = generate_rotation_augmentation(train_images_numpy,
                                                                                      train_voltage_numpy,
                                                                                      show_examples=show_examples,
-                                                                                     save_examples=save_examples)
+                                                                                     save_examples=save_examples,
+                                                                                     device=device)
+        train_voltage_rotated = train_voltage_rotated.cpu()
+        train_images_rotated = train_images_rotated.cpu()
         train_voltage_rotated_combined = np.concatenate((train_voltage_rotated_combined, train_voltage_rotated), axis=0)
         train_images_rotated_combined = np.concatenate((train_images_rotated_combined, train_images_rotated), axis=0)
-    # convert back to tensors
+    # transfer back to gpu
+    train_voltage_rotated_combined = torch.from_numpy(train_voltage_rotated_combined).to(device)
+    train_images_rotated_combined = torch.from_numpy(train_images_rotated_combined).to(device)
 
     return train_voltage_rotated_combined, train_images_rotated_combined
 
