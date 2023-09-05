@@ -146,7 +146,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "01_09_20_mm_target"
+    model_name = "Noise_and_rotation_augmentation_100_samples"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -173,9 +173,9 @@ if __name__ == "__main__":
     # subtract v0 from all voltages
     voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
 
-    # # reduce the number of images
-    # image_data_np = image_data_np[:200]
-    # voltage_data_np = voltage_data_np[:200]
+    # reduce the number of images
+    image_data_np = image_data_np[:100]
+    voltage_data_np = voltage_data_np[:100]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 

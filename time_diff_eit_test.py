@@ -150,10 +150,9 @@ VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-# model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-# model.load_state_dict(torch.load(
-#     "Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_40_60mm_target_with_augmentation_balanced/model_2023-08-30_15-42-22_200_epochs.pth"))
+model.load_state_dict(torch.load(
+    "Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_with_noise_and_rotation_augmentation/model_2023-08-30_14-15-52_200_epochs.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
-# model.eval()
+model.eval()
 plot_eit_video(path)
