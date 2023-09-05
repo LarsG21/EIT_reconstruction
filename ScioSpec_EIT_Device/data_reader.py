@@ -351,10 +351,7 @@ if __name__ == '__main__':
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi1 = "../eit_experiments/10_Freq_sweep/20230905 15.59.19/setup_1/setup_1_00001.eit"
-    path_multi2 = "../eit_data/20230905 16.22.18/setup_1/setup_1_00001.eit"
-    path_multi3 = "../eit_data/20230905 16.33.31/setup_1/setup_1_00002.eit"
-    path_multi4 = "../eit_data/20230905 16.37.32/setup_1/setup_1_00001.eit"
+    path_multi4 = "../eit_experiments/100_Freq_Sweep/setup_1/setup_1_00001.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 
@@ -416,6 +413,6 @@ if __name__ == '__main__':
     plt.ylabel("Imaginary")
     # write the frequency next to the point
     for i, frequency in enumerate(frequencies):
-        if i % 10 == 0:
-            plt.text(reals[i], imags[i], f"{int(frequency / 1000)} kHz")
+        # if i % 10 == 0:
+        plt.text(reals[i], imags[i], f"{int(frequency / 1000)} kHz")
     plt.show()
