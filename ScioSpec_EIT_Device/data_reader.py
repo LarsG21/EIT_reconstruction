@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import datetime
 
+from matplotlib import pyplot as plt
 
 
 def read_eit_data_single_frequency(path):
@@ -72,6 +73,7 @@ def read_eit_data_single_frequency(path):
 
     return data_dict
 
+
 def _read_eit_data_multi_frequency(path):
     """
     Reads the data from the given path_multi and returns a dictionary with the following structure:
@@ -124,7 +126,8 @@ def _read_eit_data_multi_frequency(path):
                     current_values = []
                 current_key = (int(elements[0]), int(elements[1]))
                 lines_with_data_for_frequencies = lines[index_start_measurement_channels + i + 1:
-                                                        index_start_measurement_channels + i + 1 + metadata["Number_of_frequencies"]]
+                                                        index_start_measurement_channels + i + 1 + metadata[
+                                                            "Number_of_frequencies"]]
                 # get all frequencies from min, max and number of frequencies
                 # example 1000, 2000, 3 -> [1000, 1500, 2000]
                 frequencies = np.linspace(metadata["Minimum_frequency"], metadata["Maximum_frequency"],
@@ -138,17 +141,37 @@ def _read_eit_data_multi_frequency(path):
 
     return data_dict
 
+
+# def _convert_multi_frequency_voltage_dict_to_dataframe(voltage_dict):
+#     """
+#     Converts the voltages dictionary from multi frequency to a dataframe
+#     """
+#     col_names = ["frequency", "injection_pos", "injection_neg", "measuring_electrode", "real", "imaginary"]
+#     df = pd.DataFrame(columns=col_names)
+#     for key, values in voltage_dict.items():
+#         for frequency, voltages in values[0].items():
+#             for i in range(0, len(voltages), 2):
+#                 df_new_row = pd.DataFrame([[frequency, key[0], key[1], int((i+1)/2 + 1), voltages[i], voltages[i+1]]], columns=col_names)
+#                 df = pd.concat([df, df_new_row], ignore_index=True)
+#     df = df.convert_dtypes()
+#     # convert real and imaginary to float
+#     df["real"] = df["real"].astype(float)
+#     df["imaginary"] = df["imaginary"].astype(float)
+#     return df
+
 def _convert_multi_frequency_voltage_dict_to_dataframe(voltage_dict):
     """
-    Converts the voltages dictionary from multi frequency to a dataframe
+    Converts the voltages dictionary from multi-frequency to a DataFrame
     """
     col_names = ["frequency", "injection_pos", "injection_neg", "measuring_electrode", "real", "imaginary"]
-    df = pd.DataFrame(columns=col_names)
+    data = []
+
     for key, values in voltage_dict.items():
         for frequency, voltages in values[0].items():
             for i in range(0, len(voltages), 2):
-                df_new_row = pd.DataFrame([[frequency, key[0], key[1], int((i+1)/2 + 1), voltages[i], voltages[i+1]]], columns=col_names)
-                df = pd.concat([df, df_new_row], ignore_index=True)
+                data.append([frequency, key[0], key[1], int((i + 1) / 2 + 1), voltages[i], voltages[i + 1]])
+
+    df = pd.DataFrame(data, columns=col_names)
     df = df.convert_dtypes()
     # convert real and imaginary to float
     df["real"] = df["real"].astype(float)
@@ -165,6 +188,7 @@ def _convert_cols_to_complex(df):
     df["phase"] = np.angle(df["complex"])
 
     return df
+
 
 def convert_multi_frequency_eit_to_df(path):
     """
@@ -259,11 +283,13 @@ def convert_voltage_dict_to_complex(voltage_dict):
         complex_values = []
         values = values[0]
         for i in range(0, len(values), 2):
-            complex_values.append(complex(values[i], values[i+1]))
+            complex_values.append(complex(values[i], values[i + 1]))
             output_dict[key] = complex_values
     return output_dict
 
     #     # convert to amplitude and phase
+
+
 def convert_complex_dict_to_amplitude_phase(complex_dict):
     """
     Converts the complex dictionary to amplitude and phase
@@ -285,6 +311,7 @@ def convert_complex_dict_to_amplitude_phase(complex_dict):
 
     return output_dict, all_amplitudes, all_phses
 
+
 def convert_complex_dict_to_dataframe(data_dict):
     """
     Converts the dictionary to a dataframe
@@ -300,6 +327,7 @@ def convert_complex_dict_to_dataframe(data_dict):
 
     df = pd.DataFrame.from_records(df_rows, columns=col_names)
     return df
+
 
 def convert_single_frequency_eit_file_to_df(path):
     """
@@ -323,24 +351,71 @@ if __name__ == '__main__':
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi = "../sample_eit_frames/setup_1_00001.eit"
+    path_multi1 = "../eit_experiments/10_Freq_sweep/20230905 15.59.19/setup_1/setup_1_00001.eit"
+    path_multi2 = "../eit_data/20230905 16.22.18/setup_1/setup_1_00001.eit"
+    path_multi3 = "../eit_data/20230905 16.33.31/setup_1/setup_1_00002.eit"
+    path_multi4 = "../eit_data/20230905 16.37.32/setup_1/setup_1_00001.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 
-
-
     # df_single = convert_single_frequency_eit_file_to_df(path_single)
-    number_of_runs = 20
-    time = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=number_of_runs)
-    print("Time of single frequency conversion: ", time/number_of_runs)
+    # number_of_runs = 20
+    # time = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=number_of_runs)
+    # print("Time of single frequency conversion: ", time/number_of_runs)
+
+    df = convert_multi_frequency_eit_to_df(path_multi4)
+
+    print("finished conversion")
 
     # df_multi = convert_multi_frequency_eit_to_df(path_multi)
 
     # df = convert_multi_frequency_eit_to_df(path_single)
+    print(df)
 
-    # print(df)
+    plt.plot(df["amplitude"])
+    plt.show()
 
+    # get all destict frequencies
+    frequencies = df["frequency"].unique()
+    means = []
+    phases = []
+    reals = []
+    imags = []
+    for frequency in frequencies:
+        df_frequency = df[df["frequency"] == frequency]
+        means.append(df_frequency["amplitude"].mean())
+        phases.append(df_frequency["phase"].mean())
+        reals.append(df_frequency["real"].mean())
+        imags.append(df_frequency["imaginary"].mean())
+        # plt.plot(df_frequency["amplitude"])
+        # plt.title(frequency)
+        # plt.show()
 
+    # add bode plot with amplitude and phase in one plot
+    fig, ax1 = plt.subplots()
+    ax1.set_xlabel("Frequency")
+    ax1.set_ylabel("Amplitude")
+    ax1.plot(frequencies, means, color="blue")
+    ax1.tick_params(axis='y', labelcolor="blue")
 
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("Phase")
+    ax2.plot(frequencies, phases, color="red")
+    ax2.tick_params(axis='y', labelcolor="red")
+    fig.tight_layout()
+    plt.title("Bode plot")
+    # log scale
+    ax1.set_xscale("log")
+    ax1.set_yscale("log")
+    plt.show()
 
-
+    # add nyquist plot
+    plt.plot(reals, imags)
+    plt.title("Nyquist plot")
+    plt.xlabel("Real")
+    plt.ylabel("Imaginary")
+    # write the frequency next to the point
+    for i, frequency in enumerate(frequencies):
+        if i % 10 == 0:
+            plt.text(reals[i], imags[i], f"{int(frequency / 1000)} kHz")
+    plt.show()
