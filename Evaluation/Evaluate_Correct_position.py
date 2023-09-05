@@ -116,7 +116,7 @@ def main():
     print("Loading the model")
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model.load_state_dict(torch.load(
-        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_with_noise_and_rotation_augmentation/model_2023-08-30_14-15-52_200_epochs.pth"))
+        "../Collected_Data/Combined_dataset/Models/LinearModelDropout/05_09_all_data_40mm_target_and_augmentation/model_2023-09-05_14-04-31_200_epochs.pth"))
     devices = list_serial_devices()
     ender = None
     for device in devices:

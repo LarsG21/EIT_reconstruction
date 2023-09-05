@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModelWithDropout
+from Model_Training.Models import LinearModelWithDropout, LinearModelWithDropout2
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from plot_utils import solve_and_plot_cnn
 from pyeit import mesh
@@ -128,30 +128,19 @@ def plot_eit_video(path):
                     default_frame = current_frame
                 else:
                     time.sleep(0.01)  # wait for file to be written
-                    # print(default_frame, current_frame)
                     plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
                                              v0_path=os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
-        # time.sleep(0.1)
 
 
 path = "eit_data"
 
-# path_t1 = "setup_00002.eit"
-# path_t2 = "setup_00006.eit"
-# plot_eit_image(path_t1, path_t2)
-
-# start = time.time()
-# plot_eit_images_in_folder(path)
-# end = time.time()
-# print("Time taken: ", end - start)
-# VOLTAGE_VECTOR_LENGTH = 928
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 print("Loading the model")
 model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 model.load_state_dict(torch.load(
-    "Collected_Data/Combined_dataset/Models/LinearModelDropout/30_08_with_noise_and_rotation_augmentation/model_2023-08-30_14-15-52_200_epochs.pth"))
+    "Collected_Data/Combined_dataset/Models/LinearModelDropout/05_09_all_data_40mm_target_and_augmentation/model_2023-09-05_14-04-31_200_epochs.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 model.eval()

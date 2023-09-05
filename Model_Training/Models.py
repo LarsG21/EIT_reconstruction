@@ -58,6 +58,37 @@ class LinearModelWithDropout(nn.Module):
         x = self.decoder(x)
         return x
 
+
+class LinearModelWithDropout2(nn.Module):
+    def __init__(self, input_size, output_size, dropout_prob=0.1):
+        super(LinearModelWithDropout2, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_size, 512),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the first layer
+            nn.Linear(512, 256),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the second layer
+            nn.Linear(256, 128),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the third layer
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(128, 256),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the first decoder layer
+            nn.Linear(256, 512),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the second decoder layer
+            nn.Linear(512, output_size)
+            # nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
 # TODO: Implement the ConvolutionalModel class
 class ConvolutionalModelWithDropout(nn.Module):
     def __init__(self, input_size, output_size, dropout_prob=0.1):

@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 from CustomDataset import CustomDataset
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation
-from Models import LinearModelWithDropout
+from Models import LinearModelWithDropout, LinearModelWithDropout2
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
 
 LOSS_SCALE_FACTOR = 1000
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
     num_epochs = 200
-    NOISE_LEVEL = 0.05
+    NOISE_LEVEL = 0.08
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
     # Define the weight decay factor
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Noise_and_rotation_augmentation_100_samples"
+    model_name = "05_09_all_data_40mm_target_and_augmentation_more_noise"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -158,8 +158,8 @@ if __name__ == "__main__":
     voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
 
     # reduce the number of images
-    image_data_np = image_data_np[:100]
-    voltage_data_np = voltage_data_np[:100]
+    # image_data_np = image_data_np[:100]
+    # voltage_data_np = voltage_data_np[:100]
 
     # Now the model should learn the difference between the voltages and v0 (default state)
 
