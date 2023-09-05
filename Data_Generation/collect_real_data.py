@@ -234,7 +234,8 @@ def main():
             ender = GCodeDevice(device.device, movement_speed=6000,
                                 home_on_init=False
                                 )
-            ender.maximal_limits = [RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM, RADIUS_TANK_IN_MM]
+            MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM / 2 + 1
+            ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
             calibration_procedure(ender)
             break
     if ender is None:
