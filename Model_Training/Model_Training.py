@@ -9,6 +9,7 @@ import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
 
+from CustomDataset import CustomDataset
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation
 from Models import LinearModelWithDropout
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
@@ -35,23 +36,6 @@ else:
     print("Using CPU")
     device = "cpu"
 # torch.cuda.set_device(0)
-
-class CustomDataset(data.Dataset):
-    def __init__(self, voltage_data, image_data):
-        self.voltage_data = voltage_data
-        self.image_data = image_data
-
-    def __len__(self):
-        return len(self.voltage_data)
-
-    def __getitem__(self, index):
-        voltage = self.voltage_data[index]
-        image = self.image_data[index]
-
-        # if self.transform:
-        #     voltage = self.transform(voltage)
-
-        return voltage, image
 
 
 def handle_early_stopping():
