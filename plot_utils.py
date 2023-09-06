@@ -110,5 +110,6 @@ def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path
         center_of_mass = find_center_of_mass(img)
         cv2.circle(imshow, (center_of_mass[0] * SCALE_FACTOR, center_of_mass[1] * SCALE_FACTOR), 5, -1, -1)
     plt.imshow(imshow)
+    plt.title(title)
     plt.show()
     return img

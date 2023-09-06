@@ -1,22 +1,17 @@
-import os
 import time
 
-import cv2
 import numpy as np
 import pandas as pd
 import torch
-from matplotlib import pyplot as plt
 
-from Data_Generation.collect_real_data import calibration_procedure
-from Data_Generation.pickle_reader import get_relevant_voltages
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
     wait_for_start_of_measurement
+from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
-from Model_Training.Models import LinearModelWithDropout, LinearModelWithDropout2
+from Model_Training.Models import LinearModelWithDropout2
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from plot_utils import solve_and_plot_cnn
 from pyeit.eit import protocol
-from utils import find_center_of_mass
 
 n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
@@ -57,7 +52,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
     # v1 = v1[keep_mask]
     difference = (v1 - v0) / v0
-    img_reconstructed = solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
+    img_reconstructed = solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=False)
     return img_reconstructed, v1, center_for_moving
 
 
@@ -76,39 +71,21 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
     print(file_path)
     # save df to pickle
     time.sleep(1)
+    position_errors = []
+    amplitude_responses = []
     for i in range(number_of_samples):
         img_reconstructed, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
                                                                       last_position=last_centers[-1])
         last_centers.append(center_for_moving)
-        center_of_mass = find_center_of_mass(img_reconstructed)
-        SCALE_FACTOR = 10
-        image_show = np.zeros_like(img_reconstructed)
-        image_show = cv2.resize(image_show, (img_size * SCALE_FACTOR, img_size * SCALE_FACTOR),
-                                interpolation=cv2.INTER_NEAREST)
-        # convert to 3 channel image_show
-        image_show = np.stack((image_show, image_show, image_show), axis=2)
-        # add circle at center of mass
-        # flip x and y of center_of_mass
-        radius = int((image_show.shape[0] * RELATIVE_RADIUS_TARGET / 2))
-        cv2.circle(image_show, (center_of_mass[0] * SCALE_FACTOR, center_of_mass[1] * SCALE_FACTOR), radius,
-                   (255, 0, 0), 2)
-        # add circle at center of target
-        # map center_for_moving to image_show size
-        center_for_moving = (center_for_moving / gcode_device.maximal_limits[0]) * img_size
-        center_for_moving = (img_size,
-                             img_size) - center_for_moving  # invert y axis and x axis because printer is flipped
-        center_for_moving = center_for_moving.astype(int)
-        print("center for moving", center_for_moving)
-        cv2.circle(image_show, (center_for_moving[0] * SCALE_FACTOR, center_for_moving[1] * SCALE_FACTOR), radius,
-                   (0, 255, 0), 2)
-        # flip image_show
-        distance_between_centers = np.linalg.norm(center_of_mass - center_for_moving)
-        cv2.putText(image_show, f"Error: {round((distance_between_centers / image_show.shape[0]) * 100, 2)}%", (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.putText(image_show, "Target", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(image_show, "Detected", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
-        plt.imshow(image_show)
-        plt.show()
+        position_error = evaluate_position_error(center_for_moving, gcode_device, img_reconstructed,
+                                                 relative_radius_target=RELATIVE_RADIUS_TARGET)
+        position_errors.append(position_error)
+
+        amplitude_response = calculate_amplitude_response(center_for_moving, gcode_device, img_reconstructed,
+                                                          relative_radius_target=RELATIVE_RADIUS_TARGET)
+        amplitude_responses.append(amplitude_response)
+
+        # todo: create plots of amplitude response and position errors over space
 
 
 def main():
