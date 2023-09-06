@@ -22,6 +22,8 @@ def add_noise_augmentation(train_voltage, train_images, number_of_augmentations,
     :return: The augmented training voltages and images
     """
     # Step 4.1 Adding noise to the training data in % of max value
+    if number_of_augmentations == 0:
+        return train_voltage, train_images
     std_of_data = torch.std(train_voltage).item()
     noise_amplitude = noise_level * std_of_data
     print("Absolute max value: ", std_of_data)
@@ -57,6 +59,8 @@ def add_rotation_augmentation(train_voltage, train_images, number_of_augmentatio
     :param number_of_augmentations:
     :return:
     """
+    if number_of_augmentations == 0:
+        return train_voltage, train_images
     print("Rotating the training data")
     # convert tensors to numpy arrays
     train_voltage_numpy = train_voltage.cpu().numpy()
@@ -91,6 +95,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     for img, voltage in zip(train_images_numpy, train_voltage_numpy):
         # use 11.25° steps for the rotation
         angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
+        # angle = 90
         # print(f"Rotating image by {angle}°")
         img_rotated = rotate(img, angle, reshape=False)
         if show_examples:
@@ -107,8 +112,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
                 plt.savefig(f"rotated_img_{int(angle)}.png")
             plt.show()
             plt.plot(voltage)
-        electrodes_to_rotate = int(angle / DEGREES_PER_ELECTRODE)
-        electrodes_to_rotate = electrodes_to_rotate * 32  # because of the 32 measurements per electrode
+        electrodes_to_rotate = int(angle / 360 * len(voltage))
         voltage_rotated = np.roll(voltage, shift=electrodes_to_rotate)
         if show_examples:
             plt.plot(voltage_rotated)
@@ -128,14 +132,15 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
 
 
 if __name__ == '__main__':
-    path = "../Collected_Data/Combined_dataset"
+    path = "..//Collected_Data/Data_05_09_40mm_multifreq"
+
     device = "cpu"
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
-    v0 = np.load(os.path.join(path, "v0.npy"))
+    # v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
-    voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
 
     # reduce the number of images
     image_data_np = image_data_np[:100]
@@ -162,9 +167,9 @@ if __name__ == '__main__':
 
     train_voltage = train_voltage[:1]
     train_images = train_images[:1]
-    train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                         10, 0.05,
-                                                         show_examples=True, save_examples=True)
+    # train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
+    #                                                      10, 0.05,
+    #                                                      show_examples=True, save_examples=True)
 
-    # train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-    #                                                         5, show_examples=True, save_examples=True)
+    train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+                                                            1, show_examples=True, save_examples=False)

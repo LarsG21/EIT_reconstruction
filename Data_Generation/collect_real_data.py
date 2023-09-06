@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac
+    solve_eit_using_jac, wait_1_file_and_get_next
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from pyeit import mesh
@@ -106,11 +106,10 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     else:
         time.sleep(2)
         center_for_moving = last_position
-    # wait 80 seconds for the measurement
-    wait_for_n_secs_with_print(75)
+
     """ 4. collect data """
     # get the newest file in the folder
-    file_path = get_newest_file(eit_path)
+    file_path = wait_1_file_and_get_next(eit_path)
     print(file_path)
     df = convert_multi_frequency_eit_to_df(file_path)
 

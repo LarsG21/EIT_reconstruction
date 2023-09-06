@@ -54,6 +54,9 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     :return:
     """
     AVERGAGE_V0_FRAME = False
+    # delete rows in df where len of voltages is not 20480
+    df = df[df["voltages"].map(len) == 20480]
+
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
@@ -118,5 +121,5 @@ if __name__ == '__main__':
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
-    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
+    look_at_dataset(img_array=img_array, v1_array=voltage_array)
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
