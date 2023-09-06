@@ -1,0 +1,12 @@
+NOISE_LEVEL: 0.06
+LEARNING_RATE: 0.0003
+weight_decay: 1e-06
+patience: 50
+num_epochs: 300
+Augmentations: True
+Number of augmentations: 3
+Number of rotation augmentations: 3
+
+Number of training samples: 27744
+Number of validation samples: 347
+Number of test samples: 87
