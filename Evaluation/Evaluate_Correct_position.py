@@ -3,7 +3,9 @@ import time
 import numpy as np
 import pandas as pd
 import torch
+from scipy.interpolate import interpolate
 
+from Data_Generation.collect_real_data import calibration_procedure
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
     wait_for_start_of_measurement
 from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response
@@ -12,6 +14,7 @@ from Model_Training.Models import LinearModelWithDropout2
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from plot_utils import solve_and_plot_cnn
 from pyeit.eit import protocol
+import plotly.express as px
 
 n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
@@ -84,8 +87,55 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
         amplitude_response = calculate_amplitude_response(center_for_moving, gcode_device, img_reconstructed,
                                                           relative_radius_target=RELATIVE_RADIUS_TARGET)
         amplitude_responses.append(amplitude_response)
+    # remove first element of last_centers
+    last_centers = last_centers[1:]
+    # create dataframe
+    df = pd.DataFrame(
+        data={"positions": last_centers, "position_error": position_errors, "amplitude_response": amplitude_responses})
+    df.to_pickle("dataframe_evaluation.pkl")
+    return df
+
 
         # todo: create plots of amplitude response and position errors over space
+
+
+def plot_amplitude_response(df: pd.DataFrame):
+    df["x"] = [x[0] for x in df["positions"]]
+    df["y"] = [x[1] for x in df["positions"]]
+    # fig = px.scatter(df, x="x", y="y", color="amplitude_response")
+    # fig.show()
+    # interpolate between points
+    x = df["x"].to_numpy()
+    y = df["y"].to_numpy()
+    z = df["amplitude_response"].to_numpy()
+    f = interpolate.interp2d(x, y, z, kind='cubic')
+    xnew = np.linspace(0, 190, 30)
+    ynew = np.linspace(0, 190, 30)
+    znew = f(xnew, ynew)
+    fig = px.imshow(znew, x=xnew, y=ynew)
+    # set title
+    fig.update_layout(title="Amplitude response over space")
+    fig.show()
+
+
+def plot_position_error(df: pd.DataFrame):
+    df["x"] = [x[0] for x in df["positions"]]
+    df["y"] = [x[1] for x in df["positions"]]
+    # fig = px.scatter(df, x="x", y="y", color="position_error")
+    # fig.show()
+    # interpolate between points
+    x = df["x"].to_numpy()
+    y = df["y"].to_numpy()
+    z = df["position_error"].to_numpy()
+    f = interpolate.interp2d(x, y, z, kind='cubic')
+    xnew = np.linspace(0, 190, 30)
+    ynew = np.linspace(0, 190, 30)
+    znew = f(xnew, ynew)
+    fig = px.imshow(znew, x=xnew, y=ynew)
+    # set title
+    fig.update_layout(title="Position error over space")
+    fig.show()
+
 
 
 def main():
@@ -105,7 +155,7 @@ def main():
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM / 2 + 1
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            # calibration_procedure(ender)
+            calibration_procedure(ender)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
@@ -116,9 +166,12 @@ def main():
     v0 = np.load("v0.npy")
     # v0 = v0[keep_mask]
 
-    compare_multiple_positions(gcode_device=ender, number_of_samples=4000,
+    compare_multiple_positions(gcode_device=ender, number_of_samples=2,
                                eit_data_path="../eit_data", )
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    df = pd.read_pickle("dataframe_evaluation.pkl")
+    plot_amplitude_response(df)
+    plot_position_error(df)

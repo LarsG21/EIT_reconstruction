@@ -44,6 +44,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
         df_v0 = default_frame
     v1 = get_relevant_voltages(df_v1, protocol_obj)
     v0 = get_relevant_voltages(df_v0, protocol_obj)
+    # save v0 as npy
+    np.save("v0.npy", v0)
     difference = (v1 - v0)
     # plt.plot(difference)
     difference = difference / v0
