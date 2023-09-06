@@ -422,7 +422,7 @@ if __name__ == '__main__':
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi4 = "../eit_experiments/100_Freq_Sweep/setup_1/setup_1_00001.eit"
+    path_multi4 = "../eit_experiments/10_Freq_sweep/20230905 15.59.19/setup_1/setup_1_00001.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 
@@ -439,6 +439,11 @@ if __name__ == '__main__':
 
     # df = convert_multi_frequency_eit_to_df(path_single)
     print(df)
+
+    # combine both df to alternating real and imaginary values
+    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+    # convert to numpy array
+    alternating_values = df_alternating.to_numpy()
 
     plt.plot(df["amplitude"])
     plt.show()
