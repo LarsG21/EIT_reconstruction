@@ -22,6 +22,8 @@ def add_noise_augmentation(train_voltage, train_images, number_of_augmentations,
     :return: The augmented training voltages and images
     """
     # Step 4.1 Adding noise to the training data in % of max value
+    if number_of_augmentations == 0:
+        return train_voltage, train_images
     std_of_data = torch.std(train_voltage).item()
     noise_amplitude = noise_level * std_of_data
     print("Absolute max value: ", std_of_data)
@@ -57,6 +59,8 @@ def add_rotation_augmentation(train_voltage, train_images, number_of_augmentatio
     :param number_of_augmentations:
     :return:
     """
+    if number_of_augmentations == 0:
+        return train_voltage, train_images
     print("Rotating the training data")
     # convert tensors to numpy arrays
     train_voltage_numpy = train_voltage.cpu().numpy()
@@ -91,6 +95,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     for img, voltage in zip(train_images_numpy, train_voltage_numpy):
         # use 11.25° steps for the rotation
         angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
+        # angle = 90
         # print(f"Rotating image by {angle}°")
         img_rotated = rotate(img, angle, reshape=False)
         if show_examples:
@@ -107,8 +112,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
                 plt.savefig(f"rotated_img_{int(angle)}.png")
             plt.show()
             plt.plot(voltage)
-        electrodes_to_rotate = int(angle / DEGREES_PER_ELECTRODE)
-        electrodes_to_rotate = electrodes_to_rotate * 32  # because of the 32 measurements per electrode
+        electrodes_to_rotate = int(angle / 360 * len(voltage))
         voltage_rotated = np.roll(voltage, shift=electrodes_to_rotate)
         if show_examples:
             plt.plot(voltage_rotated)
