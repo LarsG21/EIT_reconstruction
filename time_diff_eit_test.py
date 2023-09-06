@@ -138,9 +138,9 @@ path = "eit_data"
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 print("Loading the model")
-model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 model.load_state_dict(torch.load(
-    "Collected_Data/Combined_dataset/Models/LinearModelDropout/05_09_all_data_40mm_target_and_augmentation_less_noise/model_2023-09-05_14-36-50_200_epochs.pth"))
+    "Collected_Data/Combined_dataset/Models/LinearModelDropout2/05_09_all_data_40mm_target_and_augmentation_more_noise/model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pth"))
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 model.eval()
