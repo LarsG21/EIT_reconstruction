@@ -345,34 +345,43 @@ def convert_single_frequency_eit_file_to_df(path):
     return df
 
 
-if __name__ == '__main__':
+def plot_nyquist(df):
+    """
+    Plots the nyquist plot of the given data
+    :param reals:
+    :param imags:
+    :param frequencies:
+    :return:
+    """
+    frequencies = df["frequency"].unique()
+    means = []
+    phases = []
+    reals = []
+    imags = []
+    for frequency in frequencies:
+        df_frequency = df[df["frequency"] == frequency]
+        means.append(df_frequency["amplitude"].mean())
+        phases.append(df_frequency["phase"].mean())
+        reals.append(df_frequency["real"].mean())
+        imags.append(df_frequency["imaginary"].mean())
 
-    path_single = "../sample_eit_frames/setup_00001.eit"
-    # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
-    # print("Time of single frequency conversion: ", time1)
-    # #
-    path_multi4 = "../eit_experiments/100_Freq_Sweep/setup_1/setup_1_00001.eit"
-    # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
-    # print("Time of multi frequency conversion: ", time)
-
-    # df_single = convert_single_frequency_eit_file_to_df(path_single)
-    # number_of_runs = 20
-    # time = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=number_of_runs)
-    # print("Time of single frequency conversion: ", time/number_of_runs)
-
-    df = convert_multi_frequency_eit_to_df(path_multi4)
-
-    print("finished conversion")
-
-    # df_multi = convert_multi_frequency_eit_to_df(path_multi)
-
-    # df = convert_multi_frequency_eit_to_df(path_single)
-    print(df)
-
-    plt.plot(df["amplitude"])
+    plt.plot(reals, imags)
+    plt.title("Nyquist plot")
+    plt.xlabel("Real")
+    plt.ylabel("Imaginary")
+    # write the frequency next to the point
+    for i, frequency in enumerate(frequencies):
+        # if i % 10 == 0:
+        plt.text(reals[i], imags[i], f"{int(frequency / 1000)} kHz")
     plt.show()
 
-    # get all destict frequencies
+
+def plot_bode(df):
+    """
+    Plots the bode plot of the given data
+    :param df:
+    :return:
+    """
     frequencies = df["frequency"].unique()
     means = []
     phases = []
@@ -406,13 +415,35 @@ if __name__ == '__main__':
     ax1.set_yscale("log")
     plt.show()
 
-    # add nyquist plot
-    plt.plot(reals, imags)
-    plt.title("Nyquist plot")
-    plt.xlabel("Real")
-    plt.ylabel("Imaginary")
-    # write the frequency next to the point
-    for i, frequency in enumerate(frequencies):
-        # if i % 10 == 0:
-        plt.text(reals[i], imags[i], f"{int(frequency / 1000)} kHz")
+
+if __name__ == '__main__':
+
+    path_single = "../sample_eit_frames/setup_00001.eit"
+    # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
+    # print("Time of single frequency conversion: ", time1)
+    # #
+    path_multi4 = "../eit_experiments/100_Freq_Sweep/setup_1/setup_1_00001.eit"
+    # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
+    # print("Time of multi frequency conversion: ", time)
+
+    # df_single = convert_single_frequency_eit_file_to_df(path_single)
+    # number_of_runs = 20
+    # time = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=number_of_runs)
+    # print("Time of single frequency conversion: ", time/number_of_runs)
+
+    df = convert_multi_frequency_eit_to_df(path_multi4)
+
+    print("finished conversion")
+
+    # df_multi = convert_multi_frequency_eit_to_df(path_multi)
+
+    # df = convert_multi_frequency_eit_to_df(path_single)
+    print(df)
+
+    plt.plot(df["amplitude"])
     plt.show()
+
+    plot_bode(df)
+
+    # add nyquist plot
+    plot_nyquist(df)
