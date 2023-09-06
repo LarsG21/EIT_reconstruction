@@ -159,6 +159,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     output = model(voltage_data)
     stop = time.time()
     print(f"Time for reconstruction: {(stop - start) * 1000} ms")
+    output = output.cpu()
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
     # pull everything under 0.2 to 0
     output[output < detection_threshold] = 0

@@ -107,15 +107,15 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 2
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
+    NUMBER_OF_NOISE_AUGMENTATIONS = 3
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 3
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
-    SAVE_CHECKPOINTS = False
+    SAVE_CHECKPOINTS = True
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 200
-    NOISE_LEVEL = 0.08
+    num_epochs = 300
+    NOISE_LEVEL = 0.04
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
     # Define the weight decay factor
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "05_09_all_data_40mm_target_and_augmentation_more_noise"
+    model_name = "06_09_gpu"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
     if not os.path.exists(model_path):
@@ -287,7 +287,7 @@ if __name__ == "__main__":
                 # also create a sample reconstruction with the current model
                 test_voltage_data = test_voltage[0]
                 infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                                            title=f"Reconstruction after {epoch} epochs", original_image=test_images[0])
+                                            title=f"Reconstruction after {epoch} epochs", original_image=test_images[0].cpu())
                 # plot the corresponding image
         # save the final model
         torch.save(model.state_dict(),
