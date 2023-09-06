@@ -109,8 +109,8 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 2
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
+    NUMBER_OF_NOISE_AUGMENTATIONS = 0
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 0
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     num_epochs = 200
     NOISE_LEVEL = 0.01
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0003
+    LEARNING_RATE = 0.001
     # Define the weight decay factor
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
