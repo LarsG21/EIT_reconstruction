@@ -30,8 +30,11 @@ plot_position_error(df,
 
 # convert col error_vector to np.array
 
-# scatter plot of error_vector
+# scatter plot of error_vector with number at each point represented as a color
+# plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]), c=df["position_error"])
+# plt.colorbar()
 plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]))
+
 plt.xlabel("x error [mm]")
 plt.ylabel("y error [mm]")
 plt.title("Error vector")
