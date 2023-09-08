@@ -1,9 +1,12 @@
+import datetime
+import os
 import time
 
 import numpy as np
 import pandas as pd
 import torch
-from scipy.interpolate import interpolate
+from matplotlib import pyplot as plt
+from scipy.interpolate import interpolate, griddata
 
 from Data_Generation.collect_real_data import calibration_procedure
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
@@ -75,24 +78,31 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
     # save df to pickle
     time.sleep(1)
     position_errors = []
+    error_vectors = []
     amplitude_responses = []
     for i in range(number_of_samples):
         img_reconstructed, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
                                                                       last_position=last_centers[-1])
         last_centers.append(center_for_moving)
-        position_error = evaluate_position_error(center_for_moving, gcode_device, img_reconstructed,
+        position_error, error_vector = evaluate_position_error(center_for_moving, gcode_device, img_reconstructed,
                                                  relative_radius_target=RELATIVE_RADIUS_TARGET)
         position_errors.append(position_error)
+        error_vectors.append(error_vector)
 
         amplitude_response = calculate_amplitude_response(center_for_moving, gcode_device, img_reconstructed,
                                                           relative_radius_target=RELATIVE_RADIUS_TARGET)
         amplitude_responses.append(amplitude_response)
-    # remove first element of last_centers
-    last_centers = last_centers[1:]
-    # create dataframe
-    df = pd.DataFrame(
-        data={"positions": last_centers, "position_error": position_errors, "amplitude_response": amplitude_responses})
-    df.to_pickle("dataframe_evaluation.pkl")
+        # remove first element of last_centers
+        if i == 0:
+            last_centers = last_centers[1:]
+        # create dataframe
+        df = pd.DataFrame(
+            data={"positions": last_centers, "position_error": position_errors, "error_vector": error_vectors,
+                  "amplitude_response": amplitude_responses})
+        path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
+        save_path = os.path.join(path, f"evaluation_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pkl")
+        df.to_pickle(save_path)
+        print("saved dataframe to pickle")
     return df
 
 
@@ -108,14 +118,30 @@ def plot_amplitude_response(df: pd.DataFrame):
     x = df["x"].to_numpy()
     y = df["y"].to_numpy()
     z = df["amplitude_response"].to_numpy()
-    f = interpolate.interp2d(x, y, z, kind='cubic')
-    xnew = np.linspace(0, 190, 30)
-    ynew = np.linspace(0, 190, 30)
-    znew = f(xnew, ynew)
-    fig = px.imshow(znew, x=xnew, y=ynew)
-    # set title
-    fig.update_layout(title="Amplitude response over space")
+    # plot scatter 2d with color coding
+    # fig = px.scatter(df, x="x", y="y", color="amplitude_response")
+    # # show
+    # fig.show()
+    # interpolate
+    # Create a grid of points for interpolation
+    xi, yi = np.linspace(x.min(), x.max(), 100), np.linspace(y.min(), y.max(), 100)
+    xi, yi = np.meshgrid(xi, yi)
+
+    # Interpolate the data using griddata
+    zi = griddata((x, y), z, (xi, yi), method='linear')
+
+    # Create a heatmap with color coding
+    fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
+    fig.update_layout(title='Amplitude response over space', xaxis_title="x", yaxis_title="y")
+    # Show the plot
     fig.show()
+    # Create a new DataFrame for interpolated data
+    interpolated_df = pd.DataFrame({'x': xi.flatten(), 'y': yi.flatten(), 'amplitude_response': zi.flatten()})
+    # Create a scatter plot with interpolated data
+    # fig = px.scatter(interpolated_df, x="x", y="y", color="amplitude_response")
+    # fig.update_layout(title='Amplitude response over space', xaxis_title="x", yaxis_title="y")
+    # # Show the plot
+    # fig.show()
 
 
 def plot_position_error(df: pd.DataFrame):
@@ -127,14 +153,30 @@ def plot_position_error(df: pd.DataFrame):
     x = df["x"].to_numpy()
     y = df["y"].to_numpy()
     z = df["position_error"].to_numpy()
-    f = interpolate.interp2d(x, y, z, kind='cubic')
-    xnew = np.linspace(0, 190, 30)
-    ynew = np.linspace(0, 190, 30)
-    znew = f(xnew, ynew)
-    fig = px.imshow(znew, x=xnew, y=ynew)
-    # set title
-    fig.update_layout(title="Position error over space")
+    # fig = px.scatter(df, x="x", y="y", color="position_error")
+    # # show
+    # fig.show()
+    # interpolate
+    # Create a grid of points for interpolation
+    xi, yi = np.linspace(x.min(), x.max(), 100), np.linspace(y.min(), y.max(), 100)
+    xi, yi = np.meshgrid(xi, yi)
+    # Interpolate the data using griddata
+    zi = griddata((x, y), z, (xi, yi), method='linear')
+    # Create a heatmap with color coding
+    fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
+    # title
+    fig.update_layout(title="Position error over space", xaxis_title="x", yaxis_title="y")
+    # Show the plot
     fig.show()
+    # Create a new DataFrame for interpolated data
+    interpolated_df = pd.DataFrame({'x': xi.flatten(), 'y': yi.flatten(), 'position_error': zi.flatten()})
+    # Create a scatter plot with interpolated data
+    # fig = px.scatter(interpolated_df, x="x", y="y", color="position_error")
+    # # title
+    # fig.update_layout(title="Position error over space", xaxis_title="x", yaxis_title="y")
+    # # Show the plot
+    # fig.show()
+
 
 
 
@@ -155,7 +197,7 @@ def main():
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM / 2 + 1
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender)
+            # calibration_procedure(ender)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
@@ -163,15 +205,28 @@ def main():
         print("Ender 3 found")
     # v0_df = convert_single_frequency_eit_file_to_df("v0.eit")
     # v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
-    v0 = np.load("v0.npy")
+    v0 = np.load("v0_new.npy")
     # v0 = v0[keep_mask]
 
-    compare_multiple_positions(gcode_device=ender, number_of_samples=2,
+    compare_multiple_positions(gcode_device=ender, number_of_samples=400,
                                eit_data_path="../eit_data", )
 
 
 if __name__ == '__main__':
-    # main()
-    df = pd.read_pickle("dataframe_evaluation.pkl")
-    plot_amplitude_response(df)
-    plot_position_error(df)
+    main()
+    # df = pd.read_pickle("dataframe_evaluation.pkl")
+    # plot_amplitude_response(df)
+    # plot_position_error(df)
+
+    # v0 = np.load("v0.npy")
+    #
+    # vo_new = np.load("v0_new.npy")
+    #
+    # diff = v0 - vo_new
+
+    # plot all
+    # plt.plot(v0, label="v0")
+    # plt.plot(vo_new, label="v0_new")
+    # plt.plot(diff, label="diff")
+    # plt.legend()
+    # plt.show()

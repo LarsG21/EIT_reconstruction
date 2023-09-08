@@ -44,7 +44,9 @@ def evaluate_position_error(center_for_moving, gcode_device, img_reconstructed, 
     plt.imshow(image_show)
     plt.title(f"Distance between centers: {distance_between_centers}")
     plt.show()
-    return distance_between_centers
+    # get vector between centers
+    error_vect = center_of_mass - center_for_moving
+    return distance_between_centers, error_vect
 
 
 def convert_center_for_moving_to_center_in_image(center_for_moving, gcode_device, img_size):
