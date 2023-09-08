@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from Evaluation.Evaluate_Correct_position import plot_amplitude_response, plot_position_error
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-08_13-06-19.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-08_13-08-06.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < 3 std
 df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
@@ -23,11 +23,18 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 
 print("Number of samples", len(df))
 
-plot_amplitude_response(df)
-plot_position_error(df)
+plot_amplitude_response(df,
+                        save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\amplitude_response.png")
+plot_position_error(df,
+                    save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\position_error.png")
 
 # convert col error_vector to np.array
 
 # scatter plot of error_vector
 plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]))
+plt.xlabel("x error [mm]")
+plt.ylabel("y error [mm]")
+plt.title("Error vector")
+# save plot
+plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\error_vector.png")
 plt.show()

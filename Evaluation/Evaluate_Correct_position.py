@@ -20,7 +20,7 @@ from plot_utils import solve_and_plot_cnn
 from pyeit.eit import protocol
 import plotly.express as px
 
-RESOLUTION_PLOT = 40
+RESOLUTION_PLOT = 80
 nr_of_blurs = 1
 
 n_el = 32  # nb of electrodes
@@ -89,7 +89,7 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
                                                                       last_position=last_centers[-1])
         last_centers.append(center_for_moving)
         position_error, error_vector = evaluate_position_error(center_for_moving, gcode_device, img_reconstructed,
-                                                 relative_radius_target=RELATIVE_RADIUS_TARGET)
+                                                               relative_radius_target=RELATIVE_RADIUS_TARGET)
         position_errors.append(position_error)
         error_vectors.append(error_vector)
 
@@ -109,11 +109,10 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
         print("saved dataframe to pickle")
     return df
 
+    # todo: create plots of amplitude response and position errors over space
 
-        # todo: create plots of amplitude response and position errors over space
 
-
-def plot_amplitude_response(df: pd.DataFrame):
+def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
     df["x"] = [x[0] for x in df["positions"]]
     df["y"] = [x[1] for x in df["positions"]]
     # fig = px.scatter(df, x="x", y="y", color="amplitude_response")
@@ -139,7 +138,18 @@ def plot_amplitude_response(df: pd.DataFrame):
     for i in range(nr_of_blurs):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
-    fig.update_layout(title='Amplitude response over space', xaxis_title="x", yaxis_title="y")
+    fig.update_layout(title='Amplitude response over space', xaxis_title="x [mm]", yaxis_title="y [mm]")
+    # text to colorbar
+    fig.update_layout(coloraxis_colorbar=dict(
+        title="Amplitude response",
+        thicknessmode="pixels", thickness=50,
+        lenmode="pixels",
+        yanchor="top", y=1,
+        ticks="outside", ticksuffix="",
+        dtick=0.1
+    ))
+    if save_path is not None:
+        fig.write_image(save_path)
     # Show the plot
     fig.show()
     # Create a new DataFrame for interpolated data
@@ -151,7 +161,7 @@ def plot_amplitude_response(df: pd.DataFrame):
     # fig.show()
 
 
-def plot_position_error(df: pd.DataFrame):
+def plot_position_error(df: pd.DataFrame, save_path: str = None):
     df["x"] = [x[0] for x in df["positions"]]
     df["y"] = [x[1] for x in df["positions"]]
     # fig = px.scatter(df, x="x", y="y", color="position_error")
@@ -176,7 +186,18 @@ def plot_position_error(df: pd.DataFrame):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     # title
-    fig.update_layout(title="Position error over space", xaxis_title="x", yaxis_title="y")
+    fig.update_layout(title="Position error over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
+    # text to colorbar
+    fig.update_layout(coloraxis_colorbar=dict(
+        title="Position error",
+        thicknessmode="pixels", thickness=50,
+        lenmode="pixels",
+        yanchor="top", y=1,
+        ticks="outside", ticksuffix="",
+        dtick=1
+    ))
+    if save_path is not None:
+        fig.write_image(save_path)
     # Show the plot
     fig.show()
     # Create a new DataFrame for interpolated data
@@ -187,8 +208,6 @@ def plot_position_error(df: pd.DataFrame):
     # fig.update_layout(title="Position error over space", xaxis_title="x", yaxis_title="y")
     # # Show the plot
     # fig.show()
-
-
 
 
 def main():
