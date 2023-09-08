@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from Evaluation.Evaluate_Correct_position import plot_amplitude_response, plot_position_error
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-08_12-27-41.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-08_13-06-19.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < 3 std
 df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
@@ -20,6 +20,8 @@ mean = errors.mean()
 print(mean)
 # subtract mean from error_vector
 df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
+
+print("Number of samples", len(df))
 
 plot_amplitude_response(df)
 plot_position_error(df)

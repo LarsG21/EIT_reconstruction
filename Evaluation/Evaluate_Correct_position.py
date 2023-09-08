@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 from matplotlib import pyplot as plt
+from scipy import ndimage
 from scipy.interpolate import interpolate, griddata
 
 from Data_Generation.collect_real_data import calibration_procedure
@@ -18,6 +19,9 @@ from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to
 from plot_utils import solve_and_plot_cnn
 from pyeit.eit import protocol
 import plotly.express as px
+
+RESOLUTION_PLOT = 40
+nr_of_blurs = 1
 
 n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
@@ -124,13 +128,16 @@ def plot_amplitude_response(df: pd.DataFrame):
     # fig.show()
     # interpolate
     # Create a grid of points for interpolation
-    xi, yi = np.linspace(x.min(), x.max(), 100), np.linspace(y.min(), y.max(), 100)
+    xi, yi = np.linspace(x.min(), x.max(), RESOLUTION_PLOT), np.linspace(y.min(), y.max(), RESOLUTION_PLOT)
     xi, yi = np.meshgrid(xi, yi)
 
     # Interpolate the data using griddata
-    zi = griddata((x, y), z, (xi, yi), method='linear')
+    zi = griddata((x, y), z, (xi, yi), method='cubic')
+    zi = np.abs(zi)
 
     # Create a heatmap with color coding
+    for i in range(nr_of_blurs):
+        zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     fig.update_layout(title='Amplitude response over space', xaxis_title="x", yaxis_title="y")
     # Show the plot
@@ -158,11 +165,15 @@ def plot_position_error(df: pd.DataFrame):
     # fig.show()
     # interpolate
     # Create a grid of points for interpolation
-    xi, yi = np.linspace(x.min(), x.max(), 100), np.linspace(y.min(), y.max(), 100)
+    xi, yi = np.linspace(x.min(), x.max(), RESOLUTION_PLOT), np.linspace(y.min(), y.max(), RESOLUTION_PLOT)
     xi, yi = np.meshgrid(xi, yi)
     # Interpolate the data using griddata
-    zi = griddata((x, y), z, (xi, yi), method='linear')
+    zi = griddata((x, y), z, (xi, yi), method='cubic')
+    # get absolute value of position error
+    zi = np.abs(zi)
     # Create a heatmap with color coding
+    for i in range(nr_of_blurs):
+        zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     # title
     fig.update_layout(title="Position error over space", xaxis_title="x", yaxis_title="y")
