@@ -1,0 +1,1 @@
+{"number_of_samples": 4000, "img_size": 64, "n_el": 32, "target": "CYLINDER", "material_target": "PLA", "voltage_frequency": "1KHZ - 1MHZ", "radius_target_in_mm": 40, "radius_tank_in_mm": 190, "conductivity_bg": 0.1, "conductivity_target": 1000, "current": 0.1, "dist_exc": 1, "step_meas": 1}

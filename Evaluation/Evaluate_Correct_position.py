@@ -8,6 +8,7 @@ import torch
 
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
     wait_for_start_of_measurement
+from Evaluation.eval_plots import plot_amplitude_response, plot_position_error
 from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response, \
     calculate_shape_deformation
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
@@ -150,7 +151,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # df = pd.read_pickle("Results/evaluation_2023-09-08_13-08-06.pkl")
+    # df = pd.read_pickle("Results/evaluation_2023-09-13_14-19-05.pkl")
     # df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
     # df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= (3 * df["position_error"].std())]
     # plot_amplitude_response(df)
