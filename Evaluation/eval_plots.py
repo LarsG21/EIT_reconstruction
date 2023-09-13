@@ -104,7 +104,7 @@ def plot_shape_deformation(df: pd.DataFrame, save_path: str = None):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     # title
-    fig.update_layout(title="Position error over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
+    fig.update_layout(title="Shape deformation over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
     # text to colorbar
     fig.update_layout(coloraxis_colorbar=dict(
         title="Shape deformation",
@@ -112,7 +112,7 @@ def plot_shape_deformation(df: pd.DataFrame, save_path: str = None):
         lenmode="pixels",
         yanchor="top", y=1,
         ticks="outside", ticksuffix="",
-        dtick=1
+        dtick=0.1
     ))
     if save_path is not None:
         fig.write_image(save_path)
