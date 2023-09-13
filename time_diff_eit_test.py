@@ -49,11 +49,12 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     difference = (v1 - v0)
     # plt.plot(difference)
     difference = difference / v0
-    # plt.plot(difference)
+    difference = difference - np.mean(difference)
+    plt.plot(difference)
     # # plt.title("v1 - v0")
-    # plt.title("Voltage difference")
+    plt.title("Voltage difference")
     # # plt.legend(["v1 - v0", "(v1-v0)/v0"])
-    # plt.show()
+    plt.show()
     img_name = v1_path.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"

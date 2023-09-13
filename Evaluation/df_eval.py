@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-from Evaluation.Evaluate_Correct_position import plot_amplitude_response, plot_position_error
+from Evaluation.eval_plots import plot_amplitude_response, plot_position_error
 
 df = pd.read_pickle(
     "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-08_13-08-06.pkl")
