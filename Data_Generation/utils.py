@@ -74,9 +74,11 @@ def wait_for_start_of_measurement(path):
     time.sleep(1)
     for file_or_folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, file_or_folder)):
-            os.chdir(os.path.join(path, file_or_folder))
+            os.chdir(os.path.join(path, file_or_folder))  # Move into folder with the name of the current date
             print(os.getcwd())
-            os.chdir((os.path.join(os.getcwd(), "setup")))
+            for file_or_folder in os.listdir(os.getcwd()):  # Move into folder with the name of the setup
+                if os.path.isdir(os.path.join(os.getcwd(), file_or_folder)):
+                    os.chdir(os.path.join(os.getcwd(), file_or_folder))
             eit_path = os.getcwd()
             print(eit_path)
             break
@@ -101,6 +103,41 @@ def get_newest_file(path):
             os.remove(os.path.join(path, file))
     os.chdir(cwd)
     return newest
+
+
+def wait_1_file_and_get_next(path):
+    """
+    Waits for the first file to be written in the path directory. Waits for the next file to be written and returns the
+    path to the next file.
+    :param eit_path:
+    :param path:
+    :return:
+    """
+    cwd = os.getcwd()
+    files_before = os.listdir(path)
+    len_before = len(files_before)
+    while len_before == len(os.listdir(path)):
+        print("Waiting for files to be written")
+        time.sleep(1)
+    print("First file written")
+    len_before = len(os.listdir(path))
+    while len_before == len(os.listdir(path)):
+        print("Waiting for files to be written")
+        time.sleep(1)
+    print("Second file written")
+    files = os.listdir(path)
+    paths = [os.path.join(path, basename) for basename in files]
+    # select only files that have ending .eit
+    paths = [path for path in paths if path.endswith(".eit")]
+    newest = max(paths, key=os.path.getctime)
+    os.chdir(cwd)
+    return newest
+
+
+
+
+
+
 
 
 def wait_for_n_secs_with_print(n_secs):
