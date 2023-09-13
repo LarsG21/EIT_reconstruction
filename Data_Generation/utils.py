@@ -190,13 +190,13 @@ def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
     plt.show()
 
 
-def calibration_procedure(gcode_device):
+def calibration_procedure(gcode_device, RADIUS_TARGET_IN_MM):
     """
-    Moves the Target to specific positions for calibration.
-    Moves to positions of electrodes 9, 25, 1, 17
-    :param gcode_device:
-    :return:
-    """
+       Moves the Target to specific positions for calibration.
+       Moves to positions of electrodes 9, 25, 1, 17
+       :param gcode_device:
+       :return:
+       """
     print("Moving to the center of the tank for calibration")
     limit_x = gcode_device.maximal_limits[0]
     limit_z = gcode_device.maximal_limits[2]
@@ -205,21 +205,21 @@ def calibration_procedure(gcode_device):
     input("Press Enter to continue...")
     # move to top of the tank
     print("Moving to the top of the tank")
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z)
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z - RADIUS_TARGET_IN_MM / 2)
     input("Press Enter to continue...")
     # move to the bottom of the tank#
     print("Moving to the bottom of the tank")
-    gcode_device.move_to(x=limit_x / 2, y=0, z=0)
+    gcode_device.move_to(x=limit_x / 2, y=0, z=0 + RADIUS_TARGET_IN_MM / 2)
     input("Press Enter to continue...")
     # move to the center of the tank
     gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
     # move to the right of the tank
     print("Moving to the right of the tank")
-    gcode_device.move_to(x=0, y=0, z=limit_z / 2)
+    gcode_device.move_to(x=0 + RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
     input("Press Enter to continue...")
     # move to the left of the tank
     print("Moving to the left of the tank")
-    gcode_device.move_to(x=limit_x, y=0, z=limit_z / 2)
+    gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
     input("Press Enter to continue...")
     # move to the center of the tank
     gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)

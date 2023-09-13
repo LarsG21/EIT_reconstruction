@@ -60,8 +60,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     v1_traditional_algorithims = v1[protocol_obj.keep_ba]
     # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
-    # solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-    #                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
+    solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+                         mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
 

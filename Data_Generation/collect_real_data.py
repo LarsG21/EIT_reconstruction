@@ -79,7 +79,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     if gcode_device is not None:
         cv2.circle(img, tuple(center_for_image), int(anomaly.r * img_size / 2), 1, -1)
     # flip the image vertically because the mesh is flipped vertically
-    # img = np.flip(img, axis=0)
+    img = np.flip(img, axis=0)
 
     PLOT = True
     if PLOT:
@@ -94,7 +94,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     """ 3. send gcode to the device """
     if gcode_device is not None:
         # convert center from [-1, 1] to [0, max_moving_space]
-        center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
+        center_for_moving = (center + 1) * RADIUS_TANK_IN_MM / 2
         # invert x axis
         center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
         center_for_moving = center_for_moving.astype(int)
@@ -153,11 +153,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     time.sleep(4)
     file_path = get_newest_file(eit_path)
     print(file_path)
-    v0_df = convert_single_frequency_eit_file_to_df(file_path)
-    # save df to pickle
-    save_path_v0 = os.path.join(save_path, "v0_df.pickle")
-    v0_df.to_pickle(save_path_v0)
-    v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
+    os.chdir(cwd)
+    v0 = np.load("v0.npy")
     time.sleep(1)
     for i in range(number_of_samples):
         # add possibility to pause using cv2.waitKey(0)
@@ -198,10 +195,10 @@ def main():
             ender = GCodeDevice(device.device, movement_speed=6000,
                                 home_on_init=False
                                 )
-            MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM  # half at the top and half at the bottom
+            MAX_RADIUS = RADIUS_TANK_IN_MM  # half at the top and half at the bottom
             print(f"Maximal limits: {MAX_RADIUS}")
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender)
+            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         if COLLECT_NEGATIVE_SAMPLES:
@@ -218,4 +215,5 @@ def main():
 
 
 if __name__ == '__main__':
+    cwd = os.getcwd()
     main()

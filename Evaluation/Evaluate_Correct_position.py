@@ -224,7 +224,7 @@ def main():
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM  # half at the top and half at the bottom
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender)
+            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
