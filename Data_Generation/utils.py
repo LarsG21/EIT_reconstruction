@@ -190,6 +190,42 @@ def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
     plt.show()
 
 
+def calibration_procedure(gcode_device):
+    """
+    Moves the Target to specific positions for calibration.
+    Moves to positions of electrodes 9, 25, 1, 17
+    :param gcode_device:
+    :return:
+    """
+    print("Moving to the center of the tank for calibration")
+    limit_x = gcode_device.maximal_limits[0]
+    limit_z = gcode_device.maximal_limits[2]
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    print("Move enter so that target is in the center of the tank.")
+    input("Press Enter to continue...")
+    # move to top of the tank
+    print("Moving to the top of the tank")
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z)
+    input("Press Enter to continue...")
+    # move to the bottom of the tank#
+    print("Moving to the bottom of the tank")
+    gcode_device.move_to(x=limit_x / 2, y=0, z=0)
+    input("Press Enter to continue...")
+    # move to the center of the tank
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    # move to the right of the tank
+    print("Moving to the right of the tank")
+    gcode_device.move_to(x=0, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+    # move to the left of the tank
+    print("Moving to the left of the tank")
+    gcode_device.move_to(x=limit_x, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+    # move to the center of the tank
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+
+
 if __name__ == '__main__':
     for i in range(100):
         print(generate_random_anomaly_parameters(0.1, 0.1, 0.1, 0.1, 0.8))

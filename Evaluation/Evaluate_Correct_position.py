@@ -9,9 +9,8 @@ from matplotlib import pyplot as plt
 from scipy import ndimage
 from scipy.interpolate import interpolate, griddata
 
-from Data_Generation.collect_real_data import calibration_procedure
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
-    wait_for_start_of_measurement
+    wait_for_start_of_measurement, calibration_procedure
 from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
 from Model_Training.Models import LinearModelWithDropout2
@@ -108,8 +107,6 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
         df.to_pickle(save_path)
         print("saved dataframe to pickle")
     return df
-
-    # todo: create plots of amplitude response and position errors over space
 
 
 def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
@@ -225,9 +222,9 @@ def main():
             ender = GCodeDevice(device.device, movement_speed=6000,
                                 home_on_init=False
                                 )
-            MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM / 2 + 1
+            MAX_RADIUS = RADIUS_TANK_IN_MM - RADIUS_TARGET_IN_MM  # half at the top and half at the bottom
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            # calibration_procedure(ender)
+            calibration_procedure(ender)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
@@ -243,10 +240,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    # df = pd.read_pickle("dataframe_evaluation.pkl")
-    # plot_amplitude_response(df)
-    # plot_position_error(df)
+    # main()
+    df = pd.read_pickle("dataframe_evaluation.pkl")
+    plot_amplitude_response(df)
+    plot_position_error(df)
 
     # v0 = np.load("v0.npy")
     #
