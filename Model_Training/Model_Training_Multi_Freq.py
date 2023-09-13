@@ -130,7 +130,7 @@ if __name__ == "__main__":
     counter = 0  # Counter to track epochs without improvement
 
     # path = "Edinburgh mfEIT Dataset"
-    path = "..//Collected_Data/Data_05_09_40mm_multifreq"
+    path = "..//Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Combined_dataset"
     # model_name = "Test_1_noise_regularization1e-6"
     model_name = "multi_freq_test_2"

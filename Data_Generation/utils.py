@@ -117,12 +117,12 @@ def wait_1_file_and_get_next(path):
     files_before = os.listdir(path)
     len_before = len(files_before)
     while len_before == len(os.listdir(path)):
-        print("Waiting for files to be written")
+        print("Waiting for first file to be written")
         time.sleep(1)
     print("First file written")
     len_before = len(os.listdir(path))
     while len_before == len(os.listdir(path)):
-        print("Waiting for files to be written")
+        print("Waiting for second file to be written")
         time.sleep(1)
     print("Second file written")
     files = os.listdir(path)
