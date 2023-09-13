@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-from Evaluation.eval_plots import plot_amplitude_response, plot_position_error
+from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-08_13-08-06.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-13_14-30-05.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < 3 std
 df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
@@ -24,9 +24,15 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\amplitude_response.png")
+                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\amplitude_response.png"
+                        )
 plot_position_error(df,
-                    save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\position_error.png")
+                    # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\position_error.png"
+                    )
+
+plot_shape_deformation(df,
+                       # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\shape_deformation.png"
+                       )
 
 # convert col error_vector to np.array
 
