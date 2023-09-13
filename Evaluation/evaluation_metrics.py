@@ -98,3 +98,34 @@ def calculate_amplitude_response(center_for_moving, gcode_device, img_reconstruc
     plt.title(f"Amplitude response: {amplitude_response}")
     plt.show()
     return amplitude_response
+
+
+def calculate_shape_deformation(img_reconstructed, relative_radius_target):
+    """
+    Calculates the shape deformation of the reconstructed image.
+    SD measures the fraction of the reconstructed one-fourth amplitude set which
+    does not fit within a circle of an equal area
+    :param img_reconstructed:
+    :param relative_radius_target:
+    :return:
+    """
+    # 1. calculate center of mass of reconstructed image
+    center_of_mass = find_center_of_mass(img_reconstructed)
+    img_ideal_circle = np.zeros_like(img_reconstructed)
+    # 2. Put a circle with the same area as the anomaly in the center of mass
+    radius = int((img_reconstructed.shape[0] * relative_radius_target / 2))
+    cv2.circle(img_ideal_circle, center_of_mass, radius, 1, -1)
+    # cv2.imshow("img_reconstructed", cv2.resize(img_reconstructed, (512, 512)))
+    # cv2.imshow("img_ideal_circle", cv2.resize(img_ideal_circle, (512, 512)))
+
+    # 3. calculate the difference of the two images
+    img_reconstructed_masked = img_reconstructed.copy()
+    img_reconstructed_masked[img_ideal_circle == 1] = 0
+    img_reconstructed_masked.astype(np.float32)
+    cv2.imshow("img_reconstructed_masked", cv2.resize(img_reconstructed_masked, (512, 512)))
+    cv2.waitKey(100)
+    print("ok")
+    # SD measures the fraction of the reconstructed one-fourth amplitude set which
+    # does not fit within a circle of an equal area
+    shape_deformation = np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)
+    return shape_deformation

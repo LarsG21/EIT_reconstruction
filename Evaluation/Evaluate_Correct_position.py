@@ -2,15 +2,14 @@ import datetime
 import os
 import time
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
 
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
-    wait_for_start_of_measurement, calibration_procedure
-from Evaluation.eval_plots import plot_amplitude_response, plot_position_error
-from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response
+    wait_for_start_of_measurement
+from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response, \
+    calculate_shape_deformation
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
 from Model_Training.Models import LinearModelWithDropout2
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
@@ -83,6 +82,7 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
     position_errors = []
     error_vectors = []
     amplitude_responses = []
+    shape_deformations = []
     for i in range(number_of_samples):
         img_reconstructed, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
                                                                       last_position=last_centers[-1])
@@ -95,13 +95,20 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
         amplitude_response = calculate_amplitude_response(center_for_moving, gcode_device, img_reconstructed,
                                                           relative_radius_target=RELATIVE_RADIUS_TARGET)
         amplitude_responses.append(amplitude_response)
+
+        shape_deformation = calculate_shape_deformation(img_reconstructed=img_reconstructed,
+                                                        relative_radius_target=RELATIVE_RADIUS_TARGET)
+        print(f"shape deformation: {shape_deformation}")
+
+        shape_deformations.append(shape_deformation)
+
         # remove first element of last_centers
         if i == 0:
             last_centers = last_centers[1:]
         # create dataframe
         df = pd.DataFrame(
             data={"positions": last_centers, "position_error": position_errors, "error_vector": error_vectors,
-                  "amplitude_response": amplitude_responses})
+                  "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
         path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
         save_path = os.path.join(path, f"evaluation_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pkl")
         df.to_pickle(save_path)
@@ -143,7 +150,9 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # df = pd.read_pickle("dataframe_evaluation.pkl")
+    # df = pd.read_pickle("Results/evaluation_2023-09-08_13-08-06.pkl")
+    # df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
+    # df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= (3 * df["position_error"].std())]
     # plot_amplitude_response(df)
     # plot_position_error(df)
 
