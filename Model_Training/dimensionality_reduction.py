@@ -5,7 +5,8 @@ import torch
 from sklearn.decomposition import PCA
 
 
-def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, test_voltage, model_path, device):
+def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, test_voltage, model_path, device,
+                              n_components=128):
     """
     Performs PCA on the input data and returns the transformed data.
     Saves the PCA model for later reconstruction
@@ -13,10 +14,12 @@ def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, t
     :param train_voltage:
     :param val_voltage:
     :param test_voltage:
-    :param model_path:
+    :param model_path: path to save the pca model
+    :param device: cuda or cpu
+    :param n_components: number of principal components to keep
     :return:
     """
-    pca = PCA(n_components=128)
+    pca = PCA(n_components=n_components)
     voltage_data_tensor_np = voltage_data_tensor.cpu().numpy()
     pca.fit(voltage_data_tensor_np)
     # save the pca for later reconstruction

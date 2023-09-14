@@ -127,6 +127,8 @@ if __name__ == "__main__":
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
     patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
+    PCA_COMPONENTS = 128
+
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
@@ -156,6 +158,7 @@ if __name__ == "__main__":
         f.write(f"Augmentations: {ADD_AUGMENTATION}\n")
         f.write(f"Number of augmentations: {NUMBER_OF_NOISE_AUGMENTATIONS}\n")
         f.write(f"Number of rotation augmentations: {NUMBER_OF_ROTATION_AUGMENTATIONS}\n")
+        f.write(f"PCA_COMPONENTS: {PCA_COMPONENTS}\n")
         f.write("\n")
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
@@ -213,8 +216,11 @@ if __name__ == "__main__":
                                                                 NUMBER_OF_ROTATION_AUGMENTATIONS, device=device)
 
     # Step4.2 Do PCA to reduce the number of features
-    train_voltage, val_voltage, test_voltage = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
-                                                                         val_voltage, test_voltage, model_path, device)
+    if PCA_COMPONENTS > 0:
+        train_voltage, val_voltage, test_voltage = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
+                                                                             val_voltage, test_voltage, model_path,
+                                                                             device,
+                                                                             n_components=PCA_COMPONENTS)
 
     # Step 5: Create the DataLoader for train, test, and validation sets
     train_dataset = CustomDataset(train_voltage, train_images)
