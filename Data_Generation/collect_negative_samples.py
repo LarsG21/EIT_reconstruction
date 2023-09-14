@@ -11,7 +11,13 @@ TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 
 def collect_samples(eit_path: str, save_path: str):
-    img = np.zeros([img_size, img_size])
+    """
+    Creates a df with negative samples from a folder with eit files.
+    Caution: Only use eit frames with no object in the tank.
+    :param eit_path: Path to the folder with the eit files
+    :param save_path: Path to save the df
+    :return:
+    """
 
     """ 4. collect data """
     # get the newest file in the folder
