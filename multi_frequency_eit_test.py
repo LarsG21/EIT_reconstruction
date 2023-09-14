@@ -3,6 +3,7 @@ import pickle
 import time
 
 import numpy as np
+import pandas as pd
 import torch
 
 from Model_Training.Models import LinearModelWithDropout
@@ -13,8 +14,10 @@ from utils import wait_for_start_of_measurement
 
 def plot_multi_frequency_eit_image(v1_path):
     global default_frame
-    df_v1 = convert_multi_frequency_eit_to_df(v1_path)
-    v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
+    df = convert_multi_frequency_eit_to_df(v1_path)
+    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+    df_alternating = df_alternating.to_frame(name="amplitude")
+    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
     # save v0 as npy
     PCA = True
     if PCA:
