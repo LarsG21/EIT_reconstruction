@@ -5,8 +5,8 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import numpy as np
 
-df = pd.read_pickle("Collected_Data/Combined_dataset/combined.pkl")
-v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
+df = pd.read_pickle("Collected_Data/Combined_dataset_multi/combined.pkl")
+# v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
 
 
 def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024):
@@ -15,11 +15,14 @@ def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024
     :param df:
     :return:
     """
-    print(df.head())
+    df = df[df["voltages"].apply(lambda x: len(x) == 20480)]
     voltages = df["voltages"].to_list()
-    voltage_data_np = np.array(voltages)
-    voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-    voltages_array = voltage_data_np - np.mean(voltage_data_np)
+    # print len of the voltages in the list
+    for v in voltages:
+        print(len(v))
+    voltages_array = np.array(voltages)
+    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+    # voltages_array = voltage_data_np - np.mean(voltage_data_np)
     # do pca on voltages
     pca = PCA(n_components=n_components)
     pca.fit(voltages_array)
@@ -49,5 +52,5 @@ def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024
 
 n_components = 128
 
-reduce_voltages_with_pca(df=df, save_path=f"Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED{n_components}/combined_pca.pkl",
+reduce_voltages_with_pca(df=df, save_path=f"Collected_Data/Combined_dataset_multi/PCA_REDUCED{n_components}/combined_pca.pkl",
                          n_components=n_components)

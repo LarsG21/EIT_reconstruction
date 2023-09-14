@@ -15,8 +15,7 @@ from Models import LinearModelWithDropout, LinearModelWithDropout2
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
 
 LOSS_SCALE_FACTOR = 1000
-# VOLTAGE_VECTOR_LENGTH = 928
-VOLTAGE_VECTOR_LENGTH = 128
+VOLTAGE_VECTOR_LENGTH = 20480
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -129,8 +128,8 @@ if __name__ == "__main__":
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # path = "Edinburgh mfEIT Dataset"
-    path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED128"
-    # path = "../Own_Simulation_Dataset/1_anomaly_circle"
+    # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
+    path = "../Collected_Data/Combined_dataset_multi"
     # model_name = "Test_1_noise_regularization1e-6"
     model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
