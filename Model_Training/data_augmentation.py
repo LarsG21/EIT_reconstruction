@@ -1,5 +1,5 @@
 import os
-
+import pandas as pd
 import cv2
 import numpy as np
 import torch
@@ -11,14 +11,20 @@ from CustomDataset import CustomDataset
 import torch.utils.data as data
 
 
-def add_noise_augmentation(train_voltage, train_images, number_of_augmentations, noise_level, device="cpu",
-                           show_examples=False, save_examples=False):
+def add_noise_augmentation(train_voltage: torch.Tensor,
+                           train_images: torch.Tensor,
+                           number_of_augmentations, noise_level,
+                           device="cpu",
+                           show_examples=False,
+                           save_examples=False):
     """"
     Adds noise to the training data and augments the data
     :param train_voltage: The training voltages
     :param train_images: The training images
     :param number_of_augmentations: How many copies of the training data should be created
     :param noise_level: The noise level in % of the standard deviation of the data
+    :param save_examples:
+    :param show_examples:
     :return: The augmented training voltages and images
     """
     # Step 4.1 Adding noise to the training data in % of max value
@@ -132,14 +138,16 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
 
 
 if __name__ == '__main__':
-    path = "../Collected_Data/Combined_dataset"
+    path = "..//Collected_Data/Combined_dataset_multi"
+
     device = "cpu"
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
-    v0 = np.load(os.path.join(path, "v0.npy"))
+    print(f"Length of voltage data: {len(voltage_data_np)}")
+    # v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
-    voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
 
     # reduce the number of images
     image_data_np = image_data_np[:100]
@@ -159,16 +167,27 @@ if __name__ == '__main__':
     # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
     # Note: Adjust the test_size and validation_size according to your preference.
     train_voltage, val_voltage, train_images, val_images = train_test_split(
-        voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42)
+        voltage_data_tensor, image_data_tensor, test_size=0.01, random_state=42)
 
-    val_voltage, test_voltage, val_images, test_images = train_test_split(
-        val_voltage, val_images, test_size=0.2, random_state=42)
-
-    train_voltage = train_voltage[:1]
-    train_images = train_images[:1]
+    # train_voltage = train_voltage[:1]
+    # train_images = train_images[:1]
     train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                         10, 0.05,
-                                                         show_examples=True, save_examples=True)
+                                                         4, 0.05,
+                                                         show_examples=False, save_examples=True)
 
-    # train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-    #                                                         5, show_examples=True, save_examples=True)
+    train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+                                                            4, show_examples=False, save_examples=False)
+
+    print("OK")
+    # convert both to numpy
+    train_voltage = train_voltage.cpu().numpy().tolist()
+    train_images = train_images.cpu().numpy().tolist()
+    # save in one df
+    df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined.pkl")
+    df = pd.DataFrame(data={"images": train_images, "voltages": train_voltage},
+                      index=[0] * len(train_voltage)
+                      )
+
+    # save as pkl
+    print(f"Lenght of augmented data: {len(df)}")
+    df.to_pickle("..//Collected_Data/Combined_dataset_multi_augmented/augmented_data.pkl")
