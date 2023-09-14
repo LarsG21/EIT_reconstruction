@@ -106,13 +106,13 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-MULTI_FREQUENCY_EIT = True
+MULTI_FREQUENCY_EIT = False
 
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 2
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
+    NUMBER_OF_NOISE_AUGMENTATIONS = 1
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 1
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
@@ -133,12 +133,10 @@ if __name__ == "__main__":
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    path = "../Collected_Data/Combined_dataset"
 
-    # path = "Edinburgh mfEIT Dataset"
-    # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
-    # path = "../Collected_Data/Combined_dataset_multi"
-    path = "../Collected_Data/Combined_dataset_multi2"
-    # model_name = "Test_1_noise_regularization1e-6"
+    if "multi" in path.lower() and not MULTI_FREQUENCY_EIT:
+        raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
     model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
@@ -170,12 +168,12 @@ if __name__ == "__main__":
         # normalize the voltage data
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
         voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
+        # Now the model should learn the difference between the voltages and v0 (default state)
 
     # reduce the number of images
     # image_data_np = image_data_np[:100]
     # voltage_data_np = voltage_data_np[:100]
 
-    # Now the model should learn the difference between the voltages and v0 (default state)
 
     print("Overall data shape: ", voltage_data_np.shape)
 
@@ -185,7 +183,7 @@ if __name__ == "__main__":
     dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
-    # # Step 3: Create the model
+    # Step 3: Save the model summary
     print("model summary: ", model)
     # print number of trainable parameters
     nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -198,8 +196,7 @@ if __name__ == "__main__":
         f.write("\n")
 
     # Step 4: Split the data into train, test, and validation sets
-    # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
-    # Note: Adjust the test_size and validation_size according to your preference.
+    print("INFO: Splitting data into train, validation and test sets")
     train_voltage, val_voltage, train_images, val_images = train_test_split(
         voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42)
 
@@ -209,14 +206,16 @@ if __name__ == "__main__":
     # Step 4.1: Augment the training data
     if ADD_AUGMENTATION:
         # augment the training data
+        print("INFO: Adding noise augmentation")
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
                                                              NUMBER_OF_NOISE_AUGMENTATIONS, NOISE_LEVEL, device=device)
-
+        print("INFO: Adding rotation augmentation")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 NUMBER_OF_ROTATION_AUGMENTATIONS, device=device)
 
     # Step4.2 Do PCA to reduce the number of features
     if PCA_COMPONENTS > 0:
+        print("INFO: Performing PCA on input data")
         train_voltage, val_voltage, test_voltage = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
                                                                              val_voltage, test_voltage, model_path,
                                                                              device,
@@ -244,7 +243,6 @@ if __name__ == "__main__":
 
     # Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()
-    # criterion = nn.L1Loss()  # Didnt work well
 
     # Initialize the optimizer with weight decay
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)

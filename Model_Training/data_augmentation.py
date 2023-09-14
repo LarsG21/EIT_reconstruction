@@ -67,7 +67,6 @@ def add_rotation_augmentation(train_voltage, train_images, number_of_augmentatio
     """
     if number_of_augmentations == 0:
         return train_voltage, train_images
-    print("Rotating the training data")
     # convert tensors to numpy arrays
     train_voltage_numpy = train_voltage.cpu().numpy()
     train_images_numpy = train_images.cpu().numpy()

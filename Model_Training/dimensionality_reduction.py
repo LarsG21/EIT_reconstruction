@@ -9,7 +9,9 @@ def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, t
                               n_components=128):
     """
     Performs PCA on the input data and returns the transformed data.
-    Saves the PCA model for later reconstruction
+    Saves the PCA model for later reconstruction-
+    Load the oca again: pca = pickle.load(open("pca.pkl", "rb"))
+    Transform original data: v1 = pca.transform(v1.reshape(1, -1))
     :param voltage_data_tensor:
     :param train_voltage:
     :param val_voltage:
@@ -25,7 +27,7 @@ def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, t
     # save the pca for later reconstruction
     if not os.path.exists(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
-    with open(os.path.join(os.path.dirname(model_path), "pca.pkl"), "wb") as f:
+    with open(os.path.join(model_path, "pca.pkl"), "wb") as f:
         pickle.dump(pca, f)
     # transform the data
     train_voltage = pca.transform(train_voltage.cpu().numpy())

@@ -53,8 +53,10 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     :param save_path: Path to save the npy files
     :return:
     """
-    # remove all rows from df where len(voltages) != 20480
-    df = df[df["voltages"].apply(lambda x: len(x) == 20480)]
+    # remove all rows from df where len(voltages) != median of len(voltages)
+    # remove accidentally added rows
+    df = df[df["voltages"].apply(lambda x: len(x)) == df["voltages"].apply(lambda x: len(x)).median()]
+
     AVERGAGE_V0_FRAME = False
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
@@ -111,7 +113,7 @@ if __name__ == '__main__':
     # path = "../Collected_Data/Data_05_09_negative_samples"
     # path = "../Collected_Data/Combined_dataset_multi"
     # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
-    path = "../Collected_Data/Combined_dataset_multi2"
+    path = "../Collected_Data/Combined_dataset"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
@@ -123,5 +125,5 @@ if __name__ == '__main__':
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
-    look_at_dataset(img_array=img_array, v1_array=voltage_array)
+    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
