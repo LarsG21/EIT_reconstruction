@@ -110,7 +110,7 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Data_05_09_negative_samples"
-    path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/Combined_dataset_multi"
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
