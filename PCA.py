@@ -5,10 +5,10 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import numpy as np
 
-df = pd.read_pickle("Collected_Data/Combined_dataset_multi/combined.pkl")
+df = pd.read_pickle("Collected_Data/Combined_dataset_multi_augmented/combined.pkl")
 v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
 
-MULTI_FREQUENCY_EIT = False
+MULTI_FREQUENCY_EIT = True
 
 def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024):
     """
@@ -19,8 +19,8 @@ def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024
     df = df[df["voltages"].apply(lambda x: len(x) == 20480)]
     voltages = df["voltages"].to_list()
     # print len of the voltages in the list
-    for v in voltages:
-        print(len(v))
+    # for v in voltages:
+    #     print(len(v))
     voltages_array = np.array(voltages)
     if not MULTI_FREQUENCY_EIT:
         voltages_array = (voltages_array - v0) / v0  # normalized voltage difference
@@ -54,5 +54,6 @@ def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024
 
 n_components = 128
 
-reduce_voltages_with_pca(df=df, save_path=f"Collected_Data/Combined_dataset_multi/PCA_REDUCED{n_components}/combined_pca.pkl",
+reduce_voltages_with_pca(df=df,
+                         save_path=f"Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED{n_components}/combined_pca.pkl",
                          n_components=n_components)
