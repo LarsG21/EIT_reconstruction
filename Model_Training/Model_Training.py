@@ -106,9 +106,9 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 if __name__ == "__main__":
     TRAIN = True
-    ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 4
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 4
+    ADD_AUGMENTATION = False
+    NUMBER_OF_NOISE_AUGMENTATIONS = 2
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = True
@@ -126,15 +126,19 @@ if __name__ == "__main__":
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
+    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # path = "Edinburgh mfEIT Dataset"
     path = "../Collected_Data/Combined_dataset"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "06_09_gpu_2"
+    model_name = "raw_data_test_2"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
-    model_path = os.path.join(path, "Models", "LinearModelDropout", model_name)
+    model_class_name = model.__class__.__name__
+    model_path = os.path.join(path, "Models", model_class_name, model_name)
+    print(f"Model path: {model_path}")
     if not os.path.exists(model_path):
+        print("Creating model directory")
         os.makedirs(model_path)
 
     # Save settings in txt file
@@ -157,6 +161,7 @@ if __name__ == "__main__":
     v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
     voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+    voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
 
     # reduce the number of images
     # image_data_np = image_data_np[:100]
@@ -173,7 +178,6 @@ if __name__ == "__main__":
     dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
 
     # # Step 3: Create the model
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     print("model summary: ", model)
     # print number of trainable parameters
     nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)

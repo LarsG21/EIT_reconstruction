@@ -198,7 +198,7 @@ def main():
             MAX_RADIUS = RADIUS_TANK_IN_MM  # half at the top and half at the bottom
             print(f"Maximal limits: {MAX_RADIUS}")
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            # calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         if COLLECT_NEGATIVE_SAMPLES:
@@ -208,7 +208,7 @@ def main():
             raise Exception("No Ender 3 found")
     else:
         print("Ender 3 found")
-    TEST_NAME = "Data_13_09_40mm"
+    TEST_NAME = "Data_14_09_40mm"
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")

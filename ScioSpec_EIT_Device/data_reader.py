@@ -345,7 +345,7 @@ def convert_single_frequency_eit_file_to_df(path):
     return df
 
 
-def plot_nyquist(df):
+def plot_nyquist(df, title="Nyquist plot"):
     """
     Plots the nyquist plot of the given data
     :param reals:
@@ -366,7 +366,7 @@ def plot_nyquist(df):
         imags.append(df_frequency["imaginary"].mean())
 
     plt.plot(reals, imags)
-    plt.title("Nyquist plot")
+    plt.title(title)
     plt.xlabel("Real")
     plt.ylabel("Imaginary")
     # write the frequency next to the point
@@ -423,6 +423,7 @@ if __name__ == '__main__':
     # print("Time of single frequency conversion: ", time1)
     # #
     path_multi4 = "../eit_experiments/100_Freq_Sweep/setup_1/setup_1_00001.eit"
+    path_multi4 = "../eit_data/20230914 11.06.36/setup_1/setup_1_00003.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 
@@ -435,15 +436,19 @@ if __name__ == '__main__':
 
     print("finished conversion")
 
-    # df_multi = convert_multi_frequency_eit_to_df(path_multi)
-
-    # df = convert_multi_frequency_eit_to_df(path_single)
-    print(df)
-
-    plt.plot(df["amplitude"])
-    plt.show()
-
-    plot_bode(df)
+    # # df_multi = convert_multi_frequency_eit_to_df(path_multi)
+    #
+    # # df = convert_multi_frequency_eit_to_df(path_single)
+    # print(df)
+    #
+    # plt.plot(df["amplitude"])
+    # plt.show()
+    #
+    # plot_bode(df)
 
     # add nyquist plot
-    plot_nyquist(df)
+    # split df in all measuring_electrodes
+    for measuring_electrode in df["measuring_electrode"].unique():
+        print("Nyquist", measuring_electrode)
+        df_measuring_electrode = df[df["measuring_electrode"] == measuring_electrode]
+        plot_nyquist(df_measuring_electrode, title=f"Nyquist plot {measuring_electrode}")
