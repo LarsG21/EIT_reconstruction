@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
-    wait_for_start_of_measurement
+    wait_for_start_of_measurement, calibration_procedure
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error
 from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response, \
     calculate_shape_deformation
@@ -111,20 +111,20 @@ def compare_multiple_positions(gcode_device: GCodeDevice, number_of_samples: int
             data={"positions": last_centers, "position_error": position_errors, "error_vector": error_vectors,
                   "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
         path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
-        save_path = os.path.join(path, f"evaluation_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pkl")
+        save_path = os.path.join(path, f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl")
         df.to_pickle(save_path)
         print("saved dataframe to pickle")
     return df
 
 
 def main():
-    global model, v0
+    global model, v0, model_path
     VOLTAGE_VECTOR_LENGTH = 1024
     OUT_SIZE = 64
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model.load_state_dict(torch.load(
-        "../Collected_Data/Combined_dataset/Models/LinearModelDropout2/05_09_all_data_40mm_target_and_augmentation_more_noise/model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pth"))
+    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelDropout2/05_09_all_data_40mm_target_and_augmentation_more_noise/model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pth"
+    model.load_state_dict(torch.load(model_path))
     devices = list_serial_devices()
     ender = None
     for device in devices:
@@ -134,7 +134,7 @@ def main():
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            # calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
@@ -150,22 +150,6 @@ def main():
 
 
 if __name__ == '__main__':
+    print("MAKE SURE THAT YOU DELETE OLD DATA FROM THE EIT_DATA FOLDER !")
     main()
-    # df = pd.read_pickle("Results/evaluation_2023-09-13_14-19-05.pkl")
-    # df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
-    # df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= (3 * df["position_error"].std())]
-    # plot_amplitude_response(df)
-    # plot_position_error(df)
 
-    # v0 = np.load("v0.npy")
-    #
-    # vo_new = np.load("v0_new.npy")
-    #
-    # diff = v0 - vo_new
-
-    # plot all
-    # plt.plot(v0, label="v0")
-    # plt.plot(vo_new, label="v0_new")
-    # plt.plot(diff, label="diff")
-    # plt.legend()
-    # plt.show()

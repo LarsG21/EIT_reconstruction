@@ -187,6 +187,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
 
 
 def main():
+    print("MAKE SURE THAT YOU DELETE OLD DATA FROM THE EIT_DATA FOLDER !")
     COLLECT_NEGATIVE_SAMPLES = True
     devices = list_serial_devices()
     ender = None
