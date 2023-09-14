@@ -103,6 +103,8 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
+MULTI_FREQUENCY_EIT = False
+
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = False
@@ -152,17 +154,16 @@ if __name__ == "__main__":
         f.write(f"Number of rotation augmentations: {NUMBER_OF_ROTATION_AUGMENTATIONS}\n")
         f.write("\n")
 
-    # voltage_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v1_array.npy")
-    # image_data_np = np.load("../Own_Simulation_Dataset/1_anomaly_circle/img_array.npy")
-    # v0 = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
+
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
 
     # Highlight: In case of PCA Data v0 is already used for normalization
-    # v0 = np.load(os.path.join(path, "v0.npy"))
-    # subtract v0 from all voltages
-    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-    # voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
+    if not MULTI_FREQUENCY_EIT:
+        v0 = np.load(os.path.join(path, "v0.npy"))
+        # normalize the voltage data
+        voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+        voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
 
     # reduce the number of images
     # image_data_np = image_data_np[:100]

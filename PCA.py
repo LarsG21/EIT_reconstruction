@@ -6,8 +6,9 @@ from sklearn.decomposition import PCA
 import numpy as np
 
 df = pd.read_pickle("Collected_Data/Combined_dataset_multi/combined.pkl")
-# v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
+v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
 
+MULTI_FREQUENCY_EIT = False
 
 def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024):
     """
@@ -21,8 +22,9 @@ def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024
     for v in voltages:
         print(len(v))
     voltages_array = np.array(voltages)
-    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-    # voltages_array = voltage_data_np - np.mean(voltage_data_np)
+    if not MULTI_FREQUENCY_EIT:
+        voltages_array = (voltages_array - v0) / v0  # normalized voltage difference
+        voltages_array = voltages_array - np.mean(voltages_array)
     # do pca on voltages
     pca = PCA(n_components=n_components)
     pca.fit(voltages_array)
