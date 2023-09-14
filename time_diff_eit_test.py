@@ -1,3 +1,4 @@
+import pickle
 import time
 
 import numpy as np
@@ -50,21 +51,25 @@ def plot_time_diff_eit_image(v1_path, v0_path, frequency=1000):
     # plt.plot(difference)
     difference = difference / v0
     difference = difference - np.mean(difference)
-    plt.plot(difference)
+    # plt.plot(difference)
     # # plt.title("v1 - v0")
-    plt.title("Voltage difference")
+    # plt.title("Voltage difference")
     # # plt.legend(["v1 - v0", "(v1-v0)/v0"])
-    plt.show()
+    # plt.show()
+    PCA = True
+    if PCA:
+        difference_pca = pca.transform(difference.reshape(1, -1))
     img_name = v1_path.split('\\')[-1]
     save_path_cnn = f"{img_name}_cnn.png"
     save_path_jac = f"{img_name}_jac.png"
     v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     v1_traditional_algorithims = v1[protocol_obj.keep_ba]
     # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
-    solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-                         mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
+    # solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+    #                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
+    solve_and_plot_cnn(model=model_pca, voltage_difference=difference_pca, chow_center_of_mass=True)
 
 
 def plot_frequencies_diff_eit_image(path, f1, f2):
@@ -141,9 +146,17 @@ path = "eit_data"
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 print("Loading the model")
+pca = pickle.load(open("pca.pkl", "rb"))
+
 model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+model_pca = LinearModelWithDropout(input_size=128, output_size=OUT_SIZE ** 2)
+
 model.load_state_dict(torch.load(
     "Collected_Data/Combined_dataset/Models/LinearModelDropout2/05_09_all_data_40mm_target_and_augmentation_more_noise/model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pth"))
+
+model_pca.load_state_dict(torch.load(
+    "Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED128/Models/LinearModelWithDropout/TESTING/model_2023-09-14_13-58-04_200_epochs.pth"))
+
 # model.load_state_dict(torch.load(
 #     "Own_Simulation_Dataset/Models/LinearModelDropout/Test_01_noise_regularization1e-6/model_2023-08-10_12-17-00_150_epochs.pth"))
 model.eval()

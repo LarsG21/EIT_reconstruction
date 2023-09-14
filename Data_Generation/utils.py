@@ -116,7 +116,7 @@ def wait_for_n_secs_with_print(n_secs):
     return True
 
 
-def look_at_dataset(img_array, v1_array, v0):
+def look_at_dataset(img_array, v1_array, v0=None):
     """
     Shows the images and voltage difference of a dataset
     :param img_array: The images with the anomaly
@@ -132,7 +132,10 @@ def look_at_dataset(img_array, v1_array, v0):
 
     cv2.imshow('average', cv2.resize(average_image, (256, 256)))
     for i, img in enumerate(img_array):
-        voltage_differece = (v1_array[i] - v0) / v0
+        if v0 is not None:
+            voltage_differece = (v1_array[i] - v0) / v0
+        else:
+            voltage_differece = v1_array[i]
         # show voltage difference and image in one plot
         plt.subplot(1, 2, 1)
         plt.imshow(img * 10)

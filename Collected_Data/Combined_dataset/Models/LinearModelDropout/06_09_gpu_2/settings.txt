@@ -4,9 +4,9 @@ weight_decay: 1e-06
 patience: 50
 num_epochs: 300
 Augmentations: True
-Number of augmentations: 4
-Number of rotation augmentations: 4
+Number of augmentations: 0
+Number of rotation augmentations: 0
 
-Number of training samples: 43350
-Number of validation samples: 347
-Number of test samples: 87
+Number of training samples: 1784
+Number of validation samples: 356
+Number of test samples: 90

@@ -91,7 +91,7 @@ def combine_multiple_pickles(path):
     """
     complete_df = None
     for file in os.listdir(path):
-        if file.endswith(".pkl") and file != "combined.pkl":
+        if file.endswith(".pkl") and file != "combined.pkl" and file != "pca.pkl":
             df_new = pd.read_pickle(os.path.join(path, file))
             if complete_df is None:
                 complete_df = df_new
@@ -107,7 +107,9 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Data_05_09_negative_samples"
-    path = "../Collected_Data/Combined_dataset"
+    # path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED128"
+
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
@@ -118,5 +120,5 @@ if __name__ == '__main__':
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
-    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
+    look_at_dataset(img_array=img_array, v1_array=voltage_array)
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)

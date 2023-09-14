@@ -16,7 +16,7 @@ from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_singl
 
 LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 928
-VOLTAGE_VECTOR_LENGTH = 1024
+VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -111,10 +111,10 @@ if __name__ == "__main__":
     NUMBER_OF_ROTATION_AUGMENTATIONS = 2
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
-    SAVE_CHECKPOINTS = True
+    SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 300
+    num_epochs = 200
     NOISE_LEVEL = 0.04
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
@@ -129,10 +129,10 @@ if __name__ == "__main__":
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # path = "Edinburgh mfEIT Dataset"
-    path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED128"
     # path = "../Own_Simulation_Dataset/1_anomaly_circle"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "raw_data_test_2"
+    model_name = "TESTING"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)
@@ -158,10 +158,12 @@ if __name__ == "__main__":
     # v0 = np.load("../Own_Simulation_Dataset/1_anomaly_circle/v0.npy")
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
-    v0 = np.load(os.path.join(path, "v0.npy"))
+
+    # Highlight: In case of PCA Data v0 is already used for normalization
+    # v0 = np.load(os.path.join(path, "v0.npy"))
     # subtract v0 from all voltages
-    voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-    voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
+    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+    # voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
 
     # reduce the number of images
     # image_data_np = image_data_np[:100]
