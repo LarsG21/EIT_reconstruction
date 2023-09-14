@@ -113,9 +113,9 @@ if __name__ == "__main__":
     LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 30
+    LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 800
+    num_epochs = 400
     NOISE_LEVEL = 0.04
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Combined_dataset_multi"
     path = "../Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED128"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Training_augmented_multifrequency_data_longer_training"
+    model_name = "Training_augmented_multifrequency_data_128_pca"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)

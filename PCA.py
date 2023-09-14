@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 import numpy as np
 
-df = pd.read_pickle("Collected_Data/Combined_dataset_multi_augmented/combined.pkl")
+df = pd.read_pickle("Collected_Data/Combined_dataset_multi_augmented/augmented_data.pkl")
 v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
 
 MULTI_FREQUENCY_EIT = True

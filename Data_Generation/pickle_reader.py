@@ -111,7 +111,7 @@ if __name__ == '__main__':
     # path = "../Collected_Data/Data_05_09_negative_samples"
     # path = "../Collected_Data/Combined_dataset_multi"
     # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
-    path = "../Collected_Data/Combined_dataset_multi/PCA_REDUCED128"
+    path = "../Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED128"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()

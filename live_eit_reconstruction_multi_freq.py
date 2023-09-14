@@ -54,7 +54,7 @@ pca = pickle.load(open("pca.pkl", "rb"))
 model_pca = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
 
 model_pca.load_state_dict(torch.load(
-    "Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED128/Models/LinearModelWithDropout/Training_augmented_multifrequency_data_longer_training/model_2023-09-14_15-52-25_epoche_547_of_800_best_model.pth"))
+    "Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED128/Models/LinearModelWithDropout/Training_augmented_multifrequency_data_128_pca/model_2023-09-14_17-05-33_epoche_516_of_800_best_model.pth"))
 
 model_pca.eval()
 plot_eit_video(path)
