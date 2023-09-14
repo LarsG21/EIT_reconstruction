@@ -54,7 +54,7 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     :return:
     """
     # remove all rows from df where len(voltages) != 20480
-    # df = df[df["voltages"].apply(lambda x: len(x) == 20480)]
+    df = df[df["voltages"].apply(lambda x: len(x) == 20480)]
     AVERGAGE_V0_FRAME = False
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     # path = "../Collected_Data/Data_05_09_negative_samples"
     # path = "../Collected_Data/Combined_dataset_multi"
     # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
-    path = "../Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED128"
+    path = "../Collected_Data/Combined_dataset_multi2"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
