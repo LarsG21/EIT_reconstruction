@@ -5,12 +5,14 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_2023-09-13_14-43-16.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < 3 std
+print("Number of samples", len(df))
 df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (3 * df["amplitude_response"].std())]
 df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= (3 * df["position_error"].std())]
-
+df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= (3 * df["shape_deformation"].std())]
+print("Number of samples after outlier removal", len(df))
 # remove constant offset from position_error
 
 errors = df["error_vector"].apply(lambda x: np.array(x))
