@@ -161,8 +161,21 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.cpu()
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
-    # pull everything under 0.2 to 0
+    plt.imshow(output)
+    plt.title("No Threshold")
+    plt.xlabel("x position")
+    plt.ylabel("y position")
+    # add colorbar
+    plt.colorbar()
+    plt.show()
     output[output < detection_threshold] = 0
+    plt.imshow(output)
+    plt.title("Threshold")
+    plt.xlabel("x position")
+    plt.ylabel("y position")
+    # add colorbar
+    plt.colorbar()
+    plt.show()
     if original_image is not None:
         plt.subplot(1, 2, 1)
         plt.imshow(output)
