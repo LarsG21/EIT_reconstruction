@@ -4,7 +4,7 @@ from plotly import express as px
 from scipy import ndimage
 from scipy.interpolate import griddata
 
-RESOLUTION_PLOT = 80
+RESOLUTION_PLOT = 100
 nr_of_blurs = 1
 
 
