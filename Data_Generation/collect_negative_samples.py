@@ -49,5 +49,5 @@ def collect_samples(eit_path: str, save_path: str):
 
 if __name__ == '__main__':
     eit_path = "../eit_data/20230914 16.33.17/setup_1"
-    save_path = "../Collected_Data/Data_14_09_negative_multifreq"
+    save_path = "../Collected_Data/Multi_freq_Data/10_Freq/Data_14_09_negative_multifreq"
     collect_samples(eit_path, save_path)

@@ -52,7 +52,7 @@ print("Loading the model")
 
 model_pca = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
 
-model_pca_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout/TESTING/model_2023-09-14_18-04-34_epoche_217_of_400_best_model.pth"
+model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/10_Frequencies/Models/LinearModelWithDropout/run_1_with_augmentation_pca_reduced/model_2023-09-21_13-02-00_200_epochs.pth"
 # get the pca.okl in the same folder as the model
 pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
 pca = pickle.load(open(pca_path, "rb"))

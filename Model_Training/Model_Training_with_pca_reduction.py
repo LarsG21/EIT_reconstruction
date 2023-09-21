@@ -106,19 +106,19 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-MULTI_FREQUENCY_EIT = False
+MULTI_FREQUENCY_EIT = True
 
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 1
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 1
-    LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
+    NUMBER_OF_NOISE_AUGMENTATIONS = 3
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 3
+    LOADING_PATH = "../Collected_Data/Single_freq_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 400
+    num_epochs = 200
     NOISE_LEVEL = 0.04
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
@@ -129,15 +129,16 @@ if __name__ == "__main__":
     patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
     PCA_COMPONENTS = 128
 
-
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
-    path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/Combined_dataset_multi2"
 
     if "multi" in path.lower() and not MULTI_FREQUENCY_EIT:
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
-    model_name = "TESTING"
+    if "multi" not in path.lower() and MULTI_FREQUENCY_EIT:
+        raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
+    model_name = "run_1_with_augmentation_pca_reduced"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)
@@ -173,7 +174,6 @@ if __name__ == "__main__":
     # reduce the number of images
     # image_data_np = image_data_np[:100]
     # voltage_data_np = voltage_data_np[:100]
-
 
     print("Overall data shape: ", voltage_data_np.shape)
 

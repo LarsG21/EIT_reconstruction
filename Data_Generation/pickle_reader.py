@@ -97,6 +97,7 @@ def combine_multiple_pickles(path):
     for file in os.listdir(path):
         if file.endswith(".pkl") and file != "combined.pkl" and file != "pca.pkl":
             df_new = pd.read_pickle(os.path.join(path, file))
+            print(f"length of {file}: {len(df_new)}")
             if complete_df is None:
                 complete_df = df_new
             else:
@@ -110,10 +111,10 @@ if __name__ == '__main__':
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
-    # path = "../Collected_Data/Data_05_09_negative_samples"
-    # path = "../Collected_Data/Combined_dataset_multi"
+    # path = "../Collected_Data/Data_21_09_40mm_multifreq"
+    path = "../Collected_Data/Combined_dataset_multi2"
     # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
-    path = "../Collected_Data/Combined_dataset"
+    # path = "../Collected_Data/Combined_dataset"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()

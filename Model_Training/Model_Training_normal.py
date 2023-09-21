@@ -110,7 +110,7 @@ if __name__ == "__main__":
     ADD_AUGMENTATION = False
     NUMBER_OF_NOISE_AUGMENTATIONS = 2
     NUMBER_OF_ROTATION_AUGMENTATIONS = 2
-    LOADING_PATH = "../Collected_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
+    LOADING_PATH = "../Collected_Data/Single_freq_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
