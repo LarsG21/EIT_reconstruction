@@ -2,6 +2,7 @@ import os
 import pickle
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -12,16 +13,24 @@ from plot_utils import solve_and_plot_cnn
 from utils import wait_for_start_of_measurement
 
 
-def plot_multi_frequency_eit_image(v1_path):
+def plot_multi_frequency_eit_image(v1_path, plot=False):
     global default_frame
     df = convert_multi_frequency_eit_to_df(v1_path)
     df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
     df_alternating = df_alternating.to_frame(name="amplitude")
     v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+    # plt.plot(v1)
+    # plt.show()
     # save v0 as npy
     PCA = True
     if PCA:
         v1 = pca.transform(v1.reshape(1, -1))
+        if plot:
+            plt.bar(x=range(len(v1.reshape(-1))), height=v1.reshape(-1))
+            plt.title("PCA transformed voltage vector")
+            plt.xlabel("PCA component")
+            plt.ylabel("Intensity")
+            plt.show()
     solve_and_plot_cnn(model=model_pca, voltage_difference=v1, chow_center_of_mass=True)
 
 
@@ -43,7 +52,7 @@ def plot_eit_video(path):
                 seen_files.append(current_frame)
 
 
-path = "eit_data"
+path = "live_plot"
 
 VOLTAGE_VECTOR_LENGTH = 1024
 VOLTAGE_VECTOR_LENGTH_PCA = 128
