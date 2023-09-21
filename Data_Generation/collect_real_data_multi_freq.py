@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac
+    solve_eit_using_jac, wait_1_file_and_get_next
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
-from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
+from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from pyeit import mesh
 from pyeit.eit import protocol
 from utils import wait_for_start_of_measurement
@@ -42,12 +42,10 @@ img_size = 64
 
 RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
-v0 = None
-
 # METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
-VOLTAGE_FREQUENCY = 1000
+VOLTAGE_FREQUENCY = "1KHZ - 1MHZ"
 CURRENT = 0.1
 CONDUCTIVITY_BG = 0.1  # in S/m     # TODO: Measure this
 CONDUCTIVITY_TARGET = 1000  # in S/m
@@ -94,32 +92,30 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     """ 3. send gcode to the device """
     if gcode_device is not None:
         # convert center from [-1, 1] to [0, max_moving_space]
-        center_for_moving = (center + 1) * RADIUS_TANK_IN_MM / 2
+        center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
         # invert x axis
         center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
         center_for_moving = center_for_moving.astype(int)
         print("center_for_moving", center_for_moving)
         gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
         move_time = gcode_device.calculate_moving_time(last_position,
-                                                       center_for_moving) + 4  # 4 seconds for safety and measurement
+                                                       center_for_moving)
         wait_for_n_secs_with_print(move_time)
     else:
         time.sleep(2)
         center_for_moving = last_position
+
     """ 4. collect data """
     # get the newest file in the folder
-    file_path = get_newest_file(eit_path)
+    file_path = wait_1_file_and_get_next(eit_path)
     print(file_path)
-    df_1 = convert_single_frequency_eit_file_to_df(file_path)
-    df1 = pd.concat([df_1, df_keep_mask], axis=1)
-    v1 = df1["amplitude"].to_numpy(dtype=np.float64)
+    df = convert_multi_frequency_eit_to_df(file_path)
 
-    """ 5. solve EIT using Jac"""
-    mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
-    v0_solve = v0[keep_mask]
-    v1_solve = v1[keep_mask]
-    solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
-
+    # combine both df to alternating real and imaginary values
+    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+    # convert to numpy array
+    alternating_values = df_alternating.to_numpy()
+    v1 = alternating_values
     return img, v1, center_for_moving
 
 
@@ -130,7 +126,6 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     :param number_of_samples:
     :return:
     """
-    global v0
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     # create txt file with the metadata
@@ -151,11 +146,6 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(4)
-    file_path = get_newest_file(eit_path)
-    print(file_path)
-    os.chdir(cwd)
-    v0 = np.load("v0.npy")
-    time.sleep(1)
     for i in range(number_of_samples):
         # add possibility to pause using cv2.waitKey(0)
         if cv2.waitKey(1) & 0xFF == ord('p'):
@@ -172,7 +162,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
         # save the images and voltages in a dataframe every 10 samples
-        if i % 20 == 0:
+        if i % 2 == 0:
             df = pd.DataFrame({"images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
@@ -223,7 +213,6 @@ def calibration_procedure(gcode_device):
 
 
 def main():
-    print("MAKE SURE THAT YOU DELETE OLD DATA FROM THE EIT_DATA FOLDER !")
     devices = list_serial_devices()
     ender = None
     for device in devices:
@@ -231,20 +220,18 @@ def main():
             ender = GCodeDevice(device.device, movement_speed=6000,
                                 home_on_init=False
                                 )
-            MAX_RADIUS = RADIUS_TANK_IN_MM  # half at the top and half at the bottom
-            print(f"Maximal limits: {MAX_RADIUS}")
+            MAX_RADIUS = RADIUS_TANK_IN_MM
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            calibration_procedure(ender)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_14_09_negative_multifrequency"
-    collect_data(gcode_device=ender, number_of_samples=4000,
+    TEST_NAME = "Data_21_09_2_freq"
+    collect_data(gcode_device=ender, number_of_samples=70,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 
 if __name__ == '__main__':
-    cwd = os.getcwd()
     main()
