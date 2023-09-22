@@ -158,28 +158,28 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     start = time.time()
     output = model(voltage_data)
     stop = time.time()
-    print(f"Time for reconstruction: {(stop - start) * 1000} ms")
+    # print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.cpu()
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
     # pull everything under 0.2 to 0
     output[output < detection_threshold] = 0
-    if original_image is not None:
-        plt.subplot(1, 2, 1)
-        plt.imshow(output)
-        plt.title(title)
-        plt.subplot(1, 2, 2)
-        plt.imshow(original_image)
-        plt.title("Original")
-        # add colorbar
-        plt.colorbar()
-    else:
-        plt.imshow(output)
-        plt.title(title)
-        # add colorbar
-        plt.colorbar()
-    if save_path is not None:
-        plt.savefig(save_path)
     if show:
+        if original_image is not None:
+            plt.subplot(1, 2, 1)
+            plt.imshow(output)
+            plt.title(title)
+            plt.subplot(1, 2, 2)
+            plt.imshow(original_image)
+            plt.title("Original")
+            # add colorbar
+            plt.colorbar()
+        else:
+            plt.imshow(output)
+            plt.title(title)
+            # add colorbar
+            plt.colorbar()
+        if save_path is not None:
+            plt.savefig(save_path)
         plt.show()
     return output
 

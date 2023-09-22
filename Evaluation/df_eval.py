@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-22_09-23-27_300_epochs.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3
@@ -38,14 +38,14 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\amplitude_response.png"
+                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\amplitude_response_evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.png"
                         )
 plot_position_error(df,
-                    # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\position_error.png"
+                    # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\position_error_evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.png"
                     )
 
 plot_shape_deformation(df,
-                       # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\shape_deformation.png"
+                       # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\shape_deformation_evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.png"
                        )
 
 # convert col error_vector to np.array
