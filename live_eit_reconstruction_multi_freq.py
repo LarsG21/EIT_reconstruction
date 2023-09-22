@@ -31,7 +31,7 @@ def plot_multi_frequency_eit_image(v1_path, plot=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-    solve_and_plot_cnn(model=model_pca, voltage_difference=v1, chow_center_of_mass=True)
+    solve_and_plot_cnn(model=model_pca, voltage_difference=v1, chow_center_of_mass=False)
 
 
 def plot_eit_video(path):
@@ -52,7 +52,7 @@ def plot_eit_video(path):
                 seen_files.append(current_frame)
 
 
-path = "live_plot"
+path = "eit_data"
 
 VOLTAGE_VECTOR_LENGTH = 1024
 VOLTAGE_VECTOR_LENGTH_PCA = 128
@@ -61,7 +61,7 @@ print("Loading the model")
 
 model_pca = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
 
-model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/10_Frequencies/Models/LinearModelWithDropout/run_1_with_augmentation_pca_reduced/model_2023-09-21_13-02-00_200_epochs.pth"
+model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout/run_7_1000_samples/model_2023-09-22_09-23-27_300_epochs.pth"
 # get the pca.okl in the same folder as the model
 pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
 pca = pickle.load(open(pca_path, "rb"))

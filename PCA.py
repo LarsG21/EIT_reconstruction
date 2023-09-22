@@ -68,9 +68,19 @@ def get_main_parts_of_principal_components(pca):
     components = pca.components_
     print("Hauptkomponenten:")
     print(components)
+    # increase contrast
+    minval = np.percentile(components, 2)
+    maxval = np.percentile(components, 98)
+    pixvals = np.clip(components, minval, maxval)
+    components = ((pixvals) / (maxval - minval)) * 255
+
     # plot the main components as image
     import matplotlib.pyplot as plt
-    plt.imshow(components, cmap="gray")
+    plt.imshow(components, cmap="viridis")
+    plt.ylabel("Principal Component")
+    plt.xlabel("Raw Index")
+    plt.colorbar()
+    plt.savefig('PCA.png', dpi=500)
     plt.show()
     for i in range(10):
         print(f"Variance of PC{i}: {np.var(components[i])}")

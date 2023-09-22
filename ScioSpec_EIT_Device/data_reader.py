@@ -423,8 +423,7 @@ if __name__ == '__main__':
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi4 = "../eit_experiments/100_Freq_Sweep/setup_1/setup_1_00001.eit"
-    path_multi4 = "../eit_data/20230914 11.06.36/setup_1/setup_1_00003.eit"
+    path_multi4 = "../eit_experiments/10_Freq_Move_Target_2/setup_1/setup_1_00001.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 

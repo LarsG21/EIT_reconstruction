@@ -112,9 +112,9 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Data_21_09_40mm_multifreq"
-    path = "../Collected_Data/Combined_dataset_multi2"
-    # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
-    # path = "../Collected_Data/Combined_dataset"
+    # path = "../Collected_Data/Combined_dataset_multi2"
+    # path = "../Collected_Data/Data_21_09_3_freq_over_night"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
@@ -126,5 +126,5 @@ if __name__ == '__main__':
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
-    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0)
+    # look_at_dataset(img_array=img_array, v1_array=voltage_array)
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
