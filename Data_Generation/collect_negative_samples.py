@@ -48,8 +48,8 @@ def collect_samples(eit_path: str, save_path: str):
 
 
 if __name__ == '__main__':
-    eit_path = "../eit_data/20230921 16.59.32/setup_1"
-    save_path = "../Collected_Data/Multi_freq_Data/3_Freq/Data_21_09_negative_3_freq"
+    eit_path = "../eit_data/20230922 12.48.35/setup_1"
+    save_path = "../Collected_Data/Multi_freq_Data/3_Freq/Data_22_09_negative_3_freq"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     collect_samples(eit_path, save_path)

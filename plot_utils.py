@@ -96,9 +96,9 @@ def plot_results_fem_forward(mesh, line):
     return equi_potential_image, e_field_image
 
 
-def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path=None, title="Reconstructed image",
-                       chow_center_of_mass=False):
-    img = infer_single_reconstruction(model, voltage_difference, title=title, original_image=original_image,
+def solve_and_plot(model, model_input, original_image=None, save_path=None, title="Reconstructed image",
+                   chow_center_of_mass=False, use_opencv_for_plotting=False):
+    img = infer_single_reconstruction(model, model_input, title=title, original_image=original_image,
                                       save_path=save_path, detection_threshold=0.25, show=False)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
     SCALE_FACTOR = 4
@@ -109,7 +109,17 @@ def solve_and_plot_cnn(model, voltage_difference, original_image=None, save_path
     if chow_center_of_mass:
         center_of_mass = find_center_of_mass(img)
         cv2.circle(imshow, (center_of_mass[0] * SCALE_FACTOR, center_of_mass[1] * SCALE_FACTOR), 5, -1, -1)
-    plt.imshow(imshow)
-    plt.title(title)
-    plt.show()
+    if use_opencv_for_plotting:
+        cv2.imshow(title, imshow)
+        cv2.waitKey(1)
+    else:
+        plt.imshow(imshow)
+        plt.title(title)
+        plt.show()
     return img
+
+
+def solve_and_get_center(model, model_input):
+    img = infer_single_reconstruction(model, model_input, detection_threshold=0.25, show=False)
+    center_of_mass = find_center_of_mass(img)
+    return img, center_of_mass

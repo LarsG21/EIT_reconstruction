@@ -110,15 +110,15 @@ MULTI_FREQUENCY_EIT = True
 
 if __name__ == "__main__":
     TRAIN = True
-    ADD_AUGMENTATION = False
-    NUMBER_OF_NOISE_AUGMENTATIONS = 10
+    ADD_AUGMENTATION = True
+    NUMBER_OF_NOISE_AUGMENTATIONS = 4
     NUMBER_OF_ROTATION_AUGMENTATIONS = 0
     LOADING_PATH = "../Collected_Data/Single_freq_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 40
     # Training parameters
-    num_epochs = 300
+    num_epochs = 400
     NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     # if "multi" not in path.lower() and MULTI_FREQUENCY_EIT:
     #     raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
-    model_name = "run_7_1000_samples"
+    model_name = "run_9_1500_samples_more_negative_set_and_augmentation"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__

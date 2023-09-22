@@ -109,8 +109,8 @@ def wait_1_file_and_get_next(path):
     """
     Waits for the first file to be written in the path directory. Waits for the next file to be written and returns the
     path to the next file.
-    :param eit_path:
-    :param path:
+    This is used to skip the frame that was created during the movement of the target.
+    :param path: Path where the files are written by the EIT device.
     :return:
     """
     cwd = os.getcwd()
@@ -132,12 +132,6 @@ def wait_1_file_and_get_next(path):
     newest = max(paths, key=os.path.getctime)
     os.chdir(cwd)
     return newest
-
-
-
-
-
-
 
 
 def wait_for_n_secs_with_print(n_secs):
@@ -228,6 +222,42 @@ def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
     fig.colorbar(im, ax=axes.ravel().tolist())
     # plt.savefig('../doc/images/demo_jac.png', dpi=96)
     plt.show()
+
+
+def calibration_procedure(gcode_device, RADIUS_TARGET_IN_MM):
+    """
+    Moves the Target to specific positions for calibration.
+    Moves to positions of electrodes 9, 25, 1, 17
+    :param gcode_device:
+    :return:
+    """
+    print("Moving to the center of the tank for calibration")
+    limit_x = gcode_device.maximal_limits[0]
+    limit_z = gcode_device.maximal_limits[2]
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    print("Move enter so that target is in the center of the tank.")
+    input("Press Enter to continue...")
+    # move to top of the tank
+    print("Moving to the top of the tank")
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z - RADIUS_TARGET_IN_MM / 2)
+    input("Press Enter to continue...")
+    # move to the bottom of the tank#
+    print("Moving to the bottom of the tank")
+    gcode_device.move_to(x=limit_x / 2, y=0, z=0 + RADIUS_TARGET_IN_MM / 2)
+    input("Press Enter to continue...")
+    # move to the center of the tank
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    # move to the right of the tank
+    print("Moving to the right of the tank")
+    gcode_device.move_to(x=0 + RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+    # move to the left of the tank
+    print("Moving to the left of the tank")
+    gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
+    # move to the center of the tank
+    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+    input("Press Enter to continue...")
 
 
 if __name__ == '__main__':

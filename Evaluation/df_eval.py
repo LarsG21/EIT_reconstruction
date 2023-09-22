@@ -5,14 +5,20 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-22_09-23-27_300_epochs.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
-N = 2.5
+N = 3
+border_amplitude_response = N * df["amplitude_response"].std()
+border_position_error = N * df["position_error"].std()
+border_shape_deformation = N * df["shape_deformation"].std()
+print(border_amplitude_response)
+print(border_position_error)
+print(border_shape_deformation)
 print("Number of samples", len(df))
-df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= (N * df["amplitude_response"].std())]
-df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= (N * df["position_error"].std())]
-df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= (N * df["shape_deformation"].std())]
+df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
+df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
+df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
 # replace outliers with mean
 # df["amplitude_response"] = df["amplitude_response"].apply(lambda x: x if np.abs(x - df["amplitude_response"].mean()) <= (1 * df["amplitude_response"].std()) else df["amplitude_response"].mean())
 # df["position_error"] = df["position_error"].apply(lambda x: x if np.abs(x - df["position_error"].mean()) <= (1 * df["position_error"].std()) else df["position_error"].mean())
@@ -53,5 +59,5 @@ plt.xlabel("x error [mm]")
 plt.ylabel("y error [mm]")
 plt.title("Error vector")
 # save plot
-plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\error_vector.png")
+# plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\error_vector.png")
 plt.show()

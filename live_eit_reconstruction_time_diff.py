@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from Model_Training.Models import LinearModelWithDropout, LinearModelWithDropout2
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from plot_utils import solve_and_plot_cnn
+from plot_utils import solve_and_plot
 from pyeit import mesh
 from pyeit.eit import protocol
 from pyeit.mesh.shape import thorax
@@ -68,7 +68,7 @@ def plot_time_diff_eit_image(v1_path, v0_path):
     #                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     # solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
-    solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
+    solve_and_plot(model=model, model_input=difference, chow_center_of_mass=True)
 
 
 def plot_frequencies_diff_eit_image(path, f1, f2):

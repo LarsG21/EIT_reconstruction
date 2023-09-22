@@ -227,8 +227,8 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_21_09_3_freq_over_night"
-    collect_data(gcode_device=ender, number_of_samples=2000,
+    TEST_NAME = "Data_22_09_3_freq"
+    collect_data(gcode_device=ender, number_of_samples=300,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 

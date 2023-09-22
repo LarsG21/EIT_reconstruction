@@ -1,20 +1,21 @@
 import datetime
 import os
+import pickle
 import time
 
 import numpy as np
 import pandas as pd
 import torch
+from matplotlib import pyplot as plt
 
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
-    wait_for_start_of_measurement, calibration_procedure
-from Evaluation.eval_plots import plot_amplitude_response, plot_position_error
+    wait_for_start_of_measurement, calibration_procedure, wait_1_file_and_get_next
 from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response, \
     calculate_shape_deformation
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
-from Model_Training.Models import LinearModelWithDropout2
-from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
-from plot_utils import solve_and_plot_cnn
+from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
+from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
+from plot_utils import solve_and_plot
 from pyeit.eit import protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
@@ -67,7 +68,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     difference = difference - np.mean(difference)
     # plt.plot(difference)
     # plt.show()
-    img_reconstructed = solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=False)
+    img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
     return img_reconstructed, v1, center_for_moving
 
 
@@ -156,7 +157,7 @@ def generate_one_sample_at_position(gcode_device: GCodeDevice, eit_path: str, ce
     difference = difference - np.mean(difference)
     # plt.plot(difference)
     # plt.show()
-    img_reconstructed = solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=False)
+    img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
     return img_reconstructed, v1, center_for_moving
 
 
@@ -177,9 +178,6 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
     last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
-    time.sleep(4)
-    file_path = get_newest_file(eit_path)
-    print(file_path)
     time.sleep(1)
     position_errors = []
     error_vectors = []
@@ -202,7 +200,7 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
                 gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
                 move_time = gcode_device.calculate_moving_time(last_centers[-1],
                                                                center_for_moving)
-                wait_for_n_secs_with_print(move_time + 4)  # 1 seconds for safety and measurement
+                wait_for_n_secs_with_print(move_time)  # 1 seconds for safety and measurement
                 last_centers.append(center_for_moving)
                 if i == 0:
                     last_centers = last_centers[1:]
@@ -211,18 +209,23 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
                 i += 1
                 """ 4. collect data """
                 # get the newest file in the folder
-                file_path = get_newest_file(eit_path)
+                file_path = wait_1_file_and_get_next(eit_path)
                 print(file_path)
-                df_1 = convert_single_frequency_eit_file_to_df(file_path)
-                v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
-                # v1 = v1[keep_mask]
-                difference = (v1 - v0) / v0
-                # remove constant offset
-                difference = difference - np.mean(difference)
-                # plt.plot(difference)
-                # plt.show()
-                img_reconstructed = solve_and_plot_cnn(model=model, voltage_difference=difference,
-                                                       chow_center_of_mass=False)
+                time.sleep(0.1)
+                if not MULTI_FREQUENCY:
+                    df_1 = convert_single_frequency_eit_file_to_df(file_path)
+                    v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
+                    difference = (v1 - v0) / v0
+                    difference = difference - np.mean(difference)
+                else:
+                    df = convert_multi_frequency_eit_to_df(file_path)
+                    df_alternating = pd.DataFrame(
+                        {"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+                    df_alternating = df_alternating.to_frame(name="amplitude")
+                    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+                    v1 = pca.transform(v1.reshape(1, -1))
+                    difference = v1
+                img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
 
                 position_error, error_vector = evaluate_position_error(center_for_moving, gcode_device,
                                                                        img_reconstructed,
@@ -250,13 +253,18 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
 
 
 def main():
-    global model, v0, model_path
-    VOLTAGE_VECTOR_LENGTH = 1024
+    global model, v0, model_path, pca, MULTI_FREQUENCY
+    VOLTAGE_VECTOR_LENGTH = 128
     OUT_SIZE = 64
     print("Loading the model")
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelDropout2/05_09_all_data_40mm_target_and_augmentation_more_noise/model_2023-09-05_15-34-02_epoche_120_of_200_best_model.pth"
+
+    MULTI_FREQUENCY = True
+    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    model_path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout/run_9_1500_samples_more_negative_set_and_augmentation/model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pth"
     model.load_state_dict(torch.load(model_path))
+    pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+    pca = pickle.load(open(pca_path, "rb"))
+
     devices = list_serial_devices()
     ender = None
     for device in devices:
@@ -266,7 +274,7 @@ def main():
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            # calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
