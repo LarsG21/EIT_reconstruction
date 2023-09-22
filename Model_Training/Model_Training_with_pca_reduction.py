@@ -16,7 +16,7 @@ from Models import LinearModelWithDropout
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 128
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -106,19 +106,19 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-MULTI_FREQUENCY_EIT = True
+MULTI_FREQUENCY_EIT = False
 
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
     NUMBER_OF_NOISE_AUGMENTATIONS = 4
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 0
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 4
     LOADING_PATH = "../Collected_Data/Single_freq_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 40
+    LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 400
+    num_epochs = 200
     NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.0003
@@ -127,20 +127,21 @@ if __name__ == "__main__":
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
     patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
-    PCA_COMPONENTS = 128
+    PCA_COMPONENTS = 0  # 0 means no PCA
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collected_Data/Combined_dataset"
     #################################
     if "multi" in path.lower() and not MULTI_FREQUENCY_EIT:
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
-    # if "multi" not in path.lower() and MULTI_FREQUENCY_EIT:
-    #     raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
+    if "multi" not in path.lower() and MULTI_FREQUENCY_EIT:
+        raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
-    model_name = "run_9_1500_samples_more_negative_set_and_augmentation"
+    model_name = "ROTAITION_AUGMENTATION_TESTING"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
@@ -168,6 +169,7 @@ if __name__ == "__main__":
 
     # Highlight: In case of PCA Data v0 is already used for normalization
     if not MULTI_FREQUENCY_EIT:
+        print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
         v0 = np.load(os.path.join(path, "v0.npy"))
         # normalize the voltage data
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
@@ -175,8 +177,8 @@ if __name__ == "__main__":
         # Now the model should learn the difference between the voltages and v0 (default state)
 
     # reduce the number of images
-    # image_data_np = image_data_np[:100]
-    # voltage_data_np = voltage_data_np[:100]
+    image_data_np = image_data_np[:100]
+    voltage_data_np = voltage_data_np[:100]
 
     print("Overall data shape: ", voltage_data_np.shape)
 

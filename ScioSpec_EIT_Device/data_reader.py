@@ -142,22 +142,6 @@ def _read_eit_data_multi_frequency(path):
     return data_dict
 
 
-# def _convert_multi_frequency_voltage_dict_to_dataframe(voltage_dict):
-#     """
-#     Converts the voltages dictionary from multi frequency to a dataframe
-#     """
-#     col_names = ["frequency", "injection_pos", "injection_neg", "measuring_electrode", "real", "imaginary"]
-#     df = pd.DataFrame(columns=col_names)
-#     for key, values in voltage_dict.items():
-#         for frequency, voltages in values[0].items():
-#             for i in range(0, len(voltages), 2):
-#                 df_new_row = pd.DataFrame([[frequency, key[0], key[1], int((i+1)/2 + 1), voltages[i], voltages[i+1]]], columns=col_names)
-#                 df = pd.concat([df, df_new_row], ignore_index=True)
-#     df = df.convert_dtypes()
-#     # convert real and imaginary to float
-#     df["real"] = df["real"].astype(float)
-#     df["imaginary"] = df["imaginary"].astype(float)
-#     return df
 
 def _convert_multi_frequency_voltage_dict_to_dataframe(voltage_dict):
     """

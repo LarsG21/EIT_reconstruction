@@ -100,7 +100,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     for img, voltage in zip(train_images_numpy, train_voltage_numpy):
         # use 11.25° steps for the rotation
         angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
-        # angle = 90
+        # angle = np.random.randint(1, 4) * 90
         # print(f"Rotating image by {angle}°")
         img_rotated = rotate(img, angle, reshape=False)
         if show_examples:
@@ -117,6 +117,12 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
                 plt.savefig(f"rotated_img_{int(angle)}.png")
             plt.show()
             plt.plot(voltage)
+            # put vertical lines at the electrodes
+            NUMBER_OF_FREQUENCIES = 1
+            AMPLITUDE_OR_COMPLEX = 1
+            for i in range(0, len(voltage),
+                           32 * NUMBER_OF_FREQUENCIES * AMPLITUDE_OR_COMPLEX):  # *2 for real and imaginary part
+                plt.axvline(x=i, color="red", linestyle="--", label='_nolegend_')
         electrodes_to_rotate = int(angle / 360 * len(voltage))
         voltage_rotated = np.roll(voltage, shift=electrodes_to_rotate)
         if show_examples:
@@ -137,8 +143,8 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
 
 
 if __name__ == '__main__':
-    path = "..//Collected_Data/Combined_dataset_multi"
-
+    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collected_Data/Combined_dataset"
     device = "cpu"
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
@@ -170,12 +176,12 @@ if __name__ == '__main__':
 
     # train_voltage = train_voltage[:1]
     # train_images = train_images[:1]
-    train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                         4, 0.05,
-                                                         show_examples=False, save_examples=True)
+    # train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
+    #                                                      4, 0.04,
+    #                                                      show_examples=False, save_examples=False)
 
     train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-                                                            4, show_examples=False, save_examples=False)
+                                                            4, show_examples=True, save_examples=False)
 
     print("OK")
     # convert both to numpy
