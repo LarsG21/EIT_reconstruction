@@ -118,8 +118,8 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
             plt.show()
             plt.plot(voltage)
             # put vertical lines at the electrodes
-            NUMBER_OF_FREQUENCIES = 1
-            AMPLITUDE_OR_COMPLEX = 1
+            NUMBER_OF_FREQUENCIES = 3
+            AMPLITUDE_OR_COMPLEX = 2
             for i in range(0, len(voltage),
                            32 * NUMBER_OF_FREQUENCIES * AMPLITUDE_OR_COMPLEX):  # *2 for real and imaginary part
                 plt.axvline(x=i, color="red", linestyle="--", label='_nolegend_')
@@ -143,8 +143,8 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
 
 
 if __name__ == '__main__':
-    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    path = "../Collected_Data/Combined_dataset"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data/Combined_dataset"
     device = "cpu"
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
@@ -183,16 +183,16 @@ if __name__ == '__main__':
     train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                             4, show_examples=True, save_examples=False)
 
-    print("OK")
-    # convert both to numpy
-    train_voltage = train_voltage.cpu().numpy().tolist()
-    train_images = train_images.cpu().numpy().tolist()
-    # save in one df
-    df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined.pkl")
-    df = pd.DataFrame(data={"images": train_images, "voltages": train_voltage},
-                      index=[0] * len(train_voltage)
-                      )
-
-    # save as pkl
-    print(f"Lenght of augmented data: {len(df)}")
-    df.to_pickle("..//Collected_Data/Combined_dataset_multi_augmented/augmented_data.pkl")
+    # print("OK")
+    # # convert both to numpy
+    # train_voltage = train_voltage.cpu().numpy().tolist()
+    # train_images = train_images.cpu().numpy().tolist()
+    # # save in one df
+    # df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined.pkl")
+    # df = pd.DataFrame(data={"images": train_images, "voltages": train_voltage},
+    #                   index=[0] * len(train_voltage)
+    #                   )
+    #
+    # # save as pkl
+    # print(f"Lenght of augmented data: {len(df)}")
+    # df.to_pickle("..//Collected_Data/Combined_dataset_multi_augmented/augmented_data.pkl")

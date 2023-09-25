@@ -32,11 +32,13 @@ def plot_multi_frequency_eit_image(v1_path, plot=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-    # solve_and_plot(model=model_pca, model_input=v1, chow_center_of_mass=False, use_opencv_for_plotting=True)
-    img, center = solve_and_get_center(model=model_pca, model_input=v1)
-    cv2.imshow("img", cv2.resize(img, (512, 512)))
-    cv2.waitKey(1)
-    return img, center
+    solve_and_plot(model=model_pca, model_input=v1, chow_center_of_mass=False,
+                   use_opencv_for_plotting=False)
+    # img, center = solve_and_get_center(model=model_pca, model_input=v1)
+    # cv2.imshow("img", cv2.resize(img, (512, 512)))
+    # cv2.waitKey(1)
+    # return img, center
+    # time.sleep(3)
 
 
 def plot_eit_video(path):
@@ -55,14 +57,14 @@ def plot_eit_video(path):
             empty_img = np.zeros([64, 64])
             if current_frame.endswith(".eit") and current_frame not in seen_files:
                 time.sleep(0.01)  # wait for file to be written
-                img, center = plot_multi_frequency_eit_image(os.path.join(eit_path, current_frame))
-                centers.append(center)
+                plot_multi_frequency_eit_image(os.path.join(eit_path, current_frame))
+                # centers.append(center)
                 seen_files.append(current_frame)
                 # last 10 centers
-                for c in centers[-10:]:
-                    # add circle to image to show center
-                    cv2.circle(empty_img, (int(c[0]), int(c[1])), 1, (255, 255, 255), -1)
-                    cv2.imshow("center", cv2.resize(empty_img, (512, 512)))
+                # for c in centers[-10:]:
+                #     # add circle to image to show center
+                #     cv2.circle(empty_img, (int(c[0]), int(c[1])), 1, (255, 255, 255), -1)
+                #     cv2.imshow("center", cv2.resize(empty_img, (512, 512)))
 
 
 
@@ -75,7 +77,7 @@ print("Loading the model")
 
 model_pca = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
 
-model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout/run_9_1500_samples_more_negative_set_and_augmentation/model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pth"
+model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout/ROTATION_AUGMENTATION/model_2023-09-25_11-52-28_epoche_267_of_300_best_model.pth"
 # get the pca.okl in the same folder as the model
 pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
 pca = pickle.load(open(pca_path, "rb"))

@@ -9,7 +9,7 @@ import numpy as np
 # df = pd.read_pickle("Collected_Data/Combined_dataset_multi_augmented/augmented_data.pkl")
 # v0 = np.load("Collected_Data/Combined_dataset/v0.npy")
 # #
-# MULTI_FREQUENCY_EIT = True
+# ABSOLUTE_EIT = True
 #
 # def reduce_voltages_with_pca(df: pd.DataFrame, save_path: str, n_components=1024):
 #     """
@@ -23,7 +23,7 @@ import numpy as np
 #     # for v in voltages:
 #     #     print(len(v))
 #     voltages_array = np.array(voltages)
-#     if not MULTI_FREQUENCY_EIT:
+#     if not ABSOLUTE_EIT:
 #         voltages_array = (voltages_array - v0) / v0  # normalized voltage difference
 #         voltages_array = voltages_array - np.mean(voltages_array)
 #     # do pca on voltages

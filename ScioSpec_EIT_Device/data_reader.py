@@ -407,7 +407,7 @@ if __name__ == '__main__':
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi4 = "../eit_experiments/10_Freq_Move_Target_2/setup_1/setup_1_00001.eit"
+    path_multi4 = "../eit_data/20230925 15.10.15/setup_1/setup_1_00001.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 
@@ -417,22 +417,26 @@ if __name__ == '__main__':
     # print("Time of single frequency conversion: ", time/number_of_runs)
 
     df = convert_multi_frequency_eit_to_df(path_multi4)
+    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+    df_alternating = df_alternating.to_frame(name="amplitude")
+    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+    np.save("v0.npy", v1)
 
-    print("finished conversion")
-
-    # # df_multi = convert_multi_frequency_eit_to_df(path_multi)
+    # print("finished conversion")
     #
-    # # df = convert_multi_frequency_eit_to_df(path_single)
-    # print(df)
+    # # # df_multi = convert_multi_frequency_eit_to_df(path_multi)
+    # #
+    # # # df = convert_multi_frequency_eit_to_df(path_single)
+    # # print(df)
+    # #
+    # # plt.plot(df["amplitude"])
+    # # plt.show()
+    # #
+    # # plot_bode(df)
     #
-    # plt.plot(df["amplitude"])
-    # plt.show()
-    #
-    # plot_bode(df)
-
-    # add nyquist plot
-    # split df in all measuring_electrodes
-    for measuring_electrode in df["measuring_electrode"].unique():
-        print("Nyquist", measuring_electrode)
-        df_measuring_electrode = df[df["measuring_electrode"] == measuring_electrode]
-        plot_nyquist(df_measuring_electrode, title=f"Nyquist plot {measuring_electrode}")
+    # # add nyquist plot
+    # # split df in all measuring_electrodes
+    # for measuring_electrode in df["measuring_electrode"].unique():
+    #     print("Nyquist", measuring_electrode)
+    #     df_measuring_electrode = df[df["measuring_electrode"] == measuring_electrode]
+    #     plot_nyquist(df_measuring_electrode, title=f"Nyquist plot {measuring_electrode}")

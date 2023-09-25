@@ -113,8 +113,8 @@ if __name__ == '__main__':
 
     # path = "../Collected_Data/Data_21_09_40mm_multifreq"
     # path = "../Collected_Data/Combined_dataset_multi2"
-    # path = "../Collected_Data/Data_21_09_3_freq_over_night"
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data/Data_22_09_2_freq"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/2_Frequencies"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
