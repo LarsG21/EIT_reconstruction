@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac
+    solve_eit_using_jac, calibration_procedure
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from pyeit import mesh
@@ -186,41 +186,6 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     df.to_pickle(save_path_data)
 
 
-def calibration_procedure(gcode_device):
-    """
-    Moves the Target to specific positions for calibration.
-    Moves to positions of electrodes 9, 25, 1, 17
-    :param gcode_device:
-    :return:
-    """
-    print("Moving to the center of the tank for calibration")
-    limit_x = gcode_device.maximal_limits[0]
-    limit_z = gcode_device.maximal_limits[2]
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    print("Move enter so that target is in the center of the tank.")
-    input("Press Enter to continue...")
-    # move to top of the tank
-    print("Moving to the top of the tank")
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z - RADIUS_TARGET_IN_MM / 2)
-    input("Press Enter to continue...")
-    # move to the bottom of the tank#
-    print("Moving to the bottom of the tank")
-    gcode_device.move_to(x=limit_x / 2, y=0, z=0 + RADIUS_TARGET_IN_MM / 2)
-    input("Press Enter to continue...")
-    # move to the center of the tank
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    # move to the right of the tank
-    print("Moving to the right of the tank")
-    gcode_device.move_to(x=0 + RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
-    # move to the left of the tank
-    print("Moving to the left of the tank")
-    gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
-    # move to the center of the tank
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
-
 
 def main():
     print("MAKE SURE THAT YOU DELETE OLD DATA FROM THE EIT_DATA FOLDER !")
@@ -239,7 +204,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_14_09_negative_multifrequency"
+    TEST_NAME = "Data_28_09_60mm"
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")

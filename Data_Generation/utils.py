@@ -168,6 +168,7 @@ def look_at_dataset(img_array, v1_array, v0=None):
         else:
             voltage_differece = v1_array[i]
         # show voltage difference and image in one plot
+        voltage_differece = voltage_differece - np.mean(voltage_differece)  # subtract the mean for normalization
         plt.subplot(1, 2, 1)
         plt.imshow(img * 10)
         plt.title('image')

@@ -16,7 +16,7 @@ from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel,
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 128
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -107,42 +107,44 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 
 ABSOLUTE_EIT = False
+SAMPLE_RECONSTRUCTION_INDEX = 0  # Change this to see different sample reconstructions
 
 if __name__ == "__main__":
     TRAIN = True
-    ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 3
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 0
-    LOADING_PATH = "../Collected_Data/Single_freq_Data/Data_24_08_40mm_target/Models/LinearModelDropout/TESTING/model_2023-08-24_16-01-08_epoche_592_of_1000_best_model.pth"
+    ADD_AUGMENTATION = False
+    NUMBER_OF_NOISE_AUGMENTATIONS = 2
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
+    LOADING_PATH = "../Collected_Data/Dataset_40mm_and_60_mm/Models/LinearModel2/TESTING/model_2023-09-25_17-00-39_epoche_163_of_200_best_model.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 20
+    LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 200
-    NOISE_LEVEL = 0.2
+    num_epochs = 300
+    NOISE_LEVEL = 0.1
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0003
+    LEARNING_RATE = 0.0001
     # Define the weight decay factor
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
     # patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
     patience = 30  # Number of epochs to wait for improvement
-    PCA_COMPONENTS = 128  # 0 means no PCA
+    PCA_COMPONENTS = 0  # 0 means no PCA
 
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
-    model = LinearModel2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
     # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    path = "../Collected_Data/Combined_dataset"
+    # path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/Dataset_40mm_and_60_mm"
     #################################
     if "multi" in path.lower() and not ABSOLUTE_EIT:
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
     # if "multi" not in path.lower() and ABSOLUTE_EIT:
     #     raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
-    model_name = "tdeit_with_3_freq"
+    model_name = "run2_4800_samples"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
@@ -175,9 +177,9 @@ if __name__ == "__main__":
         # v0 = np.load("../ScioSpec_EIT_Device/v0.npy")
         # normalize the voltage data
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-        voltage_data_np = voltage_data_np - np.mean(voltage_data_np)
         # Now the model should learn the difference between the voltages and v0 (default state)
 
+    voltage_data_np = voltage_data_np - np.mean(voltage_data_np)  # subtract the mean for normalization
     # reduce the number of images
     # image_data_np = image_data_np[:800]
     # voltage_data_np = voltage_data_np[:800]
@@ -264,7 +266,7 @@ if __name__ == "__main__":
         # Step 7: Define the training loop
         if load_model_and_continue_trainig:
             model.load_state_dict(torch.load(
-                os.path.join(model_path, "MODEL_NAME.pth")))
+                os.path.join(model_path, "model_2023-09-25_17-00-39_epoche_163_of_200_best_model.pth")))
         loss_list = []
         val_loss_list = []
         best_model = model
@@ -312,15 +314,19 @@ if __name__ == "__main__":
                                os.path.join(model_path,
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
                 # also create a sample reconstruction with the current model
-                test_voltage_data = test_voltage[0]
+                test_voltage_data = test_voltage[SAMPLE_RECONSTRUCTION_INDEX]
                 infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
                                             title=f"Reconstruction after {epoch} epochs",
-                                            original_image=test_images[0].cpu())
+                                            original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
                 # plot the corresponding image
         # save the final model
-        torch.save(model.state_dict(),
-                   os.path.join(model_path,
-                                f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{num_epochs}_epochs.pth"))
+        if load_model_and_continue_trainig:
+            save_path = os.path.join(model_path,
+                                     f"continued_model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
+        else:
+            save_path = os.path.join(model_path,
+                                     f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
+        torch.save(model.state_dict(), save_path)
         # plot the final loss
         plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
     # load the model
