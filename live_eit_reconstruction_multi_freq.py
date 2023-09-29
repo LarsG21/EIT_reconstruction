@@ -2,27 +2,24 @@ import os
 import pickle
 import time
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import torch
 
-from Model_Training.Models import LinearModelWithDropout
+from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
-from plot_utils import solve_and_plot, solve_and_get_center
-from utils import wait_for_start_of_measurement
+from plot_utils import solve_and_plot
+from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame
 
 
 def plot_multi_frequency_eit_image(v1_path, plot=False):
     global default_frame
     df = convert_multi_frequency_eit_to_df(v1_path)
-    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
-    df_alternating = df_alternating.to_frame(name="amplitude")
-    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+    v1 = preprocess_absolute_eit_frame(df,
+                                       SUBTRACT_MEDIAN=True,
+                                       DIVIDE_BY_MEDIAN=True)
     # plt.plot(v1)
     # plt.show()
-    # save v0 as npy
     PCA = True
     if PCA:
         v1 = pca.transform(v1.reshape(1, -1))
@@ -33,7 +30,7 @@ def plot_multi_frequency_eit_image(v1_path, plot=False):
             plt.ylabel("Intensity")
             plt.show()
     solve_and_plot(model=model_pca, model_input=v1, chow_center_of_mass=False,
-                   use_opencv_for_plotting=False)
+                   use_opencv_for_plotting=True)
     # img, center = solve_and_get_center(model=model_pca, model_input=v1)
     # cv2.imshow("img", cv2.resize(img, (512, 512)))
     # cv2.waitKey(1)
@@ -75,9 +72,10 @@ VOLTAGE_VECTOR_LENGTH_PCA = 128
 OUT_SIZE = 64
 print("Loading the model")
 
-model_pca = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
+model_pca = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
+# model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
 
-model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout/ROTATION_AUGMENTATION/model_2023-09-25_11-52-28_epoche_267_of_300_best_model.pth"
+model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 # get the pca.okl in the same folder as the model
 pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
 pca = pickle.load(open(pca_path, "rb"))

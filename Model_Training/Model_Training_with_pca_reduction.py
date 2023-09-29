@@ -2,6 +2,7 @@ import copy
 import os.path
 from datetime import datetime
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -14,9 +15,10 @@ from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation
 from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
+from utils import preprocess
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 1024
+VOLTAGE_VECTOR_LENGTH = 6144
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -106,45 +108,47 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-ABSOLUTE_EIT = False
-SAMPLE_RECONSTRUCTION_INDEX = 0  # Change this to see different sample reconstructions
+ABSOLUTE_EIT = True
+SAMPLE_RECONSTRUCTION_INDEX = -1  # Change this to see different sample reconstructions
 
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = False
-    NUMBER_OF_NOISE_AUGMENTATIONS = 2
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
-    LOADING_PATH = "../Collected_Data/Dataset_40mm_and_60_mm/Models/LinearModel2/TESTING/model_2023-09-25_17-00-39_epoche_163_of_200_best_model.pth"
+    NUMBER_OF_NOISE_AUGMENTATIONS = 0
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 4
+    LOADING_PATH = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/train_pca_64/model_2023-09-28_16-06-34_299_300.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     # Training parameters
     num_epochs = 300
-    NOISE_LEVEL = 0.1
+    NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.0001
+    LEARNING_RATE = 0.001
     # Define the weight decay factor
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
     # patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
-    patience = 30  # Number of epochs to wait for improvement
-    PCA_COMPONENTS = 0  # 0 means no PCA
-
+    patience = 40  # Number of epochs to wait for improvement
+    PCA_COMPONENTS = 128  # 0 means no PCA
+    ######################################################################################
+    if PCA_COMPONENTS > 0:
+        VOLTAGE_VECTOR_LENGTH = PCA_COMPONENTS
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
-    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Combined_dataset"
-    path = "../Collected_Data/Dataset_40mm_and_60_mm"
+    # path = "../Collected_Data/Dataset_40mm_and_60_mm"
     #################################
     if "multi" in path.lower() and not ABSOLUTE_EIT:
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
-    # if "multi" not in path.lower() and ABSOLUTE_EIT:
-    #     raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
+    if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
+        raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
-    model_name = "run2_4800_samples"
+    model_name = "experiment_minus_median_divide_by_median_normalization"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
@@ -153,6 +157,8 @@ if __name__ == "__main__":
     if not os.path.exists(model_path):
         print("Creating model directory")
         os.makedirs(model_path)
+    else:
+        input("Model directory already exists. Press any key if you want to overwrite...")
 
     # Save settings in txt file
     with open(os.path.join(model_path, "settings.txt"), "w") as f:
@@ -170,6 +176,10 @@ if __name__ == "__main__":
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
 
+    # reduce the number of images
+    # image_data_np = image_data_np[:800]
+    # voltage_data_np = voltage_data_np[:800]
+
     # Highlight: In case of PCA Data v0 is already used for normalization
     if not ABSOLUTE_EIT:
         print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
@@ -179,10 +189,10 @@ if __name__ == "__main__":
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
         # Now the model should learn the difference between the voltages and v0 (default state)
 
-    voltage_data_np = voltage_data_np - np.mean(voltage_data_np)  # subtract the mean for normalization
-    # reduce the number of images
-    # image_data_np = image_data_np[:800]
-    # voltage_data_np = voltage_data_np[:800]
+    # Highlight: In case of PCA Data v0 is already used for normalization
+    voltage_data_np = preprocess(v1=voltage_data_np,
+                                 SUBTRACT_MEDIAN=True,
+                                 DIVIDE_BY_MEDIAN=True)
 
     print("Overall data shape: ", voltage_data_np.shape)
 
@@ -221,7 +231,8 @@ if __name__ == "__main__":
         print("INFO: Adding rotation augmentation")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 NUMBER_OF_ROTATION_AUGMENTATIONS, device=device)
-
+    train_voltage_original = train_voltage.clone()
+    test_voltage_original = test_voltage.clone()
     # Step4.2 Do PCA to reduce the number of features
     if PCA_COMPONENTS > 0:
         print("INFO: Performing PCA on input data")
@@ -266,11 +277,15 @@ if __name__ == "__main__":
         # Step 7: Define the training loop
         if load_model_and_continue_trainig:
             model.load_state_dict(torch.load(
-                os.path.join(model_path, "model_2023-09-25_17-00-39_epoche_163_of_200_best_model.pth")))
+                os.path.join(model_path, "model_2023-09-28_16-06-34_299_300.pth")))
         loss_list = []
         val_loss_list = []
         best_model = model
         for epoch in range(num_epochs):
+            # reduce learning rate after 50 epochs
+            if epoch == 50:
+                print("INFO: Reducing learning rate by factor 2")
+                optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE / 2, weight_decay=weight_decay)
             model.train()  # Set the model to training mode
             for batch_voltages, batch_images in train_dataloader:
                 # Forward pass
@@ -315,9 +330,24 @@ if __name__ == "__main__":
                                             f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
                 # also create a sample reconstruction with the current model
                 test_voltage_data = test_voltage[SAMPLE_RECONSTRUCTION_INDEX]
+                # plot the voltage data
+                # test_voltage_data = test_voltage_data.cpu().numpy()
+                # plt.plot(test_voltage_original[SAMPLE_RECONSTRUCTION_INDEX].cpu().numpy())
+                # plt.title("Voltage data test")
+                # plt.show()
+
                 infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
                                             title=f"Reconstruction after {epoch} epochs",
                                             original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
+                # train_voltage_data = train_voltage[SAMPLE_RECONSTRUCTION_INDEX]
+                # # plot the voltage data
+                # train_voltage_data = train_voltage_data.cpu().numpy()
+                # plt.plot(train_voltage_original[SAMPLE_RECONSTRUCTION_INDEX].cpu().numpy())
+                # plt.title("Voltage data train")
+                # plt.show()
+                # infer_single_reconstruction(model=model, voltage_data=train_voltage_data,
+                #                             title=f"Reconstruction after {epoch} epochs",
+                #                             original_image=train_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
                 # plot the corresponding image
         # save the final model
         if load_model_and_continue_trainig:

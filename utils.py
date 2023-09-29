@@ -64,3 +64,33 @@ def find_center_of_mass(img):
     center_of_mass = np.array((center_of_mass[1], center_of_mass[0]))
 
     return center_of_mass
+
+
+def preprocess_absolute_eit_frame(df, SUBTRACT_MEDIAN=True, DIVIDE_BY_MEDIAN=True):
+    """
+    Preprocesses the absolute eit frame.
+    Use this methode to be consistent with preprocessing over all the project.
+    :param df: Dataframe with the eit frame
+    :return: The preprocessed eit frame
+    """
+    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+    df_alternating = df_alternating.to_frame(name="amplitude")
+    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)  # add alternating imaginary and real values
+    return preprocess(v1, DIVIDE_BY_MEDIAN, SUBTRACT_MEDIAN)
+
+
+def preprocess(v1, DIVIDE_BY_MEDIAN, SUBTRACT_MEDIAN):
+    """
+    Preprocesses the eit frame.
+    :param DIVIDE_BY_MEDIAN:
+    :param SUBTRACT_MEDIAN:
+    :param v1:
+    :return:
+    """
+    median = np.median(v1)
+    print("Median: ", median)
+    if SUBTRACT_MEDIAN:
+        v1 = v1 - median
+    if DIVIDE_BY_MEDIAN:
+        v1 = v1 / median
+    return v1

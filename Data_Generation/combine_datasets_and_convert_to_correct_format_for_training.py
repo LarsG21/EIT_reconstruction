@@ -94,17 +94,46 @@ def combine_multiple_pickles(path):
     :return:
     """
     complete_df = None
+    negative_samples = 0
+    positive_samples = 0
     for file in os.listdir(path):
         if file.endswith(".pkl") and file != "combined.pkl" and file != "pca.pkl":
             df_new = pd.read_pickle(os.path.join(path, file))
             print(f"length of {file}: {len(df_new)}")
+            if "negative" in file:
+                negative_samples += len(df_new)
+            else:
+                positive_samples += len(df_new)
+
             if complete_df is None:
                 complete_df = df_new
             else:
                 complete_df = pd.concat([complete_df, df_new])
     complete_df.to_pickle(os.path.join(path, "combined.pkl"))
     print(f"Length of combined df: {len(complete_df)}")
+    print(f"Percentage of negative samples: {negative_samples / (negative_samples + positive_samples)}")
+    print(f"Percentage of positive samples: {positive_samples / (negative_samples + positive_samples)}")
     return complete_df
+
+
+def get_infos_about_eit_dataframe(df, complex_values=True):
+    """
+    This function prints some infos about the dataframe like number of samples,
+    used frequencies, number of electrodes etc.
+    :param df:
+    :param complex_values: If True, the number of measurements is doubled
+    :return:
+    """
+    number_electrodes = 32
+    number_measurements = number_electrodes ** 2
+    if complex_values:
+        number_measurements *= 2
+
+    print(f"Number of samples: {len(df)}")
+    print(f"Length of one Voltage Vector:{df['voltages'].reset_index().iloc[0]['voltages'].shape[0]}")
+    print(
+        f"Number of used frequencies: {df['voltages'].reset_index().iloc[0]['voltages'].shape[0] / number_measurements}")
+    print(f"Number of electrodes: {number_electrodes}")
 
 if __name__ == '__main__':
     # read df from pickle
@@ -112,9 +141,9 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Data_21_09_40mm_multifreq"
-    # path = "../Collected_Data/Combined_dataset_multi2"
-    # path = "../Collected_Data/Data_28_09_60mm"
-    path = "../Collected_Data/Dataset_40mm_and_60_mm"
+    # path = "../Collected_Data/Data_28_09_3_freq_40mm"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data/Data_29_09_3_freq_40mm_2"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
@@ -126,5 +155,7 @@ if __name__ == '__main__':
     v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
-    look_at_dataset(img_array=img_array, v1_array=voltage_array, v0=v0, )
+    look_at_dataset(img_array=img_array, v1_array=voltage_array,
+                    # v0=v0,
+                    )
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)

@@ -260,7 +260,7 @@ def main():
 
     MULTI_FREQUENCY = True
     model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout/run_9_1500_samples_more_negative_set_and_augmentation/model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pth"
+    model_path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/old/LinearModelWithDropout/run_9_1500_samples_more_negative_set_and_augmentation/model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     pca = pickle.load(open(pca_path, "rb"))

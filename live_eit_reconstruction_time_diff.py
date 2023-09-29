@@ -155,7 +155,7 @@ print("Loading the model")
 
 model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 
-model_path = "Collected_Data/Dataset_40mm_and_60_mm/Models/LinearModelWithDropout2/run2_4800_samples/model_2023-09-28_15-03-42_299_300.pth"
+model_path = "Collected_Data/old/Dataset_40mm_and_60_mm/Models/LinearModelWithDropout2/run2_4800_samples/model_2023-09-28_15-03-42_299_300.pth"
 model.load_state_dict(torch.load(model_path))
 
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")

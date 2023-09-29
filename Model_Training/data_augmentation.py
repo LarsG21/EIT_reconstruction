@@ -103,6 +103,10 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
         # angle = np.random.randint(1, 4) * 90
         # print(f"Rotating image by {angle}°")
         img_rotated = rotate(img, angle, reshape=False)
+        # smaller than 0.001 set to 0
+        img_rotated[img_rotated < 0.001] = 0
+        # bigger than 0.8 set to 1
+        img_rotated[img_rotated > 0.8] = 1
         if show_examples:
             cv2.imshow("Original image", cv2.resize(img, (500, 500)))
             cv2.imshow("Rotated image", cv2.resize(img_rotated, (500, 500)))
