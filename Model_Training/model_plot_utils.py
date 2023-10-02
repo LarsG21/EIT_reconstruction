@@ -1,5 +1,6 @@
 import os
 import time
+from datetime import datetime
 
 import cv2
 import numpy as np
@@ -66,6 +67,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         img = img.cpu()
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
+        volt = volt.view(-1, volt.shape[0])
         output = model(volt)
         output = output.cpu()
         output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
@@ -204,3 +206,45 @@ def plot_loss(val_loss_list, loss_list=None, save_name=""):
     if save_name != "":
         plt.savefig(save_name)
     plt.show()
+
+
+def plot_loss_and_sample_reconstruction(epoch,
+                                        LOSS_PLOT_INTERVAL,
+                                        model,
+                                        loss_list,
+                                        val_loss_list,
+                                        test_voltage,
+                                        test_images,
+                                        model_path,
+                                        num_epochs,
+                                        SAMPLE_RECONSTRUCTION_INDEX=0,
+                                        SAVE_CHECKPOINTS=True
+                                        ):
+    if epoch % LOSS_PLOT_INTERVAL == 0 and epoch != 0:
+        plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name="")
+        # save the model
+        if SAVE_CHECKPOINTS:
+            torch.save(model.state_dict(),
+                       os.path.join(model_path,
+                                    f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
+        # also create a sample reconstruction with the current model
+        test_voltage_data = test_voltage[SAMPLE_RECONSTRUCTION_INDEX]
+        # plot the voltage data
+        # test_voltage_data = test_voltage_data.cpu().numpy()
+        # plt.plot(test_voltage_original[SAMPLE_RECONSTRUCTION_INDEX].cpu().numpy())
+        # plt.title("Voltage data test")
+        # plt.show()
+
+        infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
+                                    title=f"Reconstruction after {epoch} epochs",
+                                    original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
+        # train_voltage_data = train_voltage[SAMPLE_RECONSTRUCTION_INDEX]
+        # # plot the voltage data
+        # train_voltage_data = train_voltage_data.cpu().numpy()
+        # plt.plot(train_voltage_original[SAMPLE_RECONSTRUCTION_INDEX].cpu().numpy())
+        # plt.title("Voltage data train")
+        # plt.show()
+        # infer_single_reconstruction(model=model, voltage_data=train_voltage_data,
+        #                             title=f"Reconstruction after {epoch} epochs",
+        #                             original_image=train_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
+        # plot the corresponding image

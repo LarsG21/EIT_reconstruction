@@ -9,12 +9,13 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 from CustomDataset import CustomDataset
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation
 from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2, LinearModelWithDropoutAndBatchNorm
-from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
+from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, plot_loss_and_sample_reconstruction
 from utils import preprocess
 
 LOSS_SCALE_FACTOR = 1000
@@ -110,19 +111,19 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
 
 ABSOLUTE_EIT = False
-SAMPLE_RECONSTRUCTION_INDEX = 0  # Change this to see different sample reconstructions
+SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
 
 if __name__ == "__main__":
     TRAIN = True
     ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 1
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 1
+    NUMBER_OF_NOISE_AUGMENTATIONS = 2
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
     LOADING_PATH = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/train_pca_64/model_2023-09-28_16-06-34_299_300.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 5
+    LOSS_PLOT_INTERVAL = 10
     # Training parameters
-    num_epochs = 200
+    num_epochs = 150
     NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.001
@@ -138,6 +139,7 @@ if __name__ == "__main__":
         VOLTAGE_VECTOR_LENGTH = PCA_COMPONENTS
     best_val_loss = float('inf')  # Initialize with a very high value
     counter = 0  # Counter to track epochs without improvement
+    # model = LinearModelWithDropoutAndBatchNorm(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
     # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
@@ -149,7 +151,7 @@ if __name__ == "__main__":
     if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
         raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
-    model_name = "run3"
+    model_name = "TESTING"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
@@ -192,16 +194,16 @@ if __name__ == "__main__":
 
     # Highlight: In case of PCA Data v0 is already used for normalization
     voltage_data_np = preprocess(v1=voltage_data_np,
-                                 SUBTRACT_MEDIAN=True,
-                                 DIVIDE_BY_MEDIAN=True)
+                                 SUBTRACT_MEDIAN=False,
+                                 DIVIDE_BY_MEDIAN=False)
 
     print("Overall data shape: ", voltage_data_np.shape)
 
     voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to(device)
     image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32).to(device)
 
-    dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
-    dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
+    # dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
+    # dataloader = data.DataLoader(dataset, batch_size=64, shuffle=True)
 
     # Step 3: Save the model summary
     print("model summary: ", model)
@@ -244,16 +246,16 @@ if __name__ == "__main__":
 
     # Step 5: Create the DataLoader for train, test, and validation sets
     train_dataset = CustomDataset(train_voltage, train_images)
-    train_dataloader = data.DataLoader(train_dataset, batch_size=32, shuffle=False)
+    train_dataloader = data.DataLoader(train_dataset, batch_size=64, shuffle=False)
     # number of training samples
     print("Number of training samples: ", len(train_dataset))
 
     val_dataset = CustomDataset(val_voltage, val_images)
-    val_dataloader = data.DataLoader(val_dataset, batch_size=32, shuffle=False)
+    val_dataloader = data.DataLoader(val_dataset, batch_size=64, shuffle=False)
     print("Number of validation samples: ", len(val_dataset))
 
     test_dataset = CustomDataset(test_voltage, test_images)
-    test_dataloader = data.DataLoader(test_dataset, batch_size=32, shuffle=False)
+    test_dataloader = data.DataLoader(test_dataset, batch_size=64, shuffle=False)
     print("Number of test samples: ", len(test_dataset))
 
     # save number of samples in txt file
@@ -269,7 +271,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)
 
     # # add a scheduler
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     # loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
     #                                                    criterion=criterion)
@@ -287,11 +289,12 @@ if __name__ == "__main__":
         best_model = model
         for epoch in range(num_epochs):
             # reduce learning rate after 50 epochs
-            if epoch == 50:
-                print("INFO: Reducing learning rate by factor 2")
-                optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE / 2, weight_decay=weight_decay)
+            # if epoch == 50:
+            #     print("INFO: Reducing learning rate by factor 2")
+            #     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE / 2, weight_decay=weight_decay)
             model.train()  # Set the model to training mode
-            for batch_voltages, batch_images in train_dataloader:
+            loop = tqdm(train_dataloader)
+            for batch_voltages, batch_images in loop:
                 # Forward pass
                 # reshape the voltages to be [32, 1, INPUT_SIZE]
                 # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
@@ -321,38 +324,26 @@ if __name__ == "__main__":
 
                 val_loss_list.append(val_loss)
                 print(
-                    f"Epoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Training Loss: {round(loss.item(), 4)}")
+                    f"\nEpoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Training Loss: {round(loss.item(), 4)}")
 
             loss_list.append(loss.item())
-            # plot loss every N epochs
-            if epoch % LOSS_PLOT_INTERVAL == 0 and epoch != 0:
-                plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name="")
-                # save the model
-                if SAVE_CHECKPOINTS:
-                    torch.save(model.state_dict(),
-                               os.path.join(model_path,
-                                            f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth"))
-                # also create a sample reconstruction with the current model
-                test_voltage_data = test_voltage[SAMPLE_RECONSTRUCTION_INDEX]
-                # plot the voltage data
-                # test_voltage_data = test_voltage_data.cpu().numpy()
-                # plt.plot(test_voltage_original[SAMPLE_RECONSTRUCTION_INDEX].cpu().numpy())
-                # plt.title("Voltage data test")
-                # plt.show()
+            # plot loss and sample reconstruction every N epochs
 
-                infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
-                                            title=f"Reconstruction after {epoch} epochs",
-                                            original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
-                # train_voltage_data = train_voltage[SAMPLE_RECONSTRUCTION_INDEX]
-                # # plot the voltage data
-                # train_voltage_data = train_voltage_data.cpu().numpy()
-                # plt.plot(train_voltage_original[SAMPLE_RECONSTRUCTION_INDEX].cpu().numpy())
-                # plt.title("Voltage data train")
-                # plt.show()
-                # infer_single_reconstruction(model=model, voltage_data=train_voltage_data,
-                #                             title=f"Reconstruction after {epoch} epochs",
-                #                             original_image=train_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
-                # plot the corresponding image
+            plot_loss_and_sample_reconstruction(
+                epoch,
+                LOSS_PLOT_INTERVAL,
+                model,
+                loss_list,
+                val_loss_list,
+                test_voltage,
+                test_images,
+                model_path,
+                num_epochs,
+                SAMPLE_RECONSTRUCTION_INDEX,
+                SAVE_CHECKPOINTS
+            )
+
+            loop.set_postfix(loss=loss.item())
         # save the final model
         if load_model_and_continue_trainig:
             save_path = os.path.join(model_path,
