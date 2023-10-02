@@ -13,12 +13,13 @@ from sklearn.model_selection import train_test_split
 from CustomDataset import CustomDataset
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation
-from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2
+from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2, LinearModelWithDropoutAndBatchNorm
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
 from utils import preprocess
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 6144
+# VOLTAGE_VECTOR_LENGTH = 6144
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -108,20 +109,20 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-ABSOLUTE_EIT = True
-SAMPLE_RECONSTRUCTION_INDEX = -1  # Change this to see different sample reconstructions
+ABSOLUTE_EIT = False
+SAMPLE_RECONSTRUCTION_INDEX = 0  # Change this to see different sample reconstructions
 
 if __name__ == "__main__":
     TRAIN = True
-    ADD_AUGMENTATION = False
-    NUMBER_OF_NOISE_AUGMENTATIONS = 0
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 4
+    ADD_AUGMENTATION = True
+    NUMBER_OF_NOISE_AUGMENTATIONS = 1
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 1
     LOADING_PATH = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/train_pca_64/model_2023-09-28_16-06-34_299_300.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 10
+    LOSS_PLOT_INTERVAL = 5
     # Training parameters
-    num_epochs = 300
+    num_epochs = 200
     NOISE_LEVEL = 0.05
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.001
@@ -131,7 +132,7 @@ if __name__ == "__main__":
     # Define early stopping parameters
     # patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
     patience = 40  # Number of epochs to wait for improvement
-    PCA_COMPONENTS = 128  # 0 means no PCA
+    PCA_COMPONENTS = 0  # 0 means no PCA
     ######################################################################################
     if PCA_COMPONENTS > 0:
         VOLTAGE_VECTOR_LENGTH = PCA_COMPONENTS
@@ -139,8 +140,8 @@ if __name__ == "__main__":
     counter = 0  # Counter to track epochs without improvement
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    # path = "../Collected_Data/Combined_dataset"
+    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Dataset_40mm_and_60_mm"
     #################################
     if "multi" in path.lower() and not ABSOLUTE_EIT:
@@ -148,7 +149,7 @@ if __name__ == "__main__":
     if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
         raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
-    model_name = "experiment_minus_median_divide_by_median_normalization"
+    model_name = "run3"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
@@ -266,6 +267,9 @@ if __name__ == "__main__":
 
     # Initialize the optimizer with weight decay
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)
+
+    # # add a scheduler
+    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
 
     # loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
     #                                                    criterion=criterion)

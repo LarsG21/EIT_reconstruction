@@ -115,6 +115,45 @@ class LinearModelWithDropout2(nn.Module):
         x = self.decoder(x)
         return x
 
+
+class LinearModelWithDropoutAndBatchNorm(nn.Module):
+    def __init__(self, input_size, output_size, dropout_prob=0.1):
+        super(LinearModelWithDropoutAndBatchNorm, self).__init__()
+
+        self.encoder = nn.Sequential(
+            nn.Linear(input_size, 128),
+            nn.BatchNorm1d(128),  # Batch Normalization after the first encoder layer
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),
+            nn.Linear(128, 64),
+            nn.BatchNorm1d(64),  # Batch Normalization after the second encoder layer
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),
+            nn.Linear(64, 32),
+            nn.BatchNorm1d(32),  # Batch Normalization after the third encoder layer
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob)
+        )
+
+        self.decoder = nn.Sequential(
+            nn.Linear(32, 64),
+            nn.BatchNorm1d(64),  # Batch Normalization after the first decoder layer
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),
+            nn.Linear(64, 128),
+            nn.BatchNorm1d(128),  # Batch Normalization after the second decoder layer
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),
+            nn.Linear(128, output_size)
+            # nn.Sigmoid(),  # You can add Sigmoid activation if needed
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+
 # TODO: Implement the ConvolutionalModel class
 class ConvolutionalModelWithDropout(nn.Module):
     def __init__(self, input_size, output_size, dropout_prob=0.1):
