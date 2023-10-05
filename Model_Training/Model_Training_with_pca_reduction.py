@@ -4,6 +4,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -18,6 +19,9 @@ from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel,
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, plot_loss_and_sample_reconstruction
 from utils import preprocess
 
+from EarlyStoppingHandler import EarlyStoppingHandler
+
+
 LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 6144
 VOLTAGE_VECTOR_LENGTH = 1024
@@ -26,6 +30,7 @@ OUT_SIZE = 64
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
 
 if torch.cuda.is_available():
+
     print("Torch is using CUDA")
     print("Cuda device count", torch.cuda.device_count())
     print("Cuda device name", torch.cuda.get_device_name(0))
@@ -44,25 +49,6 @@ else:
 # torch.cuda.set_device(0)
 # device = "cpu"
 
-
-def handle_early_stopping():
-    global best_val_loss, counter, best_model, model
-    if val_loss < best_val_loss:  # Early stopping
-        best_val_loss = val_loss
-        counter = 0
-        best_model = copy.deepcopy(model)
-    else:
-        counter += 1
-        print(f"Early stopping in {patience - counter} epochs")
-        if counter >= patience:
-            print("Early stopping triggered. No improvement in validation loss.")
-            # save the model
-            torch.save(best_model.state_dict(),
-                       os.path.join(model_path,
-                                    f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_epoche_{epoch}_of_{num_epochs}_best_model.pth"))
-            model = best_model  # load the best model
-            return True
-    return False
 
 
 def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dataloader, val_dataloader, save_path):
@@ -110,40 +96,35 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-ABSOLUTE_EIT = False
-SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
-
-if __name__ == "__main__":
+def trainings_loop(early_stopping_handler):
+    ABSOLUTE_EIT = True
+    SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
     TRAIN = True
     ADD_AUGMENTATION = True
     NUMBER_OF_NOISE_AUGMENTATIONS = 2
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 2
+    NUMBER_OF_ROTATION_AUGMENTATIONS = 0
     LOADING_PATH = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/train_pca_64/model_2023-09-28_16-06-34_299_300.pth"
     load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 10
+    LOSS_PLOT_INTERVAL = 20
     # Training parameters
-    num_epochs = 150
-    NOISE_LEVEL = 0.05
+    num_epochs = 80
+    NOISE_LEVEL = 0.5
     # NOISE_LEVEL = 0
     LEARNING_RATE = 0.001
     # Define the weight decay factor
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
     # weight_decay = 0  # Adjust this value as needed (L2 regularization)
     # Define early stopping parameters
-    # patience = max(num_epochs * 0.15, 50)  # Number of epochs to wait for improvement
-    patience = 40  # Number of epochs to wait for improvement
-    PCA_COMPONENTS = 0  # 0 means no PCA
+    PCA_COMPONENTS = 128  # 0 means no PCA
     ######################################################################################
     if PCA_COMPONENTS > 0:
         VOLTAGE_VECTOR_LENGTH = PCA_COMPONENTS
-    best_val_loss = float('inf')  # Initialize with a very high value
-    counter = 0  # Counter to track epochs without improvement
     # model = LinearModelWithDropoutAndBatchNorm(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
-    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    path = "../Collected_Data/Combined_dataset"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Dataset_40mm_and_60_mm"
     #################################
     if "multi" in path.lower() and not ABSOLUTE_EIT:
@@ -151,6 +132,7 @@ if __name__ == "__main__":
     if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
         raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
     ####################################
+    # model_name = "experiment_2_only_devide_normalized"
     model_name = "TESTING"
     ####################################
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -168,7 +150,7 @@ if __name__ == "__main__":
         f.write(f"NOISE_LEVEL: {NOISE_LEVEL}\n")
         f.write(f"LEARNING_RATE: {LEARNING_RATE}\n")
         f.write(f"weight_decay: {weight_decay}\n")
-        f.write(f"patience: {patience}\n")
+        f.write(f"patience: {early_stopping_handler.patience}\n")
         f.write(f"num_epochs: {num_epochs}\n")
         f.write(f"Augmentations: {ADD_AUGMENTATION}\n")
         f.write(f"Number of augmentations: {NUMBER_OF_NOISE_AUGMENTATIONS}\n")
@@ -192,9 +174,9 @@ if __name__ == "__main__":
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
         # Now the model should learn the difference between the voltages and v0 (default state)
 
-    # Highlight: In case of PCA Data v0 is already used for normalization
+    # Highlight: Preprocess the data
     voltage_data_np = preprocess(v1=voltage_data_np,
-                                 SUBTRACT_MEDIAN=False,
+                                 SUBTRACT_MEDIAN=True,
                                  DIVIDE_BY_MEDIAN=False)
 
     print("Overall data shape: ", voltage_data_np.shape)
@@ -318,8 +300,10 @@ if __name__ == "__main__":
                     val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
                 val_loss /= len(val_dataloader)
-                stop = handle_early_stopping()  # Early stopping
+                # stop = handle_early_stopping()  # Early stopping
+                stop = early_stopping_handler.handle_early_stopping(model, val_loss, epoch, num_epochs, model_path)
                 if stop:
+                    model = early_stopping_handler.get_best_model()
                     break
 
                 val_loss_list.append(val_loss)
@@ -352,6 +336,11 @@ if __name__ == "__main__":
             save_path = os.path.join(model_path,
                                      f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
         torch.save(model.state_dict(), save_path)
+        # put loss lists into a dataframe and save it
+        df = pd.DataFrame({"loss": loss_list, "val_loss": val_loss_list})
+        # round the values
+        df = df.round(4)
+        df.to_csv(os.path.join(model_path, "losses.csv"))
         # plot the final loss
         plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
     # load the model
@@ -378,3 +367,8 @@ if __name__ == "__main__":
     # single_datapoint = voltage_data_np[0]
     # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
     # plot_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
+
+
+if __name__ == "__main__":
+    early_stopping_handler = EarlyStoppingHandler(patience=2)
+    trainings_loop(early_stopping_handler)
