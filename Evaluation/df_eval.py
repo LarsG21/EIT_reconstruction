@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
 df = pd.read_pickle(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pkl")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\evaluation_model_model_2023-09-29_15-24-19_599_600.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3

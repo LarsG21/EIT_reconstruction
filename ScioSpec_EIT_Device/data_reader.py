@@ -407,7 +407,7 @@ if __name__ == '__main__':
     # time1 = timeit.timeit(lambda: convert_single_frequency_eit_file_to_df(path_single), number=10)
     # print("Time of single frequency conversion: ", time1)
     # #
-    path_multi4 = "../eit_data/20230925 15.10.15/setup_1/setup_1_00001.eit"
+    path_multi4 = "../eit_experiments/3_freq_move_Target/setup_1/setup_1_00002.eit"
     # time = timeit.timeit(lambda: convert_multi_frequency_eit_to_df(path_single), number=10)
     # print("Time of multi frequency conversion: ", time)
 
@@ -420,7 +420,7 @@ if __name__ == '__main__':
     df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
     df_alternating = df_alternating.to_frame(name="amplitude")
     v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
-    np.save("v0.npy", v1)
+    # np.save("v0.npy", v1)
 
     # print("finished conversion")
     #

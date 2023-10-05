@@ -340,14 +340,14 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_05_10_3629_samples_with_augmentation"
+    model_name = "Run_05_10_3629_samples_with_augmentation2"
     path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     num_epochs = 300
     learning_rate = 0.001
     pca_components = 128
     add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 2
+    number_of_noise_augmentations = 1
     number_of_rotation_augmentations = 0
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
 
