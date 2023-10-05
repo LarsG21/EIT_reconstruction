@@ -18,6 +18,7 @@ from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to
 from plot_utils import solve_and_plot
 from pyeit.eit import protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
+from utils import preprocess_absolute_eit_frame
 
 n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
@@ -219,12 +220,12 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
                     difference = difference - np.mean(difference)
                 else:
                     df = convert_multi_frequency_eit_to_df(file_path)
-                    df_alternating = pd.DataFrame(
-                        {"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
-                    df_alternating = df_alternating.to_frame(name="amplitude")
-                    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+                    v1 = preprocess_absolute_eit_frame(df,
+                                                       SUBTRACT_MEDIAN=SUBSTARCT_MEDIAN,
+                                                       DIVIDE_BY_MEDIAN=DIVIDE_BY_MEDIAN)
                     v1 = pca.transform(v1.reshape(1, -1))
                     difference = v1
+
                 img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
 
                 position_error, error_vector = evaluate_position_error(center_for_moving, gcode_device,
@@ -252,29 +253,41 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
     return df
 
 
+### Setings ###
+MULTI_FREQUENCY = True
+VOLTAGE_VECTOR_LENGTH = 128
+OUT_SIZE = 64
+SUBSTARCT_MEDIAN = True
+DIVIDE_BY_MEDIAN = True
+
+
+### Setings ###
+
 def main():
     global model, v0, model_path, pca, MULTI_FREQUENCY
-    VOLTAGE_VECTOR_LENGTH = 128
-    OUT_SIZE = 64
     print("Loading the model")
-
-    MULTI_FREQUENCY = True
-    model = LinearModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/old/LinearModelWithDropout/run_9_1500_samples_more_negative_set_and_augmentation/model_2023-09-22_13-48-51_epoche_395_of_400_best_model.pth"
+    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    model_path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     pca = pickle.load(open(pca_path, "rb"))
 
     devices = list_serial_devices()
     ender = None
+    # ask user if he wants to home
+    home = input("Do you want to home the device? (y/n)")
+    home = True if home == "y" else False
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                home_on_init=False
+                                home_on_init=home
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            # ask user if he wants to calibrate
+            calibrate = input("Do you want to calibrate the device? (y/n)")
+            if calibrate == "y":
+                calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
@@ -282,7 +295,7 @@ def main():
         print("Ender 3 found")
     # v0_df = convert_single_frequency_eit_file_to_df("v0.eit")
     # v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
-    v0 = np.load("v0.npy")
+    # v0 = np.load("v0.npy")
     # v0 = v0[keep_mask]
 
     # evaluate_reconstruction_at_random_positions(gcode_device=ender, number_of_samples=400, eit_data_path="../eit_data")

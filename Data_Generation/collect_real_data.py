@@ -193,13 +193,18 @@ def main():
     ender = None
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
+            home = input("Do you want to home the device? (y/n)")
+            home = True if home == "y" else False
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                home_on_init=False
+                                home_on_init=home
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM  # half at the top and half at the bottom
             print(f"Maximal limits: {MAX_RADIUS}")
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            # ask user if he wants to calibrate
+            calibrate = input("Do you want to calibrate the device? (y/n)")
+            if calibrate == "y":
+                calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         raise Exception("No Ender 3 found")

@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac, wait_1_file_and_get_next
+    solve_eit_using_jac, wait_1_file_and_get_next, calibration_procedure
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
 from pyeit import mesh
@@ -162,7 +162,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
         # save the images and voltages in a dataframe every 10 samples
-        if i % 10 == 0:
+        if i % 20 == 0:
             df = pd.DataFrame({"images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
@@ -176,59 +176,29 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     df.to_pickle(save_path_data)
 
 
-def calibration_procedure(gcode_device):
-    """
-    Moves the Target to specific positions for calibration.
-    Moves to positions of electrodes 9, 25, 1, 17
-    :param gcode_device:
-    :return:
-    """
-    print("Moving to the center of the tank for calibration")
-    limit_x = gcode_device.maximal_limits[0]
-    limit_z = gcode_device.maximal_limits[2]
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    print("Move enter so that target is in the center of the tank.")
-    input("Press Enter to continue...")
-    # move to top of the tank
-    print("Moving to the top of the tank")
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z - RADIUS_TARGET_IN_MM / 2)
-    input("Press Enter to continue...")
-    # move to the bottom of the tank#
-    print("Moving to the bottom of the tank")
-    gcode_device.move_to(x=limit_x / 2, y=0, z=0 + RADIUS_TARGET_IN_MM / 2)
-    input("Press Enter to continue...")
-    # move to the center of the tank
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    # move to the right of the tank
-    print("Moving to the right of the tank")
-    gcode_device.move_to(x=0 + RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
-    # move to the left of the tank
-    print("Moving to the left of the tank")
-    gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
-    # move to the center of the tank
-    gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
-
 
 def main():
     devices = list_serial_devices()
     ender = None
     for device in devices:
         if "USB-SERIAL CH340" in device.description:
+            home = input("Do you want to home the device? (y/n)")
+            home = True if home == "y" else False
             ender = GCodeDevice(device.device, movement_speed=6000,
-                                home_on_init=False
+                                home_on_init=home
                                 )
             MAX_RADIUS = RADIUS_TANK_IN_MM
             ender.maximal_limits = [MAX_RADIUS, MAX_RADIUS, MAX_RADIUS]
-            calibration_procedure(ender)
+            # ask user if he wants to calibrate
+            calibrate = input("Do you want to calibrate the device? (y/n)")
+            if calibrate == "y":
+                calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             break
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_22_09_2_freq"
-    collect_data(gcode_device=ender, number_of_samples=300,
+    TEST_NAME = "Data_29_09_3_freq_40mm_2"
+    collect_data(gcode_device=ender, number_of_samples=3000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
