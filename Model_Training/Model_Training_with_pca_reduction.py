@@ -15,12 +15,13 @@ from tqdm import tqdm
 from CustomDataset import CustomDataset
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation
-from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2, LinearModelWithDropoutAndBatchNorm
-from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, plot_loss_and_sample_reconstruction
+from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2, \
+    LinearModelWithDropoutAndBatchNorm
+from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, \
+    plot_loss_and_sample_reconstruction, plot_difference_for_some_sample_reconstruction_images
 from utils import preprocess
 
 from EarlyStoppingHandler import EarlyStoppingHandler
-
 
 LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 6144
@@ -48,7 +49,6 @@ else:
 
 # torch.cuda.set_device(0)
 # device = "cpu"
-
 
 
 def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dataloader, val_dataloader, save_path):
@@ -96,46 +96,31 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-def trainings_loop(early_stopping_handler):
+def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: float, num_epochs: int,
+                   early_stopping_handler: EarlyStoppingHandler, loading_path: str = "",
+                   pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
+                   number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
+                   weight_decay: float = 1e-3, normalize=True
+                   ):
+    global VOLTAGE_VECTOR_LENGTH
     ABSOLUTE_EIT = True
     SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
-    TRAIN = True
-    ADD_AUGMENTATION = True
-    NUMBER_OF_NOISE_AUGMENTATIONS = 2
-    NUMBER_OF_ROTATION_AUGMENTATIONS = 0
-    LOADING_PATH = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/train_pca_64/model_2023-09-28_16-06-34_299_300.pth"
-    load_model_and_continue_trainig = False
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 20
-    # Training parameters
-    num_epochs = 80
-    NOISE_LEVEL = 0.5
-    # NOISE_LEVEL = 0
-    LEARNING_RATE = 0.001
-    # Define the weight decay factor
-    weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
-    # weight_decay = 0  # Adjust this value as needed (L2 regularization)
-    # Define early stopping parameters
-    PCA_COMPONENTS = 128  # 0 means no PCA
+
     ######################################################################################
-    if PCA_COMPONENTS > 0:
-        VOLTAGE_VECTOR_LENGTH = PCA_COMPONENTS
+    if pca_components > 0:
+        VOLTAGE_VECTOR_LENGTH = pca_components
     # model = LinearModelWithDropoutAndBatchNorm(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    # path = "../Collected_Data/Combined_dataset"
-    # path = "../Collected_Data/Dataset_40mm_and_60_mm"
+    path = path_to_training_data
     #################################
     if "multi" in path.lower() and not ABSOLUTE_EIT:
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
     if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
         raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
-    ####################################
-    # model_name = "experiment_2_only_devide_normalized"
-    model_name = "TESTING"
-    ####################################
-    # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)
     print(f"Model path: {model_path}")
@@ -147,15 +132,15 @@ def trainings_loop(early_stopping_handler):
 
     # Save settings in txt file
     with open(os.path.join(model_path, "settings.txt"), "w") as f:
-        f.write(f"NOISE_LEVEL: {NOISE_LEVEL}\n")
-        f.write(f"LEARNING_RATE: {LEARNING_RATE}\n")
+        f.write(f"NOISE_LEVEL: {noise_level}\n")
+        f.write(f"LEARNING_RATE: {learning_rate}\n")
         f.write(f"weight_decay: {weight_decay}\n")
         f.write(f"patience: {early_stopping_handler.patience}\n")
         f.write(f"num_epochs: {num_epochs}\n")
-        f.write(f"Augmentations: {ADD_AUGMENTATION}\n")
-        f.write(f"Number of augmentations: {NUMBER_OF_NOISE_AUGMENTATIONS}\n")
-        f.write(f"Number of rotation augmentations: {NUMBER_OF_ROTATION_AUGMENTATIONS}\n")
-        f.write(f"PCA_COMPONENTS: {PCA_COMPONENTS}\n")
+        f.write(f"Augmentations: {add_augmentation}\n")
+        f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
+        f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
+        f.write(f"PCA_COMPONENTS: {pca_components}\n")
         f.write("\n")
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
@@ -165,7 +150,7 @@ def trainings_loop(early_stopping_handler):
     # image_data_np = image_data_np[:800]
     # voltage_data_np = voltage_data_np[:800]
 
-    # Highlight: In case of PCA Data v0 is already used for normalization
+    # Highlight Step 1: In case of time difference EIT, we need to normalize the data with v0
     if not ABSOLUTE_EIT:
         print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
         v0 = np.load(os.path.join(path, "v0.npy"))
@@ -174,10 +159,11 @@ def trainings_loop(early_stopping_handler):
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
         # Now the model should learn the difference between the voltages and v0 (default state)
 
-    # Highlight: Preprocess the data
-    voltage_data_np = preprocess(v1=voltage_data_np,
-                                 SUBTRACT_MEDIAN=True,
-                                 DIVIDE_BY_MEDIAN=False)
+    # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
+    if normalize:
+        voltage_data_np = preprocess(v1=voltage_data_np,
+                                     SUBTRACT_MEDIAN=True,
+                                     DIVIDE_BY_MEDIAN=True)
 
     print("Overall data shape: ", voltage_data_np.shape)
 
@@ -187,7 +173,7 @@ def trainings_loop(early_stopping_handler):
     # dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
     # dataloader = data.DataLoader(dataset, batch_size=64, shuffle=True)
 
-    # Step 3: Save the model summary
+    # Highlight Step 3: Save the model summary
     print("model summary: ", model)
     # print number of trainable parameters
     nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -199,7 +185,7 @@ def trainings_loop(early_stopping_handler):
         f.write(f"Number of trainable parameters: {nr_trainable_params}\n")
         f.write("\n")
 
-    # Step 4: Split the data into train, test, and validation sets
+    # Highlight Step 4: Split the data into train, test, and validation sets
     print("INFO: Splitting data into train, validation and test sets")
     train_voltage, val_voltage, train_images, val_images = train_test_split(
         voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42)
@@ -207,26 +193,26 @@ def trainings_loop(early_stopping_handler):
     val_voltage, test_voltage, val_images, test_images = train_test_split(
         val_voltage, val_images, test_size=0.2, random_state=42)
 
-    # Step 4.1: Augment the training data
-    if ADD_AUGMENTATION:
+    # Highlight Step 4.1: Augment the training data
+    if add_augmentation:
         # augment the training data
         print("INFO: Adding noise augmentation")
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                             NUMBER_OF_NOISE_AUGMENTATIONS, NOISE_LEVEL, device=device)
+                                                             number_of_noise_augmentations, noise_level, device=device)
         print("INFO: Adding rotation augmentation")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-                                                                NUMBER_OF_ROTATION_AUGMENTATIONS, device=device)
+                                                                number_of_rotation_augmentations, device=device)
     train_voltage_original = train_voltage.clone()
     test_voltage_original = test_voltage.clone()
-    # Step4.2 Do PCA to reduce the number of features
-    if PCA_COMPONENTS > 0:
+    # Highlight Step4.2 Do PCA to reduce the number of input features
+    if pca_components > 0:
         print("INFO: Performing PCA on input data")
         train_voltage, val_voltage, test_voltage = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
                                                                              val_voltage, test_voltage, model_path,
                                                                              device,
-                                                                             n_components=PCA_COMPONENTS)
+                                                                             n_components=pca_components)
 
-    # Step 5: Create the DataLoader for train, test, and validation sets
+    # Highlight Step 5: Create the DataLoader for train, test, and validation sets
     train_dataset = CustomDataset(train_voltage, train_images)
     train_dataloader = data.DataLoader(train_dataset, batch_size=64, shuffle=False)
     # number of training samples
@@ -246,13 +232,13 @@ def trainings_loop(early_stopping_handler):
         f.write(f"Number of validation samples: {len(val_dataset)}\n")
         f.write(f"Number of test samples: {len(test_dataset)}\n")
 
-    # Step 6: Define the loss function and optimizer
+    # Highlight Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()
 
     # Initialize the optimizer with weight decay
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=weight_decay)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-    # # add a scheduler
+    # # add a scheduler to reduce the learning rate
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     # loss_black_img = calc_average_loss_completly_black(image_data_tensor=image_data_tensor,
@@ -261,114 +247,115 @@ def trainings_loop(early_stopping_handler):
     # loss_white_img = calc_average_loss_completly_white(image_data_tensor=image_data_tensor,
     #                                                    criterion=criterion)
 
-    if TRAIN:
-        # Step 7: Define the training loop
-        if load_model_and_continue_trainig:
-            model.load_state_dict(torch.load(
-                os.path.join(model_path, "model_2023-09-28_16-06-34_299_300.pth")))
-        loss_list = []
-        val_loss_list = []
-        best_model = model
-        for epoch in range(num_epochs):
-            # reduce learning rate after 50 epochs
-            # if epoch == 50:
-            #     print("INFO: Reducing learning rate by factor 2")
-            #     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE / 2, weight_decay=weight_decay)
-            model.train()  # Set the model to training mode
-            loop = tqdm(train_dataloader)
-            for batch_voltages, batch_images in loop:
-                # Forward pass
-                # reshape the voltages to be [32, 1, INPUT_SIZE]
+    # Highlight Step 7: Define the training loop
+    if loading_path != "":
+        model.load_state_dict(torch.load(
+            os.path.join(model_path, "model_2023-09-28_16-06-34_299_300.pth")))
+    loss_list = []
+    val_loss_list = []
+    for epoch in range(num_epochs):
+        model.train()  # Set the model to training mode
+        loop = tqdm(train_dataloader)
+        for batch_voltages, batch_images in loop:
+            # Forward pass
+            # reshape the voltages to be [32, 1, INPUT_SIZE]
+            # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
+            outputs = model(batch_voltages)
+
+            # Compute loss
+            loss = criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)) * LOSS_SCALE_FACTOR
+
+            # Backpropagation and optimization
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+        # After each epoch, evaluate the model on the validation set
+        model.eval()  # Set the model to evaluation mode
+        with torch.no_grad():
+            val_loss = 0.0
+            for batch_voltages, batch_images in val_dataloader:
                 # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
                 outputs = model(batch_voltages)
+                val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
-                # Compute loss
-                loss = criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)) * LOSS_SCALE_FACTOR
+            val_loss /= len(val_dataloader)
+            stop = early_stopping_handler.handle_early_stopping(model, val_loss, epoch, num_epochs, model_path)
+            if stop:
+                model = early_stopping_handler.get_best_model()
+                break
 
-                # Backpropagation and optimization
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+            val_loss_list.append(val_loss)
+            print(
+                f"\nEpoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Training Loss: {round(loss.item(), 4)}")
 
-            # After each epoch, evaluate the model on the validation set
-            model.eval()  # Set the model to evaluation mode
-            with torch.no_grad():
-                val_loss = 0.0
-                for batch_voltages, batch_images in val_dataloader:
-                    # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
-                    outputs = model(batch_voltages)
-                    val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+        loss_list.append(loss.item())
+        # plot loss and sample reconstruction every N epochs
+        plot_loss_and_sample_reconstruction(
+            epoch,
+            LOSS_PLOT_INTERVAL,
+            model,
+            loss_list,
+            val_loss_list,
+            test_voltage,
+            test_images,
+            model_path,
+            num_epochs,
+            SAMPLE_RECONSTRUCTION_INDEX,
+            SAVE_CHECKPOINTS
+        )
 
-                val_loss /= len(val_dataloader)
-                # stop = handle_early_stopping()  # Early stopping
-                stop = early_stopping_handler.handle_early_stopping(model, val_loss, epoch, num_epochs, model_path)
-                if stop:
-                    model = early_stopping_handler.get_best_model()
-                    break
+        loop.set_postfix(loss=loss.item())
+    # save the final model
+    if loading_path != "":
+        save_path = os.path.join(model_path,
+                                 f"continued_model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
+    else:
+        save_path = os.path.join(model_path,
+                                 f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
+    torch.save(model.state_dict(), save_path)
+    # put loss lists into a dataframe and save it
+    df = pd.DataFrame({"loss": loss_list, "val_loss": val_loss_list})
+    # round the values
+    df = df.round(4)
+    df.to_csv(os.path.join(model_path, "losses.csv"))
+    # plot the final loss
+    plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
 
-                val_loss_list.append(val_loss)
-                print(
-                    f"\nEpoch [{epoch + 1}/{num_epochs}], Val Loss: {round(val_loss, 4)} Training Loss: {round(loss.item(), 4)}")
-
-            loss_list.append(loss.item())
-            # plot loss and sample reconstruction every N epochs
-
-            plot_loss_and_sample_reconstruction(
-                epoch,
-                LOSS_PLOT_INTERVAL,
-                model,
-                loss_list,
-                val_loss_list,
-                test_voltage,
-                test_images,
-                model_path,
-                num_epochs,
-                SAMPLE_RECONSTRUCTION_INDEX,
-                SAVE_CHECKPOINTS
-            )
-
-            loop.set_postfix(loss=loss.item())
-        # save the final model
-        if load_model_and_continue_trainig:
-            save_path = os.path.join(model_path,
-                                     f"continued_model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
-        else:
-            save_path = os.path.join(model_path,
-                                     f"model_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}_{epoch}_{num_epochs}.pth")
-        torch.save(model.state_dict(), save_path)
-        # put loss lists into a dataframe and save it
-        df = pd.DataFrame({"loss": loss_list, "val_loss": val_loss_list})
-        # round the values
-        df = df.round(4)
-        df.to_csv(os.path.join(model_path, "losses.csv"))
-        # plot the final loss
-        plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
-    # load the model
-    else:  # load the model
-        print("Loading the model")
-        model.load_state_dict(torch.load(LOADING_PATH))
-        model.eval()
-
-    # Step 8: Evaluate the model on the test set
+    # Highlight Step 8: Evaluate the model on the test set
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
+    PLOT_EXAMPLES = True
+    if PLOT_EXAMPLES:
+        plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
+                                    save_path=model_path)
 
-    # Try inference on test images
-    SAVE_TEST_IMAGES = True
-    if SAVE_TEST_IMAGES:
-        save_path = os.path.join(model_path, "test_images")
-    else:
-        save_path = None
-    plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
-                                save_path=model_path)
-    # plot_difference_images(test_images, test_voltage, model, num_images=20)
+    # plot_difference_for_some_sample_reconstruction_images(test_images, test_voltage, model, num_images=20)
 
     # single_datapoint = voltage_data_np[0]
     # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
     # plot_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
+    return df
 
 
 if __name__ == "__main__":
-    early_stopping_handler = EarlyStoppingHandler(patience=2)
-    trainings_loop(early_stopping_handler)
+    model_name = "Run_05_10_3629_samples_with_augmentation"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    num_epochs = 300
+    learning_rate = 0.001
+    pca_components = 128
+    add_augmentation = True
+    noise_level = 0.05
+    number_of_noise_augmentations = 2
+    number_of_rotation_augmentations = 0
+    weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
+
+    early_stopping_handler = EarlyStoppingHandler(patience=30)
+    trainings_loop(model_name=model_name, path_to_training_data=path,
+                   num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
+                   pca_components=128, add_augmentation=add_augmentation, noise_level=noise_level,
+                   number_of_noise_augmentations=number_of_noise_augmentations,
+                   number_of_rotation_augmentations=number_of_rotation_augmentations,
+                   weight_decay=weight_decay, normalize=True,
+                   )

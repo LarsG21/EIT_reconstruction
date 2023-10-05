@@ -104,7 +104,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     return average_loss / num_images
 
 
-def plot_difference_images(image_data_tensor, voltage_data_tensor, model, num_images=40):
+def plot_difference_for_some_sample_reconstruction_images(image_data_tensor, voltage_data_tensor, model, num_images=40):
     """
     Creates a few random reconstructions subtracts them from the original image and plots them
     :param image_data_tensor:
@@ -159,6 +159,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
             f"voltage_data_tensor must be either a numpy array or a torch tensor but is {type(voltage_data)}")
     # voltage_data = voltage_data.view(-1, voltage_data.shape[0])
     # Removed because of error in live_eit_reconstruction_multi_freq
+    # Is needed for models that use batch normalization # TODO:Fix this
     start = time.time()
     output = model(voltage_data)
     stop = time.time()
