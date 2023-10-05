@@ -1,7 +1,9 @@
+import logging
 import os
 import pickle
 import time
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -12,12 +14,12 @@ from plot_utils import solve_and_plot
 from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame
 
 
-def plot_multi_frequency_eit_image(v1_path, plot=False):
+def plot_multi_frequency_eit_image(v1_path, plot=False, save_video=True):
     global default_frame
     df = convert_multi_frequency_eit_to_df(v1_path)
     v1 = preprocess_absolute_eit_frame(df,
-                                       SUBTRACT_MEDIAN=True,
-                                       DIVIDE_BY_MEDIAN=True)
+                                       SUBTRACT_MEDIAN=SUBSTARCT_MEDIAN,
+                                       DIVIDE_BY_MEDIAN=DIVIDE_BY_MEDIAN)
     # plt.plot(v1)
     # plt.show()
     PCA = True
@@ -29,8 +31,21 @@ def plot_multi_frequency_eit_image(v1_path, plot=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-    solve_and_plot(model=model_pca, model_input=v1, chow_center_of_mass=False,
+    img = solve_and_plot(model=model_pca, model_input=v1, chow_center_of_mass=False,
                    use_opencv_for_plotting=True)
+
+    # save the video to a folder
+    if save_video:
+        if not os.path.exists("eit_video"):
+            os.mkdir("eit_video")
+        img = img * 255
+        # clip the values to 0-255
+        img = np.clip(img, 0, 255)
+        img = img.astype(np.uint8)
+        img_path = os.path.join("eit_video", f"{time.time()}.png")
+        # print(img_path)
+        cv2.imwrite(img_path, cv2.resize(img, (512, 512)))
+
     # img, center = solve_and_get_center(model=model_pca, model_input=v1)
     # cv2.imshow("img", cv2.resize(img, (512, 512)))
     # cv2.waitKey(1)
@@ -64,22 +79,60 @@ def plot_eit_video(path):
                 #     cv2.imshow("center", cv2.resize(empty_img, (512, 512)))
 
 
+def convert_pngs_in_folder_to_video(path):
+    """
+    Converts the pngs in the given folder to a mp4 video.
+    :param path:
+    :return:
+    """
+    img_array = []
+    # sort the files by date
+    files = os.listdir(path)
+    files.sort(key=lambda x: os.path.getmtime(os.path.join(path, x)))
+    for filename in os.listdir(path):
+        if filename.endswith(".png"):
+            img = cv2.imread(os.path.join(path, filename))
+            height, width, layers = img.shape
+            size = (width, height)
+            img_array.append(img)
 
-path = "eit_data"
+    out = cv2.VideoWriter(os.path.join(path, "eit_video.mp4"), cv2.VideoWriter_fourcc(*'mp4v'), 10, size)
 
-VOLTAGE_VECTOR_LENGTH = 1024
-VOLTAGE_VECTOR_LENGTH_PCA = 128
-OUT_SIZE = 64
-print("Loading the model")
+    for i in range(len(img_array)):
+        out.write(img_array[i])
+    out.release()
 
-model_pca = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
-# model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
 
-model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
-# get the pca.okl in the same folder as the model
-pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
-pca = pickle.load(open(pca_path, "rb"))
-model_pca.load_state_dict(torch.load(model_pca_path))
+if __name__ == '__main__':
 
-model_pca.eval()
-plot_eit_video(path)
+    ### Settings ###
+    path = "test"
+    VOLTAGE_VECTOR_LENGTH = 1024
+    VOLTAGE_VECTOR_LENGTH_PCA = 128
+    OUT_SIZE = 64
+    # Normalize the data
+    SUBSTARCT_MEDIAN = True
+    DIVIDE_BY_MEDIAN = True
+    print("Loading the model")
+    ### Settings end ###
+
+    model_pca = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
+    # model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
+
+    # model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
+
+    model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_05_10_3549_samples/model_2023-10-05_17-43-30_199_200.pth"
+    # get the pca.okl in the same folder as the model
+    pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
+    pca = pickle.load(open(pca_path, "rb"))
+    model_pca.load_state_dict(torch.load(model_pca_path))
+
+    model_pca.eval()
+    try:
+        plot_eit_video(path)
+    except RuntimeError as e:
+        if str(e) == "mat1 and mat2 shapes cannot be multiplied (128x1 and 128x128)":
+            logging.warning("comment out model plot utils line 160")
+            logging.warning("Problem with Batch Norm Modles")
+
+    # convert_pngs_in_folder_to_video("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\test\\3_freq_move_Target\\setup_1\eit_video")
