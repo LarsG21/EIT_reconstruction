@@ -157,7 +157,8 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     else:
         raise TypeError(
             f"voltage_data_tensor must be either a numpy array or a torch tensor but is {type(voltage_data)}")
-    voltage_data = voltage_data.view(-1, voltage_data.shape[0])
+    # voltage_data = voltage_data.view(-1, voltage_data.shape[0])
+    # Removed because of error in live_eit_reconstruction_multi_freq
     start = time.time()
     output = model(voltage_data)
     stop = time.time()
