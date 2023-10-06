@@ -140,7 +140,7 @@ if __name__ == '__main__':
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
-    path = "../Collected_Data_Variation_Experiments/Low_Variation_multi"
+    path = "../Collected_Data/Test_Set_Circular_06_10"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm"
     # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm_overnight"

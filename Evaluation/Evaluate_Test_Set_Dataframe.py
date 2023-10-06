@@ -106,7 +106,7 @@ def main():
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     pca = pickle.load(open(pca_path, "rb"))
 
-    df = pd.read_pickle("../Collected_Data/Test_Set_06_10/combined.pkl")
+    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -140,9 +140,12 @@ def main():
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
+    folder_name = model_path.split('/')[-1].split('.')[0]
     eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
-    eval_df_name = "TEST.pkl"
-    save_path = os.path.join(path, eval_df_name)
+    # eval_df_name = "TEST.pkl"
+    save_path = os.path.join(path, folder_name, eval_df_name)
+    if not os.path.exists(os.path.join(path, folder_name)):
+        os.makedirs(os.path.join(path, folder_name))
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
     print("Use df_eval.py to evaluate the results")
