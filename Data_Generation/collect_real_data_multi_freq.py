@@ -153,7 +153,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         # save the images and voltages in a dataframe every 10 samples
         if i % 10 == 0:
             df = pd.DataFrame(
-                {"timestamp": timestamps, "target_position": target_positions, "images": images, "voltages": voltages})
+                {"timestamp": timestamps, "images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
             df.to_pickle(save_path_data)
