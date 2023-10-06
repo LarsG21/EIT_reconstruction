@@ -148,7 +148,7 @@ def main():
         os.makedirs(os.path.join(path, folder_name))
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
-    print("Use df_eval.py to evaluate the results")
+    print("Use Plot_results_of_evaluation.py to evaluate the results")
 
 
 if __name__ == '__main__':
