@@ -261,6 +261,22 @@ def calibration_procedure(gcode_device, RADIUS_TARGET_IN_MM):
     input("Press Enter to continue...")
 
 
+def find_center_of_mass(img):
+    """
+    Find center of mass of image (To detect position of anomaly)
+    :param img:
+    :return:
+    """
+    # all pixels > 0 are part of the anomaly and should be set to 1
+    img_copy = img.copy()
+    img_copy[img_copy > 0] = 1
+    center_of_mass = np.array(np.where(img_copy == np.max(img_copy)))
+    center_of_mass = np.mean(center_of_mass, axis=1)
+    center_of_mass = center_of_mass.astype(int)
+    center_of_mass = np.array((center_of_mass[1], center_of_mass[0]))
+
+    return center_of_mass
+
 if __name__ == '__main__':
     for i in range(100):
         print(generate_random_anomaly_parameters(0.1, 0.1, 0.1, 0.1, 0.8))
