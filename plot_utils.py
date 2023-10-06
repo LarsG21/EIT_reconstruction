@@ -120,6 +120,12 @@ def solve_and_plot(model, model_input, original_image=None, save_path=None, titl
 
 
 def solve_and_get_center(model, model_input):
+    """
+    Solve the reconstruction and return the center of mass of the image
+    :param model:
+    :param model_input:
+    :return:
+    """
     img = infer_single_reconstruction(model, model_input, detection_threshold=0.25, show=False)
     center_of_mass = find_center_of_mass(img)
     return img, center_of_mass

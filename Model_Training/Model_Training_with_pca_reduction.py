@@ -100,7 +100,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    early_stopping_handler: EarlyStoppingHandler, loading_path: str = "",
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
-                   weight_decay: float = 1e-3, normalize=True
+                   weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
     ABSOLUTE_EIT = True
@@ -141,6 +141,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
         f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
         f.write(f"PCA_COMPONENTS: {pca_components}\n")
+        f.write(f"normalize: {normalize}\n")
+        f.write(f"electrode_level_normalization: {electrode_level_normalization}\n")
         f.write("\n")
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
@@ -160,9 +162,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         # Now the model should learn the difference between the voltages and v0 (default state)
 
     # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
-    if normalize:
-        voltage_data_np = add_normalizations(v1=voltage_data_np, DIVIDE_BY_MEDIAN=True, SUBTRACT_MEDIAN=True,
-                                             NORMALIZE_PER_ELECTRODE=True)
+    voltage_data_np = add_normalizations(v1=voltage_data_np, NORMALIZE_MEDIAN=normalize,
+                                         NORMALIZE_PER_ELECTRODE=electrode_level_normalization)
 
     print("Overall data shape: ", voltage_data_np.shape)
 
@@ -339,17 +340,18 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "WITH_MAX_NORM"
+    model_name = "Test_Run"
     # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    path = "../Collected_Data_Variation_Experiments/Low_Variation_multi"
+    path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     num_epochs = 300
     learning_rate = 0.001
     pca_components = 128
     add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 1
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
+
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
     trainings_loop(model_name=model_name, path_to_training_data=path,
@@ -357,5 +359,5 @@ if __name__ == "__main__":
                    pca_components=128, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=True,
+                   weight_decay=weight_decay, normalize=True, electrode_level_normalization=False,
                    )

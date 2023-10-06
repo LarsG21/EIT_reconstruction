@@ -20,7 +20,7 @@ def plot_multi_frequency_eit_image(v1_path, plot=False, save_video=False):
     # Convert to an numpy array with alternating real and imag numbers
     v1 = preprocess_absolute_eit_frame(df)
     # Add normalizations
-    v1 = add_normalizations(v1, DIVIDE_BY_MEDIAN, SUBTRACT_MEDIAN, NORMALIZE_PER_ELECTRODE=False)
+    v1 = add_normalizations(v1, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
     # plt.plot(v1)
     # plt.show()
     PCA = True
@@ -112,15 +112,15 @@ if __name__ == '__main__':
     VOLTAGE_VECTOR_LENGTH_PCA = 128
     OUT_SIZE = 64
     # Normalize the data
-    SUBTRACT_MEDIAN = True
-    DIVIDE_BY_MEDIAN = True
+    NORMALIZE = True
+
     print("Loading the model")
     ### Settings end ###
 
     model_pca = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
     # model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
-    model_pca_path = "Collected_Data_Variation_Experiments/Low_Variation_multi/Models/LinearModelWithDropout2/NO_MAX_NORM/model_2023-10-06_11-36-40_epoche_229_of_300_best_model.pth"
+    model_pca_path = "Collected_Data_Variation_Experiments/High_Variation_multi/Models/LinearModelWithDropout2/Test_Run/model_2023-10-06_12-15-26_epoche_143_of_300_best_model.pth"
 
     # model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_05_10_3629_samples_with_augmentation/model_2023-10-05_18-13-21_epoche_124_of_300_best_model.pth"
     # get the pca.okl in the same folder as the model

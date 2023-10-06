@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 
 from Data_Generation.utils import generate_random_anomaly_list, wait_for_n_secs_with_print, get_newest_file, \
     wait_for_start_of_measurement, calibration_procedure, wait_1_file_and_get_next
-from Evaluation.evaluation_metrics import evaluate_position_error, calculate_amplitude_response, \
+from Evaluation.Live_evaluation_metrics import evaluate_position_error, calculate_amplitude_response, \
     calculate_shape_deformation
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
 from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
@@ -18,7 +18,7 @@ from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to
 from plot_utils import solve_and_plot
 from pyeit.eit import protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
-from utils import preprocess_absolute_eit_frame
+from utils import preprocess_absolute_eit_frame, add_normalizations
 
 n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
@@ -220,9 +220,8 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
                     difference = difference - np.mean(difference)
                 else:
                     df = convert_multi_frequency_eit_to_df(file_path)
-                    v1 = preprocess_absolute_eit_frame(df,
-                                                       SUBTRACT_MEDIAN=SUBSTARCT_MEDIAN,
-                                                       DIVIDE_BY_MEDIAN=DIVIDE_BY_MEDIAN)
+                    v1 = preprocess_absolute_eit_frame(df)
+                    v1 = add_normalizations(v1, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
                     v1 = pca.transform(v1.reshape(1, -1))
                     difference = v1
 
@@ -257,8 +256,7 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
 MULTI_FREQUENCY = True
 VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
-SUBSTARCT_MEDIAN = True
-DIVIDE_BY_MEDIAN = True
+NORMALIZE = True
 
 
 ### Setings ###

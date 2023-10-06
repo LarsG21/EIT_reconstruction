@@ -80,12 +80,11 @@ def preprocess_absolute_eit_frame(df):
     return v1
 
 
-def add_normalizations(v1, DIVIDE_BY_MEDIAN, SUBTRACT_MEDIAN, NORMALIZE_PER_ELECTRODE=False):
+def add_normalizations(v1, NORMALIZE_MEDIAN, NORMALIZE_PER_ELECTRODE=False):
     """
     Adds the normalizations to the eit frame.
     :param v1: The eit frame as a numpy array
-    :param DIVIDE_BY_MEDIAN: Divide the sample by the median of the eit frame
-    :param SUBTRACT_MEDIAN: Subtract the median of the eit frame
+    :param NORMALIZE_MEDIAN: (x - median) / median
     :param NORMALIZE_PER_ELECTRODE: Normalize the samples per max of electrode (CURRENTLY ONLY FOR 3 FREQUENCIES)
     :return: the preprocessed eit frame as a numpy array
     """
@@ -161,9 +160,7 @@ def add_normalizations(v1, DIVIDE_BY_MEDIAN, SUBTRACT_MEDIAN, NORMALIZE_PER_ELEC
     else:
         median = np.median(v1)
 
-        print("Median: ", median)
-        if SUBTRACT_MEDIAN:
+        if NORMALIZE_MEDIAN:
             v1 = v1 - median
-        if DIVIDE_BY_MEDIAN:
             v1 = v1 / median
         return v1
