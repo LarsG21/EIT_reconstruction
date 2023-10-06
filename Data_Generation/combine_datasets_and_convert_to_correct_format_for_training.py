@@ -140,10 +140,10 @@ if __name__ == '__main__':
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
-    # path = "../Collected_Data/Data_21_09_40mm_multifreq"
+    path = "../Collected_Data_Variation_Experiments/Low_Variation_multi"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm"
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    # path = "../Collected_Data/Data_29_09_3_freq_40mm_2"
+    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data/Data_05_10_3_freq_40mm_overnight"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()

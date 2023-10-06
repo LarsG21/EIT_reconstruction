@@ -19,7 +19,7 @@ from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel,
     LinearModelWithDropoutAndBatchNorm
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, \
     plot_loss_and_sample_reconstruction, plot_difference_for_some_sample_reconstruction_images
-from utils import preprocess
+from utils import add_normalizations
 
 from EarlyStoppingHandler import EarlyStoppingHandler
 
@@ -161,9 +161,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
     if normalize:
-        voltage_data_np = preprocess(v1=voltage_data_np,
-                                     SUBTRACT_MEDIAN=True,
-                                     DIVIDE_BY_MEDIAN=True)
+        voltage_data_np = add_normalizations(v1=voltage_data_np, DIVIDE_BY_MEDIAN=True, SUBTRACT_MEDIAN=True,
+                                             NORMALIZE_PER_ELECTRODE=True)
 
     print("Overall data shape: ", voltage_data_np.shape)
 
@@ -340,8 +339,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_05_10_3629_samples_with_augmentation2"
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    model_name = "WITH_MAX_NORM"
+    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collected_Data_Variation_Experiments/Low_Variation_multi"
     num_epochs = 300
     learning_rate = 0.001
     pca_components = 128
