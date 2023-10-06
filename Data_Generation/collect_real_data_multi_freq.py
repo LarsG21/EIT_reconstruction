@@ -253,16 +253,24 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 timestamps.append(datetime.datetime.now())
                 print(f"Sample {i} collected")
                 # save the images and voltages in a dataframe every 10 samples
-                if i % 10 == 0:
-                    df = pd.DataFrame(
-                        {"timestamp": timestamps, "images": images, "voltages": voltages})
-                    save_path_data = os.path.join(save_path,
-                                                  f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
-                    df.to_pickle(save_path_data)
-                    print(f"Saved data to {save_path_data}")
-                    images = []
-                    voltages = []
-                    timestamps = []
+                df = pd.DataFrame(
+                    {"timestamp": timestamps, "images": images, "voltages": voltages})
+                save_path_data = os.path.join(save_path,
+                                              f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+                df.to_pickle(save_path_data)
+                print(f"Saved data to {save_path_data}")
+                images = []
+                voltages = []
+                timestamps = []
+    # save the images and voltages in a dataframe
+    df = pd.DataFrame(
+        {"timestamp": timestamps, "images": images, "voltages": voltages})
+    save_path_data = os.path.join(save_path,
+                                  f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+    df.to_pickle(save_path_data)
+    print(f"Saved data to {save_path_data}")
+    # move to the center
+    gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
 
 
 # METADATA
@@ -295,7 +303,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_Set_Circular_06_10"
+    TEST_NAME = "Test_Set_Circular_06_10_2"
     # collect_data(gcode_device=ender, number_of_samples=3000,
     #              eit_data_path="../eit_data",
     #              save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
