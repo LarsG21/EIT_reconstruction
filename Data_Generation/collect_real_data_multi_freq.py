@@ -253,7 +253,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 timestamps.append(datetime.datetime.now())
                 print(f"Sample {i} collected")
                 # save the images and voltages in a dataframe every 10 samples
-                if a % 10 == 0:
+                if i % 10 == 0:
                     df = pd.DataFrame(
                         {"timestamp": timestamps, "images": images, "voltages": voltages})
                     save_path_data = os.path.join(save_path,

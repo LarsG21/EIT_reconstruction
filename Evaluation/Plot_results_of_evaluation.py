@@ -38,14 +38,14 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\amplitude_response_evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.png"
+                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\model_2023-10-06_12-15-26_epoche_143_of_300_best_model\\amplitude_response.png"
                         )
 plot_position_error(df,
-                    # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\position_error_evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.png"
+                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\model_2023-10-06_12-15-26_epoche_143_of_300_best_model\\position_error.png"
                     )
 
 plot_shape_deformation(df,
-                       # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\shape_deformation_evaluation_model_model_2023-09-22_13-48-51_epoche_395_of_400_best_model.png"
+                       # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\model_2023-10-06_12-15-26_epoche_143_of_300_best_model\\shape_deformation.png"
                        )
 
 # convert col error_vector to np.array

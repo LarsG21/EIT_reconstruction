@@ -33,6 +33,7 @@ def get_position_error(img_reconstructed, target_image, show_plot=True):
 
     # plot a plot with two dots at the center of mass and the target position
     if show_plot:
+    # if show_plot or distance_between_centers > 10:
         plt.imshow(img_reconstructed)
         plt.scatter(center_of_mass[0], center_of_mass[1], c="red")
         plt.scatter(target_position[0], target_position[1], c="blue")
@@ -59,6 +60,7 @@ def get_amplitude_response(img_reconstructed, target_image, show_plot=True):
     # calculate the ratio of the pixels in the intersection to the pixels in the theoretical image
     amplitude_response = np.sum(img_reconstructed_intersect) / np.sum(target_image)
     if show_plot:
+    # if show_plot or amplitude_response > 0.9:
         plt.imshow(img_reconstructed_intersect)
         plt.title(f"Amplitude response: {amplitude_response}")
         plt.show()
@@ -86,13 +88,17 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
     img_reconstructed_masked = img_reconstructed.copy()
     img_reconstructed_masked[img_ideal_circle == 1] = 0
     img_reconstructed_masked.astype(np.float32)
-    if show_plot:
-        plt.imshow(img_reconstructed_masked)
-        plt.title(f"Shape deformation: {np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)}")
-        plt.show()
     # SD measures the fraction of the reconstructed one-fourth amplitude set which
     # does not fit within a circle of an equal area
     shape_deformation = np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)
+    if show_plot:
+    # if show_plot or shape_deformation > 0.4:
+        # plt.imshow(img_reconstructed)
+        # plt.show()
+        plt.imshow(img_reconstructed_masked)
+        plt.title(f"Shape deformation: {np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)}")
+        plt.show()
+
     return shape_deformation
 
 
@@ -114,7 +120,7 @@ def main():
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
-
+    print(f"Length of dataframe: {len(df)}")
     for i, row in df.iterrows():
         raw_voltages = row["voltages"]
         target_image = row["images"]
@@ -136,6 +142,7 @@ def main():
         ####################### Shape deformation #######################
         shape_deformation = get_shape_deformation(img_reconstructed, show_plot=SHOW)
         shape_deformations.append(shape_deformation)
+
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
@@ -149,6 +156,18 @@ def main():
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
     print("Use Plot_results_of_evaluation.py to evaluate the results")
+
+    # print(f"lenght of dataframe: {len(df)}")
+
+    # number of images with amplitude response > 0.9
+    # print(f"Number of images with amplitude response > 0.9: {np.sum(np.array(amplitude_responses) > 0.9)}")
+    # print(f"Index of images with amplitude response > 0.9: {np.where(np.array(amplitude_responses) > 0.9)}")
+    # # number of images with shape deformation > 0.4
+    # print(f"Number of images with shape deformation > 0.4: {np.sum(np.array(shape_deformations) > 0.4)}")
+    # print(f"Index of images with shape deformation > 0.4: {np.where(np.array(shape_deformations) > 0.4)}")
+    # # number of images with position error > 10
+    # print(f"Number of images with position error > 10: {np.sum(np.array(position_errors) > 10)}")
+    # print(f"Index of images with position error > 10: {np.where(np.array(position_errors) > 10)}")
 
 
 if __name__ == '__main__':
