@@ -61,11 +61,11 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     img_array = df["images"].to_list()
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
-    v0_df = convert_single_frequency_eit_file_to_df(path_vo)
+    # v0_df = convert_single_frequency_eit_file_to_df(path_vo)
     # v0 = get_relevant_voltages(v0_df, protocol_obj=protocol_obj)
-    v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
-    if AVERGAGE_V0_FRAME:
-        plt.plot(v0)
+    # v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
+    # if AVERGAGE_V0_FRAME:
+    #     plt.plot(v0)
 
 
     # apply get_relevant_voltages to all voltages
@@ -140,9 +140,9 @@ if __name__ == '__main__':
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
-    path = "../Collected_Data/Test_Set_Circular_06_10"
+    # path = "../Collected_Data/Test_Set_Circular_06_10"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm"
-    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm_overnight"
 
     df = combine_multiple_pickles(path=path)

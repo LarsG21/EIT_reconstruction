@@ -326,7 +326,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = True
+    PLOT_EXAMPLES = False
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
                                     save_path=model_path)
@@ -336,13 +336,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # single_datapoint = voltage_data_np[0]
     # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
     # plot_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
-    return df
+    return df, model
 
 
 if __name__ == "__main__":
-    model_name = "Test_Run"
-    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
+    model_name = "TESTING"
+    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     num_epochs = 300
     learning_rate = 0.001
     pca_components = 128

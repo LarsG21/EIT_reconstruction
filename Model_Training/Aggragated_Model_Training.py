@@ -4,7 +4,6 @@ from EarlyStoppingHandler import EarlyStoppingHandler
 from Model_Training_with_pca_reduction import trainings_loop
 import matplotlib.pyplot as plt
 
-model_name = "TESTING"
 path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
 num_epochs = 80
 learning_rate = 0.001
@@ -15,22 +14,22 @@ number_of_noise_augmentations = 2
 number_of_rotation_augmentations = 2
 weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
 df_complete = pd.DataFrame()
-for i in range(1, 10):
+for i in range(1, 3):
     print(f"Run {i}")
     early_stopping_handler = EarlyStoppingHandler(patience=20)
-    df = trainings_loop(model_name=f"Test_Run_batch_norm{i}", path_to_training_data=path,
-                        num_epochs=num_epochs, learning_rate=learning_rate,
-                        early_stopping_handler=early_stopping_handler,
-                        pca_components=128, add_augmentation=add_augmentation, noise_level=noise_level,
-                        number_of_noise_augmentations=number_of_noise_augmentations,
-                        number_of_rotation_augmentations=number_of_rotation_augmentations,
-                        weight_decay=weight_decay, normalize=False,
-                        )
-    print(df)
+    df_losses, model = trainings_loop(model_name=f"TESTING_{i}", path_to_training_data=path,
+                                      num_epochs=num_epochs, learning_rate=learning_rate,
+                                      early_stopping_handler=early_stopping_handler,
+                                      pca_components=128, add_augmentation=add_augmentation, noise_level=noise_level,
+                                      number_of_noise_augmentations=number_of_noise_augmentations,
+                                      number_of_rotation_augmentations=number_of_rotation_augmentations,
+                                      weight_decay=weight_decay, normalize=True,
+                                      )
+    print(df_losses)
     # rename the columns
-    df = df.rename(columns={"loss": f"loss_{i}", "val_loss": f"val_loss_{i}"})
+    df_losses = df_losses.rename(columns={"loss": f"loss_{i}", "val_loss": f"val_loss_{i}"})
     # add the dataframe to the side aof the complete dataframe as new columns
-    df_complete = pd.concat([df_complete, df], axis=1)
+    df_complete = pd.concat([df_complete, df_losses], axis=1)
     print(df_complete.shape)
 
 # save the complete dataframe
