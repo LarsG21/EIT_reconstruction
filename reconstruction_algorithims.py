@@ -7,7 +7,7 @@ from pyeit.eit import greit, jac, bp
 from pyeit.eit.interp2d import sim2pts
 
 
-def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only, path2_for_name_only):
+def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only, path2_for_name_only, plot=True):
     """
     Solve the EIT problem with GREIT and plot the result
     :param v0: default voltages (no anomaly)
@@ -28,22 +28,23 @@ def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only, pa
     eit = greit.GREIT(mesh_obj, protocol_obj)
     eit.setup(p=0.50, lamb=0.01, perm=1, jac_normalized=True)
     ds = eit.solve(v1, v0, normalize=True)
-    x, y, ds = eit.mask_value(ds, mask_value=np.NAN)
+    x, y, ds = eit.mask_value(ds, mask_value=0)
 
     # show alpha
-    fig, axes = plt.subplots(1, 1, constrained_layout=True)
     name1 = path1_for_name_only.split("\\")[-1]
     name2 = path2_for_name_only.split("\\")[-1]
     plt.title(f"{name1} - {name2}")
     image = np.real(ds)
     # flip the image upside down
     image = np.flipud(image)
-    im = axes.imshow(image, interpolation="none", cmap=plt.cm.viridis)
-    axes.axis("equal")
-
-    fig.colorbar(im, ax=axes)
-    # fig.savefig('../doc/images/demo_greit.png', dpi=96)
-    plt.show()
+    if plot:
+        fig, axes = plt.subplots(1, 1, constrained_layout=True)
+        im = axes.imshow(image, interpolation="none", cmap=plt.cm.viridis)
+        axes.axis("equal")
+        fig.colorbar(im, ax=axes)
+        # fig.savefig('../doc/images/demo_greit.png', dpi=96)
+        plt.show()
+    return image
 
 
 def solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, save_path=None, path1_for_name_only=None,

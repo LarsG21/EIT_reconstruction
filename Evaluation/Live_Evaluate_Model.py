@@ -15,7 +15,7 @@ from Evaluation.Live_evaluation_metrics import evaluate_position_error, calculat
 from G_Code_Device.GCodeDevice import list_serial_devices, GCodeDevice
 from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from plot_utils import solve_and_plot
+from plot_utils import solve_and_plot_with_nural_network
 from pyeit.eit import protocol
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 from utils import preprocess_absolute_eit_frame, add_normalizations
@@ -69,7 +69,8 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     difference = difference - np.mean(difference)
     # plt.plot(difference)
     # plt.show()
-    img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
+    img_reconstructed = solve_and_plot_with_nural_network(model=model, model_input=difference,
+                                                          chow_center_of_mass=False)
     return img_reconstructed, v1, center_for_moving
 
 
@@ -158,7 +159,8 @@ def generate_one_sample_at_position(gcode_device: GCodeDevice, eit_path: str, ce
     difference = difference - np.mean(difference)
     # plt.plot(difference)
     # plt.show()
-    img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
+    img_reconstructed = solve_and_plot_with_nural_network(model=model, model_input=difference,
+                                                          chow_center_of_mass=False)
     return img_reconstructed, v1, center_for_moving
 
 
@@ -225,7 +227,8 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
                     v1 = pca.transform(v1.reshape(1, -1))
                     difference = v1
 
-                img_reconstructed = solve_and_plot(model=model, model_input=difference, chow_center_of_mass=False)
+                img_reconstructed = solve_and_plot_with_nural_network(model=model, model_input=difference,
+                                                                      chow_center_of_mass=False)
 
                 position_error, error_vector = evaluate_position_error(center_for_moving, gcode_device,
                                                                        img_reconstructed,

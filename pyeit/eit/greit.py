@@ -19,6 +19,7 @@ import scipy.linalg as la
 from .base import EitBase
 from .interp2d import meshgrid, weight_sigmod
 
+import matplotlib.pyplot as plt
 
 class GREIT(EitBase):
     """The GREIT algorithm"""
@@ -92,10 +93,11 @@ class GREIT(EitBase):
 
         # Build grids and mask
         self.xg, self.yg, self.mask = meshgrid(self.mesh.node, n=n)
+        np.save('mask.npy', self.mask)
 
         w_mat = self._compute_grid_weights(self.xg, self.yg)
         self.J, self.v0 = self.fwd.compute_jac(perm=perm, normalize=jac_normalized)
-        self.H = self._compute_h(jac=self.J, w_mat=w_mat)
+        self.H = self._compute_h(jac=self.J, w_mat=w_mat)  # H is computed here (is called R in the paper)
         self.is_ready = True
 
     def _compute_h(self, jac: np.ndarray, w_mat: np.ndarray):  # type: ignore[override]
@@ -111,6 +113,7 @@ class GREIT(EitBase):
         """
         lamb, p = self.params["lamb"], self.params["p"]
         # E[yy^T], it is more efficient to use left pinv than right pinv
+        # R =
         j_j_w = np.dot(jac, jac.T)
         r_mat = np.diag(np.diag(j_j_w) ** p)
         jac_inv = la.inv(j_j_w + lamb * r_mat)
@@ -160,6 +163,10 @@ class GREIT(EitBase):
             x grid, y grid and "masked" conductivity data on nodes
         """
         self._check_solver_is_ready()
+        SHOW_MASK = False
+        if SHOW_MASK:
+            plt.imshow(self.mask.reshape((32, 32)))
+            plt.show()
         ds[self.mask] = mask_value
         ds = ds.reshape(self.xg.shape)
         return self.xg, self.yg, ds

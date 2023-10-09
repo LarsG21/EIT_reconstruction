@@ -10,7 +10,7 @@ import torch
 
 from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
-from plot_utils import solve_and_plot
+from plot_utils import solve_and_plot_with_nural_network
 from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame, add_normalizations
 
 
@@ -32,8 +32,8 @@ def plot_multi_frequency_eit_image(v1_path, plot=False, save_video=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-    img = solve_and_plot(model=model_pca, model_input=v1, chow_center_of_mass=False,
-                         use_opencv_for_plotting=True)
+    img = solve_and_plot_with_nural_network(model=model_pca, model_input=v1, chow_center_of_mass=False,
+                                            use_opencv_for_plotting=True)
 
     # save the video to a folder
     if save_video:

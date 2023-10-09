@@ -15,13 +15,13 @@ import pyeit.eit.greit as greit
 from pyeit.mesh.wrapper import PyEITAnomaly_Circle
 
 """ 0. construct mesh """
-n_el = 16  # nb of electrodes
+n_el = 32  # nb of electrodes
 use_customize_shape = False
 if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
     mesh_obj = mesh.create(n_el, h0=0.1, fd=thorax)
 else:
-    mesh_obj = mesh.create(n_el, h0=0.1)
+    mesh_obj = mesh.create(n_el, h0=0.05)
 
 # extract node, element, alpha
 pts = mesh_obj.node
@@ -49,6 +49,10 @@ protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 fwd = EITForward(mesh_obj, protocol_obj)
 v0 = fwd.solve_eit()
 v1 = fwd.solve_eit(perm=mesh_new.perm)
+
+difference = (v1 - v0)
+plt.plot(difference)
+plt.show()
 
 """ 3. Construct using GREIT """
 eit = greit.GREIT(mesh_obj, protocol_obj)

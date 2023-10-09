@@ -8,7 +8,7 @@ import numpy as np
 from utils import find_center_of_mass, add_normalizations
 
 from Model_Training.Models import LinearModelWithDropout2
-from plot_utils import solve_and_get_center
+from plot_utils import solve_and_get_center_with_nural_network
 import matplotlib.pyplot as plt
 
 ### Setings ###
@@ -131,7 +131,7 @@ def main():
             plt.show()
         v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
         v1 = pca.transform(v1.reshape(1, -1))
-        img_reconstructed, center = solve_and_get_center(model=model, model_input=v1)
+        img_reconstructed, center = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ####################### Position error #######################
         distance_between_centers, error_vect = get_position_error(img_reconstructed, target_image, show_plot=SHOW)
         position_errors.append(distance_between_centers)

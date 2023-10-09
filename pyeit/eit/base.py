@@ -123,7 +123,7 @@ class EitBase(ABC):
         """
         self._check_solver_is_ready()
         dv = self._normalize(v1, v0) if normalize else v1 - v0
-        ds = -np.dot(self.H, dv.transpose())  # s = -Hv
+        ds = -np.dot(self.H, dv.transpose())  # s = -Hv  [1024x928] x [928x1] = [1024x1] --> Transform to image [32x32]
         if log_scale:
             ds = np.exp(ds) - 1.0
         return ds

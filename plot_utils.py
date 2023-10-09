@@ -96,8 +96,21 @@ def plot_results_fem_forward(mesh, line):
     return equi_potential_image, e_field_image
 
 
-def solve_and_plot(model, model_input, original_image=None, save_path=None, title="Reconstructed image",
+def solve_and_plot_with_nural_network(model, model_input, original_image=None, save_path=None,
+                                      title="Reconstructed image",
                    chow_center_of_mass=False, use_opencv_for_plotting=False):
+    """
+    Plot the results of the model inference. Plots the reconstructed image, the EIT image and the EIT image with
+    the center of mass of the image.
+    :param model: A trained model (nn.Module)
+    :param model_input: Numpy array or torch Tensor
+    :param original_image:
+    :param save_path:
+    :param title:
+    :param chow_center_of_mass:
+    :param use_opencv_for_plotting:
+    :return:
+    """
     img = infer_single_reconstruction(model, model_input, title=title, original_image=original_image,
                                       save_path=save_path, detection_threshold=0.25, show=False)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
@@ -119,7 +132,7 @@ def solve_and_plot(model, model_input, original_image=None, save_path=None, titl
     return img
 
 
-def solve_and_get_center(model, model_input):
+def solve_and_get_center_with_nural_network(model, model_input):
     """
     Solve the reconstruction and return the center of mass of the image
     :param model:
@@ -129,3 +142,35 @@ def solve_and_get_center(model, model_input):
     img = infer_single_reconstruction(model, model_input, detection_threshold=0.25, show=False)
     center_of_mass = find_center_of_mass(img)
     return img, center_of_mass
+
+
+def preprocess_greit_img(img_greit):
+    """
+    Preprocess the greit image. This includes:
+    - subtracting the mean
+    - normalizing the image
+    - setting all abs(values) below 0.25 to 0
+    - inverting the colors to show negative conductivity changes as positive
+    :param img_greit:
+    :return:
+    """
+    # Normalize image
+    img_greit = img_greit - np.mean(img_greit)
+    img_greit = img_greit / np.max(np.abs(img_greit))
+    # set all values below 0.25 to 0
+    img_greit[np.abs(img_greit) < 0.25] = 0
+    # invert colors
+    img_greit = -img_greit
+    # Mask the image to only show the region of interest
+    mask = np.load("mask.npy")
+    mask = mask.reshape((32, 32))
+    # invert mask
+    mask = 1 - mask
+    # # erode mask
+    # kernel = np.ones((3, 3), np.uint8)
+    # mask = cv2.erode(mask, kernel, iterations=1)
+    img_greit = img_greit * mask
+    # increase resolution by 2
+    img_greit = cv2.resize(img_greit, (0, 0), fx=2, fy=2)
+    img_greit = np.clip(img_greit, 0, 1)
+    return img_greit

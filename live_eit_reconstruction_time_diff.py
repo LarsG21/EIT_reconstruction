@@ -1,13 +1,14 @@
 import pickle
 import time
 
+import cv2
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel2
-from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
-from plot_utils import solve_and_plot
+from Model_Training.Models import LinearModelWithDropout2
+from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
+from plot_utils import solve_and_plot_with_nural_network, preprocess_greit_img
 from pyeit import mesh
 from pyeit.eit import protocol
 from pyeit.mesh.shape import thorax
@@ -36,7 +37,7 @@ delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 default_frame = None
 
 
-def plot_time_diff_eit_image(v1_path, v0_path):
+def plot_time_diff_eit_image(v1_path, v0_path, plot_voltages=True):
     global default_frame
     df_v1 = convert_multi_frequency_eit_to_df(v1_path)
     if default_frame is None:
@@ -49,16 +50,21 @@ def plot_time_diff_eit_image(v1_path, v0_path):
     v0 = get_relevant_voltages(df_v0, protocol_obj)
     # save v0 as npy
     np.save("v0.npy", v0)
+    # calculate the voltage difference
     difference = (v1 - v0)
+    # normalize the voltage difference
     difference = difference / v0
-    std = np.std(difference)
-    mean = np.mean(difference)
-    difference = difference - mean
-    # difference[difference > (np.mean(difference) + 1*std)] = 0
-    # difference[difference < -(np.mean(difference) + 1*std)] = 0
-    # set outliers to 0
+    normalized_difference = difference - np.mean(difference)
+    if plot_voltages:
+        plt.plot(v0)
+        plt.plot(v1)
+        plt.title("Voltage")
+        plt.show()
+        plt.plot(normalized_difference)
+        plt.title("Normalized Voltage difference")
+        plt.show()
     if PCA:
-        difference = pca.transform(difference.reshape(1, -1))
+        normalized_difference = pca.transform(normalized_difference.reshape(1, -1))
     # plt.plot(difference)
     # plt.title("Normalized Voltage difference")
     # plt.show()
@@ -67,15 +73,22 @@ def plot_time_diff_eit_image(v1_path, v0_path):
     save_path_jac = f"{img_name}_jac.png"
     v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     v1_traditional_algorithims = v1[protocol_obj.keep_ba]
-    # solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
-    # solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-    #                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
+    # solve_and_plot_jack(v0_traditional_algorithims, v1_traditional_algorithims, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
+    img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+                                     mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path,
+                                     plot=False)
+    # normalize the image
+    img_greit = preprocess_greit_img(img_greit)
+    # plt.imshow(img_greit)
+    # plt.show()
+    # np clip between 0  and 255
+    cv2.imshow("GREIT", cv2.resize(img_greit, (0, 0), fx=4, fy=4))
+    cv2.waitKey(1)
+
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
-    # solve_and_plot_cnn(model=model, voltage_difference=difference, chow_center_of_mass=True)
-    solve_and_plot(model=model, model_input=difference, chow_center_of_mass=True,
-                   use_opencv_for_plotting=True
-                   )
-    # time.sleep(1)
+    solve_and_plot_with_nural_network(model=model, model_input=normalized_difference, chow_center_of_mass=False,
+                                      use_opencv_for_plotting=True)
+    # time.sleep(2)
 
 
 def plot_frequencies_diff_eit_image(path, f1, f2):
