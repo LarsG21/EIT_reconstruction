@@ -37,7 +37,7 @@ delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 default_frame = None
 
 
-def plot_time_diff_eit_image(v1_path, v0_path, plot_voltages=True):
+def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     global default_frame
     df_v1 = convert_multi_frequency_eit_to_df(v1_path)
     if default_frame is None:
@@ -55,7 +55,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, plot_voltages=True):
     # normalize the voltage difference
     difference = difference / v0
     normalized_difference = difference - np.mean(difference)
-    if plot_voltages:
+    if debug_plots:
         plt.plot(v0)
         plt.plot(v1)
         plt.title("Voltage")
@@ -65,15 +65,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, plot_voltages=True):
         plt.show()
     if PCA:
         normalized_difference = pca.transform(normalized_difference.reshape(1, -1))
-    # plt.plot(difference)
-    # plt.title("Normalized Voltage difference")
-    # plt.show()
-    img_name = v1_path.split('\\')[-1]
-    save_path_cnn = f"{img_name}_cnn.png"
-    save_path_jac = f"{img_name}_jac.png"
     v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     v1_traditional_algorithims = v1[protocol_obj.keep_ba]
-    # solve_and_plot_jack(v0_traditional_algorithims, v1_traditional_algorithims, mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
                                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path,
                                      plot=False)

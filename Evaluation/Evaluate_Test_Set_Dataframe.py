@@ -148,7 +148,7 @@ def main():
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
     folder_name = model_path.split('/')[-1].split('.')[0]
-    eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+    eval_df_name = f"TEST_evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
     # eval_df_name = "TEST.pkl"
     save_path = os.path.join(path, folder_name, eval_df_name)
     if not os.path.exists(os.path.join(path, folder_name)):

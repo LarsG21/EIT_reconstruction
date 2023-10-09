@@ -14,8 +14,14 @@ from plot_utils import solve_and_plot_with_nural_network
 from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame, add_normalizations
 
 
-def plot_multi_frequency_eit_image(v1_path, plot=False, save_video=False):
-    global default_frame
+def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
+    """
+    Plots the eit image from the given .eit frame file.
+    :param v1_path:  The path to the .eit frame file
+    :param debug_plot: Whether to plot additional debug plots
+    :param save_video: Whether to save the video to a folder
+    :return:
+    """
     df = convert_multi_frequency_eit_to_df(v1_path)
     # Convert to an numpy array with alternating real and imag numbers
     v1 = preprocess_absolute_eit_frame(df)
@@ -26,7 +32,7 @@ def plot_multi_frequency_eit_image(v1_path, plot=False, save_video=False):
     PCA = True
     if PCA:
         v1 = pca.transform(v1.reshape(1, -1))
-        if plot:
+        if debug_plot:
             plt.bar(x=range(len(v1.reshape(-1))), height=v1.reshape(-1))
             plt.title("PCA transformed voltage vector")
             plt.xlabel("PCA component")
