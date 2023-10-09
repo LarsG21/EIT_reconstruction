@@ -32,22 +32,6 @@ def wait_for_start_of_measurement(path):
     return eit_path
 
 
-def get_relevant_voltages(df, protocol_obj):
-    """
-    This function takes a dataframe and returns the voltages that are relevant for the reconstruction
-    Removes voltages of the injection electrodes.
-    :param df:
-    :return:
-    """
-    # TODO: Verify again, that this is correct !
-    keep_mask = protocol_obj.keep_ba
-    # pd.concat([df,pd.DataFrame(keep_mask)], axis=1)
-    # keep only where measuring electrodes != injection_pos and != injection_neg
-    # df = df[df["injection_pos"] != df["measuring_electrode"]]
-    # df = df[df["injection_neg"] != df["measuring_electrode"]]
-    v = df["amplitude"].to_numpy(dtype=np.float64)
-    # v = v[keep_mask]
-    return v
 
 
 def find_center_of_mass(img):

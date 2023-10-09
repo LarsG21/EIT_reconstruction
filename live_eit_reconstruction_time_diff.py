@@ -15,7 +15,7 @@ from pyeit.mesh.shape import thorax
 import os
 
 from reconstruction_algorithims import solve_and_plot_jack, solve_and_plot_greit
-from utils import wait_for_start_of_measurement, get_relevant_voltages
+from utils import wait_for_start_of_measurement
 
 """ 0. build mesh """
 n_el = 32  # nb of electrodes
@@ -46,8 +46,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, plot_voltages=True):
         df_v0 = default_frame
     df_v1 = df_v1[df_v1["frequency"] == 1000]
     df_v0 = df_v0[df_v0["frequency"] == 1000]
-    v1 = get_relevant_voltages(df_v1, protocol_obj)
-    v0 = get_relevant_voltages(df_v0, protocol_obj)
+    v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
+    v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
     # save v0 as npy
     np.save("v0.npy", v0)
     # calculate the voltage difference
@@ -89,26 +89,6 @@ def plot_time_diff_eit_image(v1_path, v0_path, plot_voltages=True):
     solve_and_plot_with_nural_network(model=model, model_input=normalized_difference, chow_center_of_mass=False,
                                       use_opencv_for_plotting=True)
     # time.sleep(2)
-
-
-def plot_frequencies_diff_eit_image(path, f1, f2):
-    """
-    Plot the difference between two frequencies
-    :param f1:
-    :param f2:
-    :return:
-    """
-    if not type(f1) == int or not type(f2) == int:
-        raise Exception("f1 and f2 must be integers")
-    df = convert_multi_frequency_eit_to_df(path)
-    df1 = df[df["frequency"] == f1]
-    df2 = df[df["frequency"] == f2]
-    df1 = df.reset_index(drop=True)
-    df2 = df2.reset_index(drop=True)
-    v0 = get_relevant_voltages(df1, protocol_obj)
-    v1 = get_relevant_voltages(df2, protocol_obj)
-
-    solve_and_plot_jack(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=f"{f1}", path2_for_name_only=f"{f2}")
 
 
 def plot_eit_images_in_folder(path):
