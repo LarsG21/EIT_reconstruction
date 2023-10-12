@@ -6,10 +6,14 @@ import cv2
 import pandas as pd
 import torch
 import numpy as np
+
+from pyeit import mesh
+from pyeit.eit import protocol
+from reconstruction_algorithims import solve_and_plot_greit
 from utils import find_center_of_mass, add_normalizations
 
 from Model_Training.Models import LinearModelWithDropout2
-from plot_utils import solve_and_get_center_with_nural_network
+from plot_utils import solve_and_get_center_with_nural_network, preprocess_greit_img
 import matplotlib.pyplot as plt
 
 
@@ -117,14 +121,14 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 ABSOLUTE_EIT = True
 VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
-NORMALIZE = True
+NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 
 
 ### Setings ###
 
 def main():
-    global pca
+    global pca, NORMALIZE
     input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
@@ -132,12 +136,17 @@ def main():
     SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
+    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
+    settings_path = os.path.join(os.path.dirname(model_path), "settings.txt")
+    norm = check_settings_of_model(settings_path)
+    if norm is not None and norm != NORMALIZE:
+        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
+        NORMALIZE = norm
 
     # Test set path
     df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
@@ -168,7 +177,24 @@ def main():
         if pca is not None:
             print("Transforming with PCA")
             v1 = pca.transform(v1.reshape(1, -1))
-        img_reconstructed, center = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+        img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+        ############################### For GREIT  EVALUATION ###############################
+        # mesh_obj = mesh.create(32, h0=0.1)
+        # n_el = 32  # nb of electrodes
+        # protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
+        # v0 = np.load("v0.npy")
+        # v0_traditional_algorithims = v0[protocol_obj.keep_ba]
+        # v1_traditional_algorithims = v1[protocol_obj.keep_ba]
+        # img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+        #                                  mesh_obj, protocol_obj,
+        #                                  plot=False)
+        # plt.imshow(img_greit)
+        # plt.title("GREIT original")
+        # plt.show()
+        # img_reconstructed = preprocess_greit_img(img_greit)
+        # plt.imshow(img_reconstructed)
+        # plt.title("GREIT preprocessed")
+        # plt.show()
         ####################### Position error #######################
         distance_between_centers, error_vect = get_position_error(img_reconstructed, target_image, show_plot=SHOW)
         position_errors.append(distance_between_centers)
@@ -180,33 +206,43 @@ def main():
         shape_deformation = get_shape_deformation(img_reconstructed, show_plot=SHOW)
         shape_deformations.append(shape_deformation)
         if USE_OPENCV_FOR_PLOTTING:
-            cv2.waitKey(100)
+            cv2.waitKey(300)
 
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
-    folder_name = model_path.split('/')[-1].split('.')[0]
-    eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
-    # eval_df_name = "TEST.pkl"
-    save_path = os.path.join(path, folder_name, eval_df_name)
-    if not os.path.exists(os.path.join(path, folder_name)):
-        os.makedirs(os.path.join(path, folder_name))
+    # eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+    eval_df_name = "TESTING"
+    save_path = os.path.join(path, eval_df_name)
+    if not os.path.exists(os.path.join(path)):
+        os.makedirs(os.path.join(path))
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
     print("Use Plot_results_of_evaluation.py to evaluate the results")
 
-    # print(f"lenght of dataframe: {len(df)}")
 
-    # number of images with amplitude response > 0.9
-    # print(f"Number of images with amplitude response > 0.9: {np.sum(np.array(amplitude_responses) > 0.9)}")
-    # print(f"Index of images with amplitude response > 0.9: {np.where(np.array(amplitude_responses) > 0.9)}")
-    # # number of images with shape deformation > 0.4
-    # print(f"Number of images with shape deformation > 0.4: {np.sum(np.array(shape_deformations) > 0.4)}")
-    # print(f"Index of images with shape deformation > 0.4: {np.where(np.array(shape_deformations) > 0.4)}")
-    # # number of images with position error > 10
-    # print(f"Number of images with position error > 10: {np.sum(np.array(position_errors) > 10)}")
-    # print(f"Index of images with position error > 10: {np.where(np.array(position_errors) > 10)}")
+def check_settings_of_model(settings_path):
+    """
+    Checks the settings.txt file of the model and returns the value of normalize.
+    :param settings_path:
+    :return:
+    """
+    if os.path.exists(settings_path):
+        print("Loading settings")
+        # search for line with "normalize: " and see if it is True or False
+        with open(settings_path, "r") as f:
+            for line in f.readlines():
+                if "normalize: " in line:
+                    if "True" in line:
+                        normalize = True
+                    else:
+                        normalize = False
+                    break
+                else:
+                    normalize = None
+
+    return normalize
 
 
 if __name__ == '__main__':
