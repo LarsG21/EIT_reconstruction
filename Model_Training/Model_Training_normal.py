@@ -15,7 +15,7 @@ from Models import LinearModelWithDropout, LinearModelWithDropout2
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction
 
 LOSS_SCALE_FACTOR = 1000
-VOLTAGE_VECTOR_LENGTH = 128
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -103,7 +103,7 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
             f.write(f"Val Loss: {round(val_loss, 4)}\n")
 
 
-MULTI_FREQUENCY_EIT = True
+MULTI_FREQUENCY_EIT = False
 
 if __name__ == "__main__":
     TRAIN = True
@@ -132,9 +132,9 @@ if __name__ == "__main__":
     # path = "Edinburgh mfEIT Dataset"
     # path = "../Collected_Data/PCA_EXPERIMENTS/PCA_REDUCED16"
     # path = "../Collected_Data/Combined_dataset_multi"
-    path = "../Collected_Data/Combined_dataset_multi_augmented/PCA_REDUCED128"
+    path = "../Collected_Data/old/Data_10_10_40mm_Fehlerhaft"
     # model_name = "Test_1_noise_regularization1e-6"
-    model_name = "Training_augmented_multifrequency_data_128_pca"
+    model_name = "TESTING_NEW"
     # model_name = f"model{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)
