@@ -4,7 +4,7 @@ from EarlyStoppingHandler import EarlyStoppingHandler
 from Model_Training_with_pca_reduction import trainings_loop
 import matplotlib.pyplot as plt
 
-path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
 num_epochs = 80
 learning_rate = 0.001
 pca_components = 128

@@ -88,7 +88,7 @@ def get_main_parts_of_principal_components(pca):
         plt.show()
 
 
-model_pca_path = "Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/10_Frequencies/Models/LinearModelWithDropout/run_1_with_augmentation_pca_reduced/model_2023-09-21_13-02-00_200_epochs.pth"
+model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/10_Frequencies/Models/LinearModelWithDropout/run_1_with_augmentation_pca_reduced/model_2023-09-21_13-02-00_200_epochs.pth"
 # get the pca.okl in the same folder as the model
 pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
 pca = pickle.load(open(pca_path, "rb"))

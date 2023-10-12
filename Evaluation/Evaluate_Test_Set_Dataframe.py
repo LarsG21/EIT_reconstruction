@@ -12,12 +12,7 @@ from Model_Training.Models import LinearModelWithDropout2
 from plot_utils import solve_and_get_center_with_nural_network
 import matplotlib.pyplot as plt
 
-### Setings ###
-ABSOLUTE_EIT = False
-VOLTAGE_VECTOR_LENGTH = 1024
-OUT_SIZE = 64
-NORMALIZE = False
-### Setings ###
+
 
 pca = None
 
@@ -118,15 +113,26 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
     return shape_deformation
 
 
+### Setings ###
+ABSOLUTE_EIT = True
+VOLTAGE_VECTOR_LENGTH = 128
+OUT_SIZE = 64
+NORMALIZE = True
 USE_OPENCV_FOR_PLOTTING = True
+
+
+### Setings ###
 
 def main():
     global pca
+    input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
+          f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
+          f"Press Enter to continue...")
     ####### Settings #######
     SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
+    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
@@ -134,7 +140,7 @@ def main():
         pca = pickle.load(open(pca_path, "rb"))
 
     # Test set path
-    df = pd.read_pickle("../Collectad_Data_Experiments/Test Sets/Test_Set_Circular_single_freq/combined.pkl")
+    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -159,8 +165,9 @@ def main():
             # normalize the voltage difference
             difference = difference / v0
             v1 = difference - np.mean(difference)
-            if pca is not None:
-                v1 = pca.transform(v1.reshape(1, -1))
+        if pca is not None:
+            print("Transforming with PCA")
+            v1 = pca.transform(v1.reshape(1, -1))
         img_reconstructed, center = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ####################### Position error #######################
         distance_between_centers, error_vect = get_position_error(img_reconstructed, target_image, show_plot=SHOW)

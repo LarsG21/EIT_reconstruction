@@ -147,7 +147,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
 
 
 if __name__ == '__main__':
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Combined_dataset"
     device = "cpu"
 
