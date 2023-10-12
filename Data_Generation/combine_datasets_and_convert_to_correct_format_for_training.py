@@ -84,7 +84,7 @@ def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
     # np.save(os.path.join(save_path, "v0.npy"), v0)    # Dont save anymore ! Use averaged V0 from Negative_Sample_set
     # save images to npy
     np.save(os.path.join(save_path, "img_array.npy"), img_array)
-    return v0, voltage_array, img_array
+    return voltage_array, img_array
 
 
 def combine_multiple_pickles(path):
@@ -140,9 +140,9 @@ if __name__ == '__main__':
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
-    # path = "../Collected_Data/Test_Set_Circular_06_10"
-    # path = "../Collected_Data/Data_05_10_3_freq_40mm"
-    path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/Test_Set_11_10_single_freq"
+    # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm_overnight"
 
     df = combine_multiple_pickles(path=path)
@@ -150,9 +150,11 @@ if __name__ == '__main__':
     img_array = np.array(img_array)
     voltages_df = df["voltages"]
     path_vo = "../eit_experiments/Move_Bottle_2/setup/setup_00001.eit"
+
+    v0 = np.load("../Collected_Data/Combined_dataset/v0.npy")
     # shuffle dataframe
     df = df.sample(frac=1).reset_index(drop=True)
-    v0, voltage_array, img_array = convert_df_to_separate_npy_files(df,
+    voltage_array, img_array = convert_df_to_separate_npy_files(df,
                                                                     save_path=path,
                                                                     path_vo=path_vo)
     look_at_dataset(img_array=img_array, v1_array=voltage_array,
