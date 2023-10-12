@@ -4,8 +4,9 @@ from matplotlib import pyplot as plt
 
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
+# Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/model_2023-10-06_12-15-26_epoche_143_of_300_best_model/TEST_evaluation_model_model_2023-10-06_12-15-26_epoche_143_of_300_best_model.pkl")
+    "Results/model_2023-10-12_11-55-44_epoche_232_of_300_best_model/evaluation_model_model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3

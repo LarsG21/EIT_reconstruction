@@ -224,6 +224,8 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     radii = radii[::-1]
     num_of_angles = 360 // degree_resolution
     angles = np.linspace(0, 2 * np.pi, num_of_angles)
+    # print overall number of samples
+    print(f"Number of samples that will be collected: {len(radii) * len(angles) * number_of_runs}")
 
     last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
     eit_path = wait_for_start_of_measurement(
@@ -231,6 +233,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     time.sleep(1)
     i = 0
     for a in range(0, number_of_runs):
+        print(f"Run {a} of {number_of_runs}")
         for radius in radii:
             print(f"Measuring at radius: {radius}")
             for angle in angles:
@@ -349,7 +352,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_Set_Circular_12_10_single_freq"
+    TEST_NAME = "Test_Set_Circular_12_10_single_freq_v2"
     # collect_data(gcode_device=ender, number_of_samples=4000,
     #              eit_data_path="../eit_data",
     #              save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")

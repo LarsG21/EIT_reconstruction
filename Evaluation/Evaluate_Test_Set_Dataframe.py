@@ -1,5 +1,6 @@
 import os
 import pickle
+import time
 
 import cv2
 import pandas as pd
@@ -36,11 +37,19 @@ def get_position_error(img_reconstructed, target_image, show_plot=True):
 
     # plot a plot with two dots at the center of mass and the target position
     if show_plot:
-    # if show_plot or distance_between_centers > 10:
-        plt.imshow(img_reconstructed)
-        plt.scatter(center_of_mass[0], center_of_mass[1], c="red")
-        plt.scatter(target_position[0], target_position[1], c="blue")
-        plt.show()
+        if USE_OPENCV_FOR_PLOTTING:
+            img_reconstructed = cv2.cvtColor(img_reconstructed, cv2.COLOR_GRAY2BGR)
+            img_reconstructed = cv2.resize(img_reconstructed, (0, 0), fx=4, fy=4)
+            center_of_mass = center_of_mass * 4
+            target_position = target_position * 4
+            cv2.circle(img_reconstructed, (int(center_of_mass[0]), int(center_of_mass[1])), 2, (0, 0, 255), 2)
+            cv2.circle(img_reconstructed, (int(target_position[0]), int(target_position[1])), 2, (255, 0, 0), 2)
+            cv2.imshow("Position Error", img_reconstructed)
+        else:
+            plt.imshow(img_reconstructed)
+            plt.scatter(center_of_mass[0], center_of_mass[1], c="red")
+            plt.scatter(target_position[0], target_position[1], c="blue")
+            plt.show()
 
     print("Distance between centers: ", distance_between_centers)
     print("Error vector: ", error_vect)
@@ -56,6 +65,7 @@ def get_amplitude_response(img_reconstructed, target_image, show_plot=True):
     :param target_image:
     :return:
     """
+    global USE_OPENCV_FOR_PLOTTING
     intersection = np.logical_and(img_reconstructed, target_image)
     intersection = intersection.astype(np.float32)
     # get reconstructed image at parts of the intersection as mask
@@ -63,10 +73,12 @@ def get_amplitude_response(img_reconstructed, target_image, show_plot=True):
     # calculate the ratio of the pixels in the intersection to the pixels in the theoretical image
     amplitude_response = np.sum(img_reconstructed_intersect) / np.sum(target_image)
     if show_plot:
-    # if show_plot or amplitude_response > 0.9:
-        plt.imshow(img_reconstructed_intersect)
-        plt.title(f"Amplitude response: {amplitude_response}")
-        plt.show()
+        if USE_OPENCV_FOR_PLOTTING:
+            cv2.imshow("Amplitude Response", cv2.resize(img_reconstructed_intersect, (512, 512)))
+        else:
+            plt.imshow(img_reconstructed_intersect)
+            plt.title(f"Amplitude response: {amplitude_response}")
+            plt.show()
     return amplitude_response
 
 
@@ -78,6 +90,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
     :param img_reconstructed: the reconstructed image
     :return:
     """
+    global USE_OPENCV_FOR_PLOTTING
     RADIUS_TARGET_IN_MM = 40
     RADIUS_TANK_IN_MM = 190
     RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
@@ -95,20 +108,22 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
     # does not fit within a circle of an equal area
     shape_deformation = np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)
     if show_plot:
-    # if show_plot or shape_deformation > 0.4:
-        # plt.imshow(img_reconstructed)
-        # plt.show()
-        plt.imshow(img_reconstructed_masked)
-        plt.title(f"Shape deformation: {np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)}")
-        plt.show()
+        if USE_OPENCV_FOR_PLOTTING:
+            cv2.imshow("Shape Deformation", cv2.resize(img_reconstructed_masked, (512, 512)))
+        else:
+            plt.imshow(img_reconstructed_masked)
+            plt.title(f"Shape deformation: {np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)}")
+            plt.show()
 
     return shape_deformation
 
 
+USE_OPENCV_FOR_PLOTTING = True
+
 def main():
     global pca
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
@@ -119,7 +134,7 @@ def main():
         pca = pickle.load(open(pca_path, "rb"))
 
     # Test set path
-    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_12_10_single_freq/combined.pkl")
+    df = pd.read_pickle("../Collectad_Data_Experiments/Test Sets/Test_Set_Circular_single_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -133,9 +148,9 @@ def main():
         target_image = row["images"]
         target_position = find_center_of_mass(target_image)
         positions.append(target_position)
-        if SHOW:
-            plt.imshow(target_image)
-            plt.show()
+        # if SHOW:
+        #     plt.imshow(target_image)
+        #     plt.show()
         v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
         if not ABSOLUTE_EIT:
             v0 = np.load("v0.npy")
@@ -157,6 +172,8 @@ def main():
         ####################### Shape deformation #######################
         shape_deformation = get_shape_deformation(img_reconstructed, show_plot=SHOW)
         shape_deformations.append(shape_deformation)
+        if USE_OPENCV_FOR_PLOTTING:
+            cv2.waitKey(100)
 
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
