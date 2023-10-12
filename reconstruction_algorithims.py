@@ -7,7 +7,7 @@ from pyeit.eit import greit, jac, bp
 from pyeit.eit.interp2d import sim2pts
 
 
-def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only, path2_for_name_only, plot=True):
+def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=None, path2_for_name_only=None, plot=True):
     """
     Solve the EIT problem with GREIT and plot the result
     :param v0: default voltages (no anomaly)
@@ -31,9 +31,12 @@ def solve_and_plot_greit(v0, v1, mesh_obj, protocol_obj, path1_for_name_only, pa
     x, y, ds = eit.mask_value(ds, mask_value=0)
 
     # show alpha
-    name1 = path1_for_name_only.split("\\")[-1]
-    name2 = path2_for_name_only.split("\\")[-1]
-    plt.title(f"{name1} - {name2}")
+    if path1_for_name_only is None or path2_for_name_only is None:
+        plt.title("GREIT")
+    else:
+        name1 = path1_for_name_only.split("\\")[-1]
+        name2 = path2_for_name_only.split("\\")[-1]
+        plt.title(f"{name1} - {name2}")
     image = np.real(ds)
     # flip the image upside down
     image = np.flipud(image)

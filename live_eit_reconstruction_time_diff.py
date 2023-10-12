@@ -22,12 +22,8 @@ n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 # Dist_exc is the distance between the excitation and measurement electrodes (in number of electrodes)
 
-use_customize_shape = False
-if use_customize_shape:
-    # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
-    mesh_obj = mesh.create(n_el, h0=0.1, fd=thorax)
-else:
-    mesh_obj = mesh.create(n_el, h0=0.1)
+
+mesh_obj = mesh.create(n_el, h0=0.1)
 
 """ 1. problem setup """
 anomaly = []
@@ -48,8 +44,9 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     df_v0 = df_v0[df_v0["frequency"] == 1000]
     v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
     v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
+    # v0 = np.load("v0.npy")
     # save v0 as npy
-    np.save("v0.npy", v0)
+    # np.save("v0.npy", v0)
     # calculate the voltage difference
     difference = (v1 - v0)
     # normalize the voltage difference
@@ -67,6 +64,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
         normalized_difference = pca.transform(normalized_difference.reshape(1, -1))
     v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     v1_traditional_algorithims = v1[protocol_obj.keep_ba]
+    # solve_and_plot_jack(v0_traditional_algorithims, v1_traditional_algorithims, mesh_obj, protocol_obj,
+    #                     path1_for_name_only=v1_path, path2_for_name_only=v0_path)
     img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
                                      mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path,
                                      plot=False)
@@ -81,7 +80,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     solve_and_plot_with_nural_network(model=model, model_input=normalized_difference, chow_center_of_mass=False,
                                       use_opencv_for_plotting=True)
-    # time.sleep(2)
+    time.sleep(0.1)
 
 
 def plot_eit_images_in_folder(path):

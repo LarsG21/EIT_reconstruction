@@ -103,7 +103,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    ABSOLUTE_EIT = False
+    ABSOLUTE_EIT = True
     SAMPLE_RECONSTRUCTION_INDEX = 42  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
@@ -340,13 +340,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "TESTING_MORE_DATA_12_10"
-    # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    model_name = "Run_12_10_with_normalization"
+    path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
-    path = "../Collected_Data/Combined_dataset"
+    # path = "../Collected_Data/Combined_dataset"
     num_epochs = 300
     learning_rate = 0.001
-    pca_components = 0
+    pca_components = 128
     add_augmentation = False
     noise_level = 0.05
     number_of_noise_augmentations = 2
@@ -360,5 +360,5 @@ if __name__ == "__main__":
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
+                   weight_decay=weight_decay, normalize=True, electrode_level_normalization=False,
                    )
