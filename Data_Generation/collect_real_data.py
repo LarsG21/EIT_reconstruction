@@ -4,11 +4,12 @@ import os
 import time
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac, calibration_procedure
+    solve_eit_using_jac, calibration_procedure, wait_1_file_and_get_next
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from pyeit import mesh
@@ -56,7 +57,8 @@ CONDUCTIVITY_TARGET = 1000  # in S/m
 # TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
 
 
-def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray):
+def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray,
+                       debug_plots: bool = False):
     """
     Generates a sample simulation of electrode voltages with a random anomaly.
     """
@@ -101,25 +103,34 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
         print("center_for_moving", center_for_moving)
         gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
         move_time = gcode_device.calculate_moving_time(last_position,
-                                                       center_for_moving) + 4  # 4 seconds for safety and measurement
+                                                       center_for_moving)  # 4 seconds for safety and measurement
         wait_for_n_secs_with_print(move_time)
     else:
         time.sleep(2)
         center_for_moving = last_position
     """ 4. collect data """
     # get the newest file in the folder
-    file_path = get_newest_file(eit_path)
+    file_path = wait_1_file_and_get_next(eit_path)
     print(file_path)
     df_1 = convert_single_frequency_eit_file_to_df(file_path)
-    df1 = pd.concat([df_1, df_keep_mask], axis=1)
-    v1 = df1["amplitude"].to_numpy(dtype=np.float64)
+    v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
 
     """ 5. solve EIT using Jac"""
     mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
+    # select the relevant voltages
     v0_solve = v0[keep_mask]
     v1_solve = v1[keep_mask]
+    # subtract the mean  HIGHLIGHT: DONT DO THIS !!
     solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
-
+    if debug_plots:
+        plt.plot(v1)
+        plt.plot(v0)
+        plt.title("v1 and v0")
+        plt.legend(["v1", "v0"])
+        plt.show()
+        plt.plot((v1 - v0) / v0)
+        plt.title("relative difference")
+        plt.show()
     return img, v1, center_for_moving
 
 
@@ -144,14 +155,14 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         file.write(json.dumps(metadata))
     images = []
     voltages = []
+    timestamps = []
     if gcode_device is None:
         last_centers = [np.array([0, 0])]
     else:
         last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
-    time.sleep(4)
-    file_path = get_newest_file(eit_path)
+    file_path = wait_1_file_and_get_next(eit_path)
     print(file_path)
     os.chdir(cwd)
     v0 = np.load("v0.npy")
@@ -161,21 +172,152 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
                                                         last_position=last_centers[-1])
         images.append(img)
         voltages.append(v1)
+        timestamps.append(datetime.datetime.now())
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
         # save the images and voltages in a dataframe every 10 samples
-        if i % 20 == 0:
-            df = pd.DataFrame({"images": images, "voltages": voltages})
+        if i % 5 == 0:
+            df = pd.DataFrame(
+                {"timestamp": timestamps, "images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
                                           f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
             df.to_pickle(save_path_data)
             print(f"Saved data to {save_path_data}")
             images = []
             voltages = []
+            timestamps = []
     # save the images and voltages in a dataframe
     df = pd.DataFrame({"images": images, "voltages": voltages})
     save_path_data = os.path.join(save_path, f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
     df.to_pickle(save_path_data)
+
+
+def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, eit_data_path: str, save_path: str,
+                                debug_plots: bool = True):
+    """
+    Moves the target in circular pattern at multiple radii and collects the data.
+    :param number_of_runs:
+    :param save_path:
+    :param eit_data_path:
+    :param gcode_device:
+    :return:
+    """
+    v0 = np.load("v0.npy")
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    # create txt file with the metadata
+    metadata = {"number_of_samples": number_of_runs, "img_size": img_size, "n_el": n_el,
+                "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
+                "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
+                "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
+                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas,
+                }
+    with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
+        file.write(json.dumps(metadata))
+    images = []
+    voltages = []
+    timestamps = []
+    """ Crate Circle Pattern """
+    degree_resolution = 20
+    radii = np.linspace(0.1, 1 - RELATIVE_RADIUS_TARGET - 0.05, 4)
+    # reverse the order of the radii
+    radii = radii[::-1]
+    num_of_angles = 360 // degree_resolution
+    angles = np.linspace(0, 2 * np.pi, num_of_angles)
+
+    last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
+    eit_path = wait_for_start_of_measurement(
+        eit_data_path)  # Wait for the start of the measurement and return the path to the data
+    time.sleep(1)
+    i = 0
+    for a in range(0, number_of_runs):
+        for radius in radii:
+            print(f"Measuring at radius: {radius}")
+            for angle in angles:
+                print(f"Measuring at radius: {radius}, angle: {angle}")
+                x = radius * np.cos(angle)
+                y = radius * np.sin(angle)
+                center = np.array([x, y])
+                center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
+                # invert x axis
+                center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
+                center_for_moving = center_for_moving.astype(int)
+                gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
+                move_time = gcode_device.calculate_moving_time(last_centers[-1],
+                                                               center_for_moving)
+                wait_for_n_secs_with_print(move_time)  # 1 seconds for safety and measurement
+                last_centers.append(center_for_moving)
+                if i == 0:
+                    last_centers = last_centers[1:]
+                    # wait for the first movement to finish
+                    time.sleep(4)
+                i += 1
+                """ 4. collect data """
+                # get the newest file in the folder
+                file_path = wait_1_file_and_get_next(eit_path)
+                print(file_path)
+                time.sleep(0.1)
+                df_1 = convert_single_frequency_eit_file_to_df(file_path)
+                v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
+                """ 5. create image """
+                img = np.zeros([img_size, img_size])
+                # set to 1 the pixels corresponding to the anomaly unsing cv2.circle
+                # map center from [-1, 1] to [0, img_size]
+                center_for_image = (center + 1) * img_size / 2
+                center_for_image = center_for_image.astype(int)
+                if gcode_device is not None:
+                    cv2.circle(img, tuple(center_for_image), int(RELATIVE_RADIUS_TARGET * img_size / 2), 1, -1)
+                # flip the image vertically because the mesh is flipped vertically
+                img = np.flip(img, axis=0)
+                """6. solve with trained model """
+                mesh_new = mesh.set_perm(mesh_obj, anomaly=[])
+                # select the relevant voltages
+                v0_solve = v0[keep_mask]
+                v1_solve = v1[keep_mask]
+                # subtract the mean # HIGHLIGHT: DONT DO THAT !!!
+                if debug_plots:
+                    plt.plot(v1)
+                    plt.plot(v0)
+                    plt.title("v1 and v0")
+                    plt.legend(["v1", "v0"])
+                    plt.show()
+                    plt.plot((v1 - v0) / v0)
+                    plt.title("relative difference")
+                    plt.show()
+                solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
+                PLOT = True
+                if PLOT:
+                    img_show = img.copy()
+                    # plot big circle
+                    # convert to color image
+                    img_show = np.stack([img_show, img_show, img_show], axis=2)
+                    cv2.circle(img_show, (img_size // 2, img_size // 2), int(img_size / 2), (255, 0, 255), 1)
+                    cv2.imshow("Target Location", cv2.resize(img_show, (256, 256)))
+                    cv2.waitKey(100)
+                images.append(img)
+                voltages.append(v1)
+                timestamps.append(datetime.datetime.now())
+                print(f"Sample {i} collected")
+                # save the images and voltages in a dataframe every 10 samples
+                df = pd.DataFrame(
+                    {"timestamp": timestamps, "images": images, "voltages": voltages})
+                save_path_data = os.path.join(save_path,
+                                              f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+                df.to_pickle(save_path_data)
+                print(f"Saved data to {save_path_data}")
+                images = []
+                voltages = []
+                timestamps = []
+    # save the images and voltages in a dataframe
+    df = pd.DataFrame(
+        {"timestamp": timestamps, "images": images, "voltages": voltages})
+    save_path_data = os.path.join(save_path,
+                                  f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+    df.to_pickle(save_path_data)
+    print(f"Saved data to {save_path_data}")
+    # move to the center
+    gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
+
 
 
 
@@ -197,15 +339,23 @@ def main():
             calibrate = input("Do you want to calibrate the device? (y/n)")
             if calibrate == "y":
                 calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            else:
+                # move to the center
+                limit_x = ender.maximal_limits[0]
+                limit_z = ender.maximal_limits[2]
+                ender.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+                input("Press enter when the device is in the center...")
             break
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_09_10_40mm"
-    collect_data(gcode_device=ender, number_of_samples=4000,
-                 eit_data_path="../eit_data",
-                 save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
-
+    TEST_NAME = "Test_Set_Circular_12_10_single_freq"
+    # collect_data(gcode_device=ender, number_of_samples=4000,
+    #              eit_data_path="../eit_data",
+    #              save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
+                                eit_data_path="../eit_data",
+                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':
     cwd = os.getcwd()
