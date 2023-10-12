@@ -12,10 +12,13 @@ from plot_utils import solve_and_get_center_with_nural_network
 import matplotlib.pyplot as plt
 
 ### Setings ###
-MULTI_FREQUENCY = True
-VOLTAGE_VECTOR_LENGTH = 128
+ABSOLUTE_EIT = False
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = True
+NORMALIZE = False
+### Setings ###
+
+pca = None
 
 
 # TODO: THE COL TARGET POSITION IS SOMETIMES WRONG ! USE  target_position = find_center_of_mass(row["images"]) instead
@@ -103,16 +106,20 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 def main():
+    global pca
     ####### Settings #######
     SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collected_Data_Variation_Experiments/High_Variation_multi/Models/LinearModelWithDropout2/Test_Run/model_2023-10-06_12-15-26_epoche_143_of_300_best_model.pth"
+    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-    pca = pickle.load(open(pca_path, "rb"))
+    if os.path.exists(pca_path):
+        print("Loading PCA")
+        pca = pickle.load(open(pca_path, "rb"))
 
-    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10/combined.pkl")
+    # Test set path
+    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_12_10_single_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -130,7 +137,15 @@ def main():
             plt.imshow(target_image)
             plt.show()
         v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
-        v1 = pca.transform(v1.reshape(1, -1))
+        if not ABSOLUTE_EIT:
+            v0 = np.load("v0.npy")
+            # calculate the voltage difference
+            difference = (v1 - v0)
+            # normalize the voltage difference
+            difference = difference / v0
+            v1 = difference - np.mean(difference)
+            if pca is not None:
+                v1 = pca.transform(v1.reshape(1, -1))
         img_reconstructed, center = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ####################### Position error #######################
         distance_between_centers, error_vect = get_position_error(img_reconstructed, target_image, show_plot=SHOW)
@@ -148,7 +163,7 @@ def main():
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
     folder_name = model_path.split('/')[-1].split('.')[0]
-    eval_df_name = f"TEST_evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+    eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
     # eval_df_name = "TEST.pkl"
     save_path = os.path.join(path, folder_name, eval_df_name)
     if not os.path.exists(os.path.join(path, folder_name)):

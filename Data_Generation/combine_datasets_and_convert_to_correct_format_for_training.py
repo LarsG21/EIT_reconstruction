@@ -46,7 +46,7 @@ def reconstruct_multiple_voltages(voltage_array, v0, img_array=None):
             plt.show()
 
 
-def convert_df_to_separate_npy_files(df, save_path, path_vo="v0.eit"):
+def convert_df_to_separate_npy_files(df, save_path):
     """
     Converts the dataframe to separate npy files. These can be used in Model Training.
     :param df: Dataframe with images and voltages
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Combined_dataset"
-    path = "../Collected_Data/Test_Set_11_10_single_freq"
+    path = "../Collected_Data/Test_Set_Circular_12_10_single_freq"
     # path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Data_05_10_3_freq_40mm_overnight"
 
@@ -155,8 +155,7 @@ if __name__ == '__main__':
     # shuffle dataframe
     df = df.sample(frac=1).reset_index(drop=True)
     voltage_array, img_array = convert_df_to_separate_npy_files(df,
-                                                                    save_path=path,
-                                                                    path_vo=path_vo)
+                                                                save_path=path, )
     look_at_dataset(img_array=img_array, v1_array=voltage_array,
                     # v0=v0,
                     )

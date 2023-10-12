@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModelWithDropout2
+from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
 from plot_utils import solve_and_plot_with_nural_network, preprocess_greit_img
 from pyeit import mesh
@@ -124,6 +124,7 @@ def plot_eit_video(path):
     while True:
         for current_frame in os.listdir(os.getcwd()):
             if current_frame.endswith(".eit") and current_frame not in seen_files:
+                print(current_frame)
                 if default_frame is None:
                     default_frame = current_frame
                 else:
@@ -141,7 +142,10 @@ print("Loading the model")
 
 model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 
-model_path = "Collected_Data/old/Dataset_40mm_and_60_mm/Models/LinearModelWithDropout2/run2_4800_samples/model_2023-09-28_15-03-42_299_300.pth"
+model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
+#
+#
+# model_path = "Collected_Data/old/Dataset_40mm_and_60_mm/Models/LinearModelWithDropout2/run2_4800_samples/model_2023-09-28_15-03-42_299_300.pth"
 model.load_state_dict(torch.load(model_path))
 
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")

@@ -256,10 +256,10 @@ def evaluate_reconstruction_at_circle_pattern(gcode_device: GCodeDevice, eit_dat
 
 
 ### Setings ###
-MULTI_FREQUENCY = True
-VOLTAGE_VECTOR_LENGTH = 128
+MULTI_FREQUENCY = False
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = True
+NORMALIZE = False
 
 
 ### Setings ###
@@ -268,10 +268,12 @@ def main():
     global model, v0, model_path, pca, MULTI_FREQUENCY
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collectad_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup4_noise_aug/model_2023-09-29_15-24-19_599_600.pth"
+    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_11_10_NEW/model_2023-10-11_17-44-43_epoche_123_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-    pca = pickle.load(open(pca_path, "rb"))
+    if os.path.exists(pca_path):
+        print("Loading the pca")
+        pca = pickle.load(open(pca_path, "rb"))
 
     devices = list_serial_devices()
     ender = None
@@ -296,7 +298,7 @@ def main():
         print("Ender 3 found")
     # v0_df = convert_single_frequency_eit_file_to_df("v0.eit")
     # v0 = v0_df["amplitude"].to_numpy(dtype=np.float64)
-    # v0 = np.load("v0.npy")
+    v0 = np.load("v0.npy")
     # v0 = v0[keep_mask]
 
     # evaluate_reconstruction_at_random_positions(gcode_device=ender, number_of_samples=400, eit_data_path="../eit_data")
