@@ -11,7 +11,8 @@ import torch
 from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
 from plot_utils import solve_and_plot_with_nural_network
-from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame, add_normalizations
+from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame, add_normalizations, \
+    check_settings_of_model
 
 
 def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     VOLTAGE_VECTOR_LENGTH_PCA = 128
     OUT_SIZE = 64
     # Normalize the data
-    NORMALIZE = True
+    NORMALIZE = False
 
     print("Loading the model")
     ### Settings end ###
@@ -127,7 +128,10 @@ if __name__ == '__main__':
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
     model_pca_path = "Collected_Data_Variation_Experiments/High_Variation_multi/Models/LinearModelWithDropout2/Test_Run/model_2023-10-06_12-15-26_epoche_143_of_300_best_model.pth"
-
+    norm = check_settings_of_model(model_pca_path)
+    if norm is not None and norm != NORMALIZE:
+        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
+        NORMALIZE = norm
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_05_10_3629_samples_with_augmentation/model_2023-10-05_18-13-21_epoche_124_of_300_best_model.pth"
     # get the pca.okl in the same folder as the model
     pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")

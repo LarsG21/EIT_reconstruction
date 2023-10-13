@@ -148,3 +148,27 @@ def add_normalizations(v1, NORMALIZE_MEDIAN, NORMALIZE_PER_ELECTRODE=False):
             v1 = v1 - median
             v1 = v1 / median
         return v1
+
+
+def check_settings_of_model(model_path):
+    """
+    Checks the settings.txt file of the model and returns the value of normalize.
+    :param model_path:
+    :return:
+    """
+    settings_path = os.path.join(os.path.dirname(model_path), "settings.txt")
+    if os.path.exists(settings_path):
+        print("Loading settings")
+        # search for line with "normalize: " and see if it is True or False
+        with open(settings_path, "r") as f:
+            for line in f.readlines():
+                if "normalize: " in line:
+                    if "True" in line:
+                        normalize = True
+                    else:
+                        normalize = False
+                    break
+                else:
+                    normalize = None
+
+    return normalize

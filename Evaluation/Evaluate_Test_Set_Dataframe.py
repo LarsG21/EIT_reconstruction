@@ -1,19 +1,15 @@
 import os
 import pickle
-import time
 
 import cv2
 import pandas as pd
 import torch
 import numpy as np
 
-from pyeit import mesh
-from pyeit.eit import protocol
-from reconstruction_algorithims import solve_and_plot_greit
-from utils import find_center_of_mass, add_normalizations
+from utils import find_center_of_mass, add_normalizations, check_settings_of_model
 
 from Model_Training.Models import LinearModelWithDropout2
-from plot_utils import solve_and_get_center_with_nural_network, preprocess_greit_img
+from plot_utils import solve_and_get_center_with_nural_network
 import matplotlib.pyplot as plt
 
 
@@ -124,7 +120,6 @@ OUT_SIZE = 64
 NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 
-
 ### Setings ###
 
 def main():
@@ -142,8 +137,8 @@ def main():
     if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
-    settings_path = os.path.join(os.path.dirname(model_path), "settings.txt")
-    norm = check_settings_of_model(settings_path)
+
+    norm = check_settings_of_model(model_path)
     if norm is not None and norm != NORMALIZE:
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
         NORMALIZE = norm
@@ -220,29 +215,6 @@ def main():
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
     print("Use Plot_results_of_evaluation.py to evaluate the results")
-
-
-def check_settings_of_model(settings_path):
-    """
-    Checks the settings.txt file of the model and returns the value of normalize.
-    :param settings_path:
-    :return:
-    """
-    if os.path.exists(settings_path):
-        print("Loading settings")
-        # search for line with "normalize: " and see if it is True or False
-        with open(settings_path, "r") as f:
-            for line in f.readlines():
-                if "normalize: " in line:
-                    if "True" in line:
-                        normalize = True
-                    else:
-                        normalize = False
-                    break
-                else:
-                    normalize = None
-
-    return normalize
 
 
 if __name__ == '__main__':
