@@ -81,7 +81,8 @@ def convert_df_to_separate_npy_files(df, save_path):
         plt.plot(v0_mean)
         plt.legend(["v0", "v0_mean"])
         plt.show()
-    # np.save(os.path.join(save_path, "v0.npy"), v0)    # Dont save anymore ! Use averaged V0 from Negative_Sample_set
+        np.save(os.path.join(save_path, "v0_13_10.npy"),
+                v0)  # Dont save anymore ! Use averaged V0 from Negative_Sample_set
     # save images to npy
     np.save(os.path.join(save_path, "img_array.npy"), img_array)
     return voltage_array, img_array
@@ -143,7 +144,8 @@ if __name__ == '__main__':
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data_Experiments/Test Sets/Test_Set_Circular_single_freq"
     # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    path = "../Collected_Data/Test_Set_Circular_13_10_single_freq"
+    # path = "../Collected_Data/Test_Set_Circular_13_10_single_freq"
+    path = "../Collected_Data/V0_SAMPLES_13_10_2023"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()
@@ -160,3 +162,7 @@ if __name__ == '__main__':
                     # v0=v0,
                     )
     # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
+
+    # v0 = np.load("../Collected_Data/V0_SAMPLES_13_10_2023/v0_13_10.npy")
+    # plt.plot(v0)
+    # plt.show()

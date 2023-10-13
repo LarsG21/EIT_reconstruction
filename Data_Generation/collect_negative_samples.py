@@ -3,12 +3,28 @@ import os
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
-from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
+from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df, convert_single_frequency_eit_file_to_df
 
 img_size = 64
 TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
+ABSOLUTE_EIT = False
+
+
+# TODO: Import form utils instead
+def preprocess_absolute_eit_frame(df):
+    """
+    Preprocesses the absolute eit frame to an array of alternating real and imaginary values.
+    Use this methode to be consistent with preprocessing over all the project.
+    :param df: Dataframe with the eit frame
+    :return: The preprocessed eit frame as a numpy array
+    """
+    df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
+    df_alternating = df_alternating.to_frame(name="amplitude")
+    v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)  # add alternating imaginary and real values
+    return v1
 
 def collect_samples(eit_path: str, save_path: str):
     """
@@ -29,13 +45,15 @@ def collect_samples(eit_path: str, save_path: str):
     images = []
     for file_path in paths:
         print(file_path)
-        df = convert_multi_frequency_eit_to_df(file_path)
+        if ABSOLUTE_EIT:
+            df = convert_multi_frequency_eit_to_df(file_path)
+            v1 = preprocess_absolute_eit_frame(df)
+        else:
+            df = convert_single_frequency_eit_file_to_df(file_path)
+            v1 = df["amplitude"].to_numpy(dtype=np.float64)
+            plt.plot(v1)
+            plt.show()
 
-        # combine both df to alternating real and imaginary values
-        df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(drop=True)
-        # convert to numpy array
-        alternating_values = df_alternating.to_numpy()
-        v1 = alternating_values
         img = np.zeros([img_size, img_size])
 
         voltages.append(v1)
@@ -48,8 +66,8 @@ def collect_samples(eit_path: str, save_path: str):
 
 
 if __name__ == '__main__':
-    eit_path = "../eit_data/20230929 10.59.24/setup_1"
-    save_path = "../Collected_Data/Multi_freq_Data/3_Freq/Data_29_09_negative_3_freq"
+    eit_path = "../eit_data/20231013 11.51.25/setup"
+    save_path = "../Collected_Data/V0_SAMPLES_13_10_2023"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     collect_samples(eit_path, save_path)
