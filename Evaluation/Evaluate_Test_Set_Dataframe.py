@@ -114,8 +114,8 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 128
+ABSOLUTE_EIT = False
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
@@ -128,10 +128,11 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
+    # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
+    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
@@ -144,7 +145,8 @@ def main():
         NORMALIZE = norm
 
     # Test set path
-    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
+    # df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
+    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_13_10_single_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -190,17 +192,23 @@ def main():
         # plt.imshow(img_reconstructed)
         # plt.title("GREIT preprocessed")
         # plt.show()
-        ####################### Position error #######################
-        distance_between_centers, error_vect = get_position_error(img_reconstructed, target_image, show_plot=SHOW)
-        position_errors.append(distance_between_centers)
-        error_vectors.append(error_vect)
         ####################### Amplitude response #######################
         amplitude_response = get_amplitude_response(img_reconstructed, target_image, show_plot=SHOW)
         amplitude_responses.append(amplitude_response)
+        print(f"Amplitude response: {amplitude_response}")
+        ####################### Position error #######################
+        if amplitude_response == 0:
+            print("Amplitude response was 0, so the position error is set to NaN")
+            distance_between_centers = np.NAN
+            error_vect = np.NAN
+        else:
+            distance_between_centers, error_vect = get_position_error(img_reconstructed, target_image, show_plot=SHOW)
+        position_errors.append(distance_between_centers)
+        error_vectors.append(error_vect)
         ####################### Shape deformation #######################
         shape_deformation = get_shape_deformation(img_reconstructed, show_plot=SHOW)
         shape_deformations.append(shape_deformation)
-        if USE_OPENCV_FOR_PLOTTING:
+        if SHOW and USE_OPENCV_FOR_PLOTTING:
             cv2.waitKey(300)
 
     df = pd.DataFrame(
@@ -208,7 +216,7 @@ def main():
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
     # eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
-    eval_df_name = "TESTING"
+    eval_df_name = "TESTING.pickle"
     save_path = os.path.join(path, eval_df_name)
     if not os.path.exists(os.path.join(path)):
         os.makedirs(os.path.join(path))
