@@ -9,11 +9,14 @@ import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac, calibration_procedure, wait_1_file_and_get_next
+    solve_eit_using_jac, calibration_procedure, wait_1_file_and_get_next, add_electrode_normalizations
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
 from pyeit import mesh
 from pyeit.eit import protocol
+from pyeit.eit.fem import EITForward
+from pyeit.mesh.wrapper import PyEITAnomaly_Circle
+from reconstruction_algorithims import solve_and_plot_greit
 from utils import wait_for_start_of_measurement
 
 """How to use this script:
@@ -50,8 +53,8 @@ TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
 VOLTAGE_FREQUENCY = 1000
 CURRENT = 0.1
-CONDUCTIVITY_BG = 0.1  # in S/m     # TODO: Measure this
-CONDUCTIVITY_TARGET = 1000  # in S/m
+CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
+CONDUCTIVITY_TARGET = 0.1  # in S/m
 
 
 # TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
@@ -218,7 +221,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     voltages = []
     timestamps = []
     """ Crate Circle Pattern """
-    degree_resolution = 20
+    degree_resolution = 60
     radii = np.linspace(0.1, 1 - RELATIVE_RADIUS_TARGET - 0.05, 4)
     # reverse the order of the radii
     radii = radii[::-1]
@@ -241,6 +244,20 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 x = radius * np.cos(angle)
                 y = radius * np.sin(angle)
                 center = np.array([x, y])
+                anomaly = PyEITAnomaly_Circle(center=center, r=RELATIVE_RADIUS_TARGET, perm=CONDUCTIVITY_TARGET)
+                mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly, background=CONDUCTIVITY_BG)
+                fwd = EITForward(mesh_obj, protocol_obj)
+                v0_simulated = fwd.solve_eit()
+                v1_simulated = fwd.solve_eit(perm=mesh_new.perm)
+                if debug_plots:
+                    # plt.plot(v1_simulated)
+                    # plt.plot(v0_simulated)
+                    # plt.title("v1 and v0")
+                    # plt.legend(["v1_simulated", "v0_simulated"])
+                    # plt.show()
+                    plt.plot((v1_simulated - v0_simulated) / v0_simulated)
+                    plt.title("relative difference simulated")
+                    plt.show()
                 center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
                 # invert x axis
                 center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
@@ -273,19 +290,21 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 # flip the image vertically because the mesh is flipped vertically
                 img = np.flip(img, axis=0)
                 """6. solve with trained model """
+                # v1 = add_electrode_normalizations(v1=v1, NORMALIZE_PER_ELECTRODE=True) # HIGHLIGHT: DOESNT WORK !!!
+                # v0 = add_electrode_normalizations(v1=v0, NORMALIZE_PER_ELECTRODE=True)
                 mesh_new = mesh.set_perm(mesh_obj, anomaly=[])
                 # select the relevant voltages
                 v0_solve = v0[keep_mask]
                 v1_solve = v1[keep_mask]
                 # subtract the mean # HIGHLIGHT: DONT DO THAT !!!
                 if debug_plots:
-                    plt.plot(v1)
-                    plt.plot(v0)
-                    plt.title("v1 and v0")
-                    plt.legend(["v1", "v0"])
-                    plt.show()
-                    plt.plot((v1 - v0) / v0)
-                    plt.title("relative difference")
+                    # plt.plot(v1_solve)
+                    # plt.plot(v0_solve)
+                    # plt.title("v1 and v0")
+                    # plt.legend(["v1", "v0"])
+                    # plt.show()
+                    plt.plot((v1_solve - v0_solve) / v0_solve)
+                    plt.title("relative difference measured")
                     plt.show()
                 solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
                 PLOT = True
@@ -352,13 +371,13 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_Set_Circular_12_10_single_freq_v2"
-    # collect_data(gcode_device=ender, number_of_samples=4000,
-    #              eit_data_path="../eit_data",
-    #              save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
-                                eit_data_path="../eit_data",
-                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    TEST_NAME = "Data_16_10_single_freq_40mm"
+    collect_data(gcode_device=ender, number_of_samples=4000,
+                 eit_data_path="../eit_data",
+                 save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
+    #                             eit_data_path="../eit_data",
+    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':
     cwd = os.getcwd()
