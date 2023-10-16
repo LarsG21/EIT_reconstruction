@@ -157,6 +157,7 @@ def check_settings_of_model(model_path):
     :return:
     """
     settings_path = os.path.join(os.path.dirname(model_path), "settings.txt")
+    normalize, absolute = None, None
     if os.path.exists(settings_path):
         print("Loading settings")
         # search for line with "normalize: " and see if it is True or False
@@ -168,7 +169,10 @@ def check_settings_of_model(model_path):
                     else:
                         normalize = False
                     break
-                else:
-                    normalize = None
+                elif "Absolute EIT" in line:
+                    if "True" in line:
+                        absolute = True
+                    else:
+                        absolute = False
 
-    return normalize
+    return normalize, absolute

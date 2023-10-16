@@ -115,7 +115,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 ### Setings ###
 ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 128
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
@@ -123,7 +123,7 @@ USE_OPENCV_FOR_PLOTTING = True
 ### Setings ###
 
 def main():
-    global pca, NORMALIZE
+    global pca, NORMALIZE, ABSOLUTE_EIT
     input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
@@ -131,22 +131,25 @@ def main():
     SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
-    # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
+    # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
+    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
 
-    norm = check_settings_of_model(model_path)
+    norm, absolute = check_settings_of_model(model_path)
     if norm is not None and norm != NORMALIZE:
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
         NORMALIZE = norm
+    if absolute is not None and absolute != ABSOLUTE_EIT:
+        print(f"Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+        ABSOLUTE_EIT = absolute
 
     # Test set path
-    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
-    # df = pd.read_pickle("../Collected_Data/Test_Set_Circular_13_10_single_freq/combined.pkl")
+    # df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
+    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_13_10_single_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -215,8 +218,8 @@ def main():
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
-    # eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
-    eval_df_name = "TESTING.pickle"
+    eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+    # eval_df_name = "TESTING.pickle"
     save_path = os.path.join(path, eval_df_name)
     if not os.path.exists(os.path.join(path)):
         os.makedirs(os.path.join(path))

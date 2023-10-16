@@ -132,6 +132,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Save settings in txt file
     with open(os.path.join(model_path, "settings.txt"), "w") as f:
+        f.write(f"Model: {model_class_name}\n")
+        f.write(f"Absolute EIT: {ABSOLUTE_EIT}\n")
         f.write(f"NOISE_LEVEL: {noise_level}\n")
         f.write(f"LEARNING_RATE: {learning_rate}\n")
         f.write(f"weight_decay: {weight_decay}\n")

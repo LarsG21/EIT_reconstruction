@@ -128,10 +128,13 @@ if __name__ == '__main__':
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
     model_pca_path = "Collected_Data_Variation_Experiments/High_Variation_multi/Models/LinearModelWithDropout2/Test_Run/model_2023-10-06_12-15-26_epoche_143_of_300_best_model.pth"
-    norm = check_settings_of_model(model_pca_path)
+    norm, absolute = check_settings_of_model(model_pca_path)
     if norm is not None and norm != NORMALIZE:
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
         NORMALIZE = norm
+    if absolute is False:
+        print("The model is not ment for absolute EIT.")
+        exit(1)
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_05_10_3629_samples_with_augmentation/model_2023-10-05_18-13-21_epoche_124_of_300_best_model.pth"
     # get the pca.okl in the same folder as the model
     pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
