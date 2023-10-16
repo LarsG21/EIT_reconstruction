@@ -1,20 +1,29 @@
 import os
 import pickle
+import time
 
 import cv2
 import pandas as pd
 import torch
 import numpy as np
 
+from pyeit import mesh
+from pyeit.eit import protocol
+from reconstruction_algorithims import solve_and_plot_greit
 from utils import find_center_of_mass, add_normalizations, check_settings_of_model
 
 from Model_Training.Models import LinearModelWithDropout2
-from plot_utils import solve_and_get_center_with_nural_network
+from plot_utils import solve_and_get_center_with_nural_network, preprocess_greit_img
 import matplotlib.pyplot as plt
 
 
 
 pca = None
+
+mesh_obj = mesh.create(32, h0=0.1)
+n_el = 32  # nb of electrodes
+protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
+v0 = np.load("v0.npy")
 
 
 # TODO: THE COL TARGET POSITION IS SOMETIMES WRONG ! USE  target_position = find_center_of_mass(row["images"]) instead
@@ -115,24 +124,25 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 ### Setings ###
 ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 1024
+VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
 NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
+USE_GREIT_FOR_RECONSTRUCTION = False
 
 ### Setings ###
 
 def main():
-    global pca, NORMALIZE, ABSOLUTE_EIT
+    global pca, NORMALIZE, ABSOLUTE_EIT, v0
     input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
-    model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
+    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
+    # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
@@ -147,9 +157,10 @@ def main():
         print(f"Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
         ABSOLUTE_EIT = absolute
 
-    # Test set path
+    # Test set training_data_path
     # df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
-    df = pd.read_pickle("../Collected_Data/Test_Set_Circular_13_10_single_freq/combined.pkl")
+    # df = pd.read_pickle("../Collected_Data_Experiments/Test_Data/Test_Set_Circular_single_freq/combined.pkl")
+    df = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -163,38 +174,36 @@ def main():
         target_image = row["images"]
         target_position = find_center_of_mass(target_image)
         positions.append(target_position)
-        # if SHOW:
-        #     plt.imshow(target_image)
-        #     plt.show()
-        v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
         if not ABSOLUTE_EIT:
+            v1 = raw_voltages
             v0 = np.load("v0.npy")
             # calculate the voltage difference
             difference = (v1 - v0)
             # normalize the voltage difference
             difference = difference / v0
             v1 = difference - np.mean(difference)
-        if pca is not None:
-            print("Transforming with PCA")
-            v1 = pca.transform(v1.reshape(1, -1))
-        img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+        else:
+            v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
+            if pca is not None:
+                print("Transforming with PCA")
+                v1 = pca.transform(v1.reshape(1, -1))
+        if not USE_GREIT_FOR_RECONSTRUCTION:
+            img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ############################### For GREIT  EVALUATION ###############################
-        # mesh_obj = mesh.create(32, h0=0.1)
-        # n_el = 32  # nb of electrodes
-        # protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
-        # v0 = np.load("v0.npy")
-        # v0_traditional_algorithims = v0[protocol_obj.keep_ba]
-        # v1_traditional_algorithims = v1[protocol_obj.keep_ba]
-        # img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-        #                                  mesh_obj, protocol_obj,
-        #                                  plot=False)
-        # plt.imshow(img_greit)
-        # plt.title("GREIT original")
-        # plt.show()
-        # img_reconstructed = preprocess_greit_img(img_greit)
-        # plt.imshow(img_reconstructed)
-        # plt.title("GREIT preprocessed")
-        # plt.show()
+        else:
+            v0_traditional_algorithims = v0[protocol_obj.keep_ba]
+            v1_traditional_algorithims = v1[protocol_obj.keep_ba]
+            img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+                                             mesh_obj, protocol_obj,
+                                             plot=False)
+            plt.imshow(img_greit)
+            plt.title("GREIT original")
+            plt.show()
+            img_reconstructed = preprocess_greit_img(img_greit)
+            plt.imshow(img_reconstructed)
+            plt.title("GREIT preprocessed")
+            plt.show()
+            time.sleep(0.5)
         ####################### Amplitude response #######################
         amplitude_response = get_amplitude_response(img_reconstructed, target_image, show_plot=SHOW)
         amplitude_responses.append(amplitude_response)
@@ -218,7 +227,10 @@ def main():
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
-    eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+    if not USE_GREIT_FOR_RECONSTRUCTION:
+        eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+    else:
+        eval_df_name = f"evaluation_GREIT.pkl"
     # eval_df_name = "TESTING.pickle"
     save_path = os.path.join(path, eval_df_name)
     if not os.path.exists(os.path.join(path)):

@@ -28,7 +28,7 @@ for i in range(1, 3):
     print(df_losses)
     # rename the columns
     df_losses = df_losses.rename(columns={"loss": f"loss_{i}", "val_loss": f"val_loss_{i}"})
-    # add the dataframe to the side aof the complete dataframe as new columns
+    # add the dataframe to the side of the complete dataframe as new columns
     df_complete = pd.concat([df_complete, df_losses], axis=1)
     print(df_complete.shape)
 
