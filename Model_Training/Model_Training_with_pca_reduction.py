@@ -103,7 +103,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    ABSOLUTE_EIT = True
+    ABSOLUTE_EIT = False
     SAMPLE_RECONSTRUCTION_INDEX = 42  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
@@ -120,6 +120,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
     if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
         raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
+    if not ABSOLUTE_EIT and normalize:
+        raise Exception("Relative EIT and Normalization didnt work well")
 
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)
@@ -342,17 +344,17 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_16_10_equal_dataset_sizes"
-    path = "../Training_Data/3_Freq"
+    model_name = "Run_16_10"
+    path = "../Training_Data/1_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    num_epochs = 300
+    num_epochs = 200
     learning_rate = 0.001
     pca_components = 128
     add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 4
-    number_of_rotation_augmentations = 0
+    number_of_noise_augmentations = 2
+    number_of_rotation_augmentations = 2
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
     early_stopping_handler = EarlyStoppingHandler(patience=20)
@@ -361,5 +363,5 @@ if __name__ == "__main__":
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=True, electrode_level_normalization=False,
+                   weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
                    )

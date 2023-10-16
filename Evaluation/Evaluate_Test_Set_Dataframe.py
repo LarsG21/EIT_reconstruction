@@ -138,14 +138,14 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
-    model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
+    # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     # New Path
-    # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_10_equal_dataset_sizes/model_2023-10-16_14-46-07_epoche_121_of_300_best_model.pth"
+    model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_10_equal_dataset_sizes/model_2023-10-16_14-46-07_epoche_121_of_300_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):

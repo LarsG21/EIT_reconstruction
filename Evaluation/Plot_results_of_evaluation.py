@@ -8,7 +8,7 @@ from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, 
 # df = pd.read_pickle(
 #     "Results/model_2023-10-12_11-55-44_epoche_232_of_300_best_model/evaluation_model_model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pkl")
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pkl")
+    "Results/evaluation_model_model_2023-10-16_14-46-07_epoche_121_of_300_best_model.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 4
@@ -41,14 +41,14 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        # save_path="Results/amplitude_response.png"
+                        save_path="Results/amplitude_response.png"
                         )
 plot_position_error(df,
-                    # save_path="Results/position_error.png"
+                    save_path="Results/position_error.png"
                     )
 
 plot_shape_deformation(df,
-                       # save_path="Results/shape_deformation.png"
+                       save_path="Results/shape_deformation.png"
                        )
 
 # convert col error_vector to np.array
