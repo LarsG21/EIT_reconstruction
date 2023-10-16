@@ -101,6 +101,9 @@ def combine_multiple_pickles(path):
         if file.endswith(".pkl") and file != "combined.pkl" and file != "pca.pkl":
             df_new = pd.read_pickle(os.path.join(path, file))
             print(f"length of {file}: {len(df_new)}")
+            # if length of df_new is > 300, take only 300 samples
+            # if len(df_new) > 300:
+            #     df_new = df_new.sample(300)
             if "negative" in file:
                 negative_samples += len(df_new)
             else:
@@ -145,7 +148,7 @@ if __name__ == '__main__':
     # path = "../Collected_Data_Experiments/Test Sets/Test_Set_Circular_single_freq"
     # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Test_Set_Circular_13_10_single_freq"
-    path = "../Collected_Data/V0_SAMPLES_13_10_2023"
+    path = "../Training_Data/3_Freq"
 
     df = combine_multiple_pickles(path=path)
     img_array = df["images"].to_list()

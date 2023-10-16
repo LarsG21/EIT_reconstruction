@@ -46,7 +46,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
     # v0 = np.load("v0.npy")
     # save v0 as npy
-    # np.save("v0.npy", v0)
+    np.save("v0.npy", v0)
     # calculate the voltage difference
     difference = (v1 - v0)
     # normalize the voltage difference

@@ -33,9 +33,9 @@ tri = mesh_obj.element
 
 # test function for altering the 'permittivity' in mesh
 anomaly = [
-    PyEITAnomaly_Circle(center=[0.4, 0], r=0.1, perm=10.0),
-    PyEITAnomaly_Circle(center=[-0.4, 0], r=0.1, perm=10.0),
-    PyEITAnomaly_Circle(center=[0, 0.5], r=0.1, perm=0.1),
+    PyEITAnomaly_Circle(center=[0.4, 0], r=0.2, perm=10.0),
+    # PyEITAnomaly_Circle(center=[-0.4, 0], r=0.15, perm=10.0),
+    # PyEITAnomaly_Circle(center=[0, 0.5], r=0.15, perm=0.1),
     # PyEITAnomaly_Circle(center=[0, -0.5], r=0.1, perm=0.1),
 ]
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly, background=1.0)
@@ -50,8 +50,23 @@ fwd = EITForward(mesh_obj, protocol_obj)
 v0 = fwd.solve_eit()
 v1 = fwd.solve_eit(perm=mesh_new.perm)
 
+plt.plot(v1)
+plt.title("Simulated data v1")
+plt.show()
+
 difference = (v1 - v0)
 plt.plot(difference)
+plt.title("Difference between v1 and v0 without noise")
+plt.show()
+
+# add random noise to the simulated data
+np.random.seed(0)
+noise = 0.1 * np.abs(v1) * np.random.randn(*v1.shape)
+v1 += noise
+
+difference = (v1 - v0)
+plt.plot(difference)
+plt.title("Difference between v1 and v0 with noise")
 plt.show()
 
 """ 3. Construct using GREIT """

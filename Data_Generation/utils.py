@@ -277,6 +277,41 @@ def find_center_of_mass(img):
 
     return center_of_mass
 
+
+def add_electrode_normalizations(v1, NORMALIZE_PER_ELECTRODE=False):
+    """
+    Adds the normalizations to the eit frame.
+    :param v1: The eit frame as a numpy array
+    :param NORMALIZE_MEDIAN: (x - median) / median
+    :param NORMALIZE_PER_ELECTRODE: Normalize the samples per max of electrode (CURRENTLY ONLY FOR 3 FREQUENCIES)
+    :return: the preprocessed eit frame as a numpy array
+    """
+    plt.plot(v1)
+    plt.title("Original sample")
+    plt.show()
+    if NORMALIZE_PER_ELECTRODE:
+        normalized_samples = []
+
+        # Divide all frequencies in 32 equal parts
+        v1_split = np.array_split(v1, 32)
+
+        # Normalize the individual parts by the max value
+        v1_split_normalized = [x / np.max(x) for x in v1_split]
+        calib_factors = [np.max(x) for x in v1]
+
+        # Flatten the normalized parts
+        freq1_split_normalized = np.concatenate(v1_split_normalized)
+
+        # Concatenate the normalized parts
+
+        # Append the normalized sample to the list
+        normalized_samples.append(freq1_split_normalized)
+        plt.plot(freq1_split_normalized)
+        plt.title("Normalized sample")
+        plt.show()
+        print("OK")
+        return np.array(normalized_samples).flatten()
+
 if __name__ == '__main__':
     for i in range(100):
         print(generate_random_anomaly_parameters(0.1, 0.1, 0.1, 0.1, 0.8))
