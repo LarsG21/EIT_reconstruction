@@ -8,10 +8,10 @@ from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, 
 # df = pd.read_pickle(
 #     "Results/model_2023-10-12_11-55-44_epoche_232_of_300_best_model/evaluation_model_model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pkl")
 df = pd.read_pickle(
-    "Results/TESTING.pickle")
+    "Results/evaluation_model_model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
-N = 3
+N = 4
 border_amplitude_response = N * df["amplitude_response"].std()
 border_position_error = N * df["position_error"].std()
 border_shape_deformation = N * df["shape_deformation"].std()
@@ -41,14 +41,14 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\model_2023-10-06_12-15-26_epoche_143_of_300_best_model\\amplitude_response.png"
+                        # save_path="Results/amplitude_response.png"
                         )
 plot_position_error(df,
-                        # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\model_2023-10-06_12-15-26_epoche_143_of_300_best_model\\position_error.png"
+                    # save_path="Results/position_error.png"
                     )
 
 plot_shape_deformation(df,
-                       # save_path="C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\model_2023-10-06_12-15-26_epoche_143_of_300_best_model\\shape_deformation.png"
+                       # save_path="Results/shape_deformation.png"
                        )
 
 # convert col error_vector to np.array

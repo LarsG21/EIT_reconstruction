@@ -209,7 +209,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
-        train_voltage, val_voltage, test_voltage = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
+        train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
                                                                              val_voltage, test_voltage, model_path,
                                                                              device,
                                                                              n_components=pca_components)
@@ -349,14 +349,13 @@ if __name__ == "__main__":
     num_epochs = 300
     learning_rate = 0.001
     pca_components = 128
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 2
-    number_of_rotation_augmentations = 2
+    number_of_noise_augmentations = 4
+    number_of_rotation_augmentations = 0
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
-
-    early_stopping_handler = EarlyStoppingHandler(patience=30)
+    early_stopping_handler = EarlyStoppingHandler(patience=20)
     trainings_loop(model_name=model_name, path_to_training_data=path,
                    num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,

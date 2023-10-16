@@ -37,4 +37,4 @@ def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, t
     train_voltage = torch.tensor(train_voltage, dtype=torch.float32).to(device)
     val_voltage = torch.tensor(val_voltage, dtype=torch.float32).to(device)
     test_voltage = torch.tensor(test_voltage, dtype=torch.float32).to(device)
-    return train_voltage, val_voltage, test_voltage
+    return train_voltage, val_voltage, test_voltage, pca
