@@ -138,7 +138,7 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
@@ -161,17 +161,42 @@ def main():
         ABSOLUTE_EIT = absolute
 
     # Test set training_data_path
-    # df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
-    df = pd.read_pickle("../Test_Data/Test_Set_Circular_single_freq/combined.pkl")
-    # df = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
+    # df_test_set = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
+    df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_single_freq/combined.pkl")
+    # df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
     #### END Settings #######
 
+    # load a regressor
+    regressor = pickle.load(open("../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl", 'rb'))
+
+    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model, model_path, pca, regressor)
+
+
+def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model, model_path, pca, regressor=None):
+    """
+
+    :param ABSOLUTE_EIT: Whether to use absolute EIT or not
+    :param NORMALIZE: Whether to normalize the input data or not
+    :param SHOW: Whether to show the plots or not (for debugging)
+    :param df: A dataframe containing the test dataset
+    :param model: a pytorch model
+    :param model_path: path to the model
+    :param pca: Principal Component Analysis object
+    :param regressor: a regressor for image reconstruction to use instead of the pytorch model
+    :return:
+    """
+    global v0
     positions = []  # position of the anomaly
     position_errors = []  # distance between the center of mass of the reconstructed image and the target position
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
+    mean = df["voltages"].mean()
     print(f"Length of dataframe: {len(df)}")
+    if regressor is not None:
+        print(f"USING REGRESSOR: {regressor.__class__.__name__} for reconstruction")
+    else:
+        print(f"USING MODEL: {model.__class__.__name__} for reconstruction")
     for i, row in df.iterrows():
         raw_voltages = row["voltages"]
         target_image = row["images"]
@@ -191,7 +216,12 @@ def main():
             print("Transforming with PCA")
             v1 = pca.transform(v1.reshape(1, -1))
         if not USE_GREIT_FOR_RECONSTRUCTION:
-            img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+            if regressor is None:
+                img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+            else:
+                new_flat_picture = regressor.predict(v1) + mean
+                img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
+
         ############################### For GREIT  EVALUATION ###############################
         else:
             v0_traditional_algorithims = v0[protocol_obj.keep_ba]
@@ -225,13 +255,15 @@ def main():
         shape_deformations.append(shape_deformation)
         if SHOW and USE_OPENCV_FOR_PLOTTING:
             cv2.waitKey(300)
-
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
     if not USE_GREIT_FOR_RECONSTRUCTION:
-        eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+        if regressor is None:
+            eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
+        else:
+            eval_df_name = f"evaluation_regressor_{regressor.__class__.__name__}.pkl"
     else:
         eval_df_name = f"evaluation_GREIT.pkl"
     # eval_df_name = "TESTING.pickle"

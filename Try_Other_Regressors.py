@@ -29,6 +29,8 @@ from utils import add_normalizations
 
 import pickle
 
+from joblib import dump, load
+
 LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 6144
 VOLTAGE_VECTOR_LENGTH = 1024
@@ -93,6 +95,7 @@ def trainings_loop(model_name: str, regressor, path_to_training_data: str,
     print("TestY shape: ", testY.shape)
 
     mean = trainY.mean()
+    print("Mean: ", mean)
     regressor.fit(trainX, trainY - mean)
     print(f"Train score of {model_name}: ", regressor.score(trainX, trainY - mean))
     print(f"Test score of {model_name}: ", regressor.score(testX, testY - mean))
@@ -117,11 +120,12 @@ def trainings_loop(model_name: str, regressor, path_to_training_data: str,
 
     # save the model as pickle file
     pickle.dump(regressor, open(f"{results_path}/model.pkl", 'wb'))
+    # dump(regressor, f"{results_path}/model.joblib")
 
 
 if __name__ == "__main__":
     ABSOLUTE_EIT = True
-    path = "Training_Data/3_Freq"
+    path = "Training_Data/1_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     pca_components = 0
@@ -129,7 +133,7 @@ if __name__ == "__main__":
     number_of_noise_augmentations = 1
     number_of_rotation_augmentations = 0
     add_augmentations = True
-    results_folder = "Results_Traditional_Models_AbsoluteEIT"
+    results_folder = "Results_Traditional_Models_TDEIT"
     regressors = [
         LinearRegression(),
         Ridge(alpha=0.1),
@@ -139,7 +143,8 @@ if __name__ == "__main__":
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
         # AdaBoostRegressor(),
-        BaggingRegressor(),
+        # BaggingRegressor(),
+        pickle.load(open("Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl", 'rb')),
     ]
     for regressor in regressors:
         model_name = regressor.__class__.__name__
