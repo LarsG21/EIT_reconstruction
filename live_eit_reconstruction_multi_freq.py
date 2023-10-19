@@ -40,7 +40,7 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
             plt.ylabel("Intensity")
             plt.show()
     img = solve_and_plot_with_nural_network(model=model_pca, model_input=v1, chow_center_of_mass=False,
-                                            use_opencv_for_plotting=True)
+                                            use_opencv_for_plotting=False)
 
     # save the video to a folder
     if save_video:
@@ -114,7 +114,7 @@ def convert_pngs_in_folder_to_video(path):
 if __name__ == '__main__':
 
     ### Settings ###
-    path = "test"
+    path = "eit_data"
     VOLTAGE_VECTOR_LENGTH = 1024
     VOLTAGE_VECTOR_LENGTH_PCA = 128
     OUT_SIZE = 64

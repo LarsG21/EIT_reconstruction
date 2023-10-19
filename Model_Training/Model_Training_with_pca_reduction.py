@@ -344,13 +344,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_16_10"
+    model_name = "Run_19_10"
     path = "../Training_Data/1_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     num_epochs = 200
     learning_rate = 0.001
-    pca_components = 128
+    pca_components = 0
     add_augmentation = True
     noise_level = 0.05
     number_of_noise_augmentations = 2

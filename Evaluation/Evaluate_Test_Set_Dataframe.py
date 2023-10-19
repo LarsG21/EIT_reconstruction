@@ -123,8 +123,8 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 128
+ABSOLUTE_EIT = False
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
@@ -138,14 +138,14 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     # New Path
-    model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_10_equal_dataset_sizes/model_2023-10-16_14-46-07_epoche_121_of_300_best_model.pth"
+    model_path = "../Training_Data/1_Freq/Models/LinearModelWithDropout2/Run_19_10/model_2023-10-19_11-21-28_epoche_134_of_200_best_model.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
@@ -162,8 +162,8 @@ def main():
 
     # Test set training_data_path
     # df = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
-    # df = pd.read_pickle("../Collected_Data_Experiments/Test_Data/Test_Set_Circular_single_freq/combined.pkl")
-    df = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
+    df = pd.read_pickle("../Test_Data/Test_Set_Circular_single_freq/combined.pkl")
+    # df = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
     #### END Settings #######
 
     positions = []  # position of the anomaly
@@ -187,9 +187,9 @@ def main():
             v1 = difference - np.mean(difference)
         else:
             v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
-            if pca is not None:
-                print("Transforming with PCA")
-                v1 = pca.transform(v1.reshape(1, -1))
+        if pca is not None:
+            print("Transforming with PCA")
+            v1 = pca.transform(v1.reshape(1, -1))
         if not USE_GREIT_FOR_RECONSTRUCTION:
             img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ############################### For GREIT  EVALUATION ###############################

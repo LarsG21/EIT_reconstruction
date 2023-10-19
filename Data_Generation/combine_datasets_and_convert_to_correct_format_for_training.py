@@ -81,7 +81,7 @@ def convert_df_to_separate_npy_files(df, save_path):
         plt.plot(v0_mean)
         plt.legend(["v0", "v0_mean"])
         plt.show()
-        np.save(os.path.join(save_path, "v0_13_10.npy"),
+        np.save(os.path.join(save_path, "v0_05_09.npy"),
                 v0)  # Dont save anymore ! Use averaged V0 from Negative_Sample_set
     # save images to npy
     np.save(os.path.join(save_path, "img_array.npy"), img_array)
@@ -144,8 +144,8 @@ if __name__ == '__main__':
     # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
-    path = "../Collected_Data/Combined_dataset"
-    # path = "../Collected_Data_Experiments/Test Sets/Test_Set_Circular_single_freq"
+    # path = "../Collected_Data/Combined_dataset"
+    path = "../Collected_Data/Single_freq_Data/Data_05_09_negative_samples"
     # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
     # path = "../Collected_Data/Data_16_10_single_freq_40mm"
     # path = "../Training_Data/3_Freq"

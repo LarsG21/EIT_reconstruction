@@ -124,7 +124,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     v0_solve = v0[keep_mask]
     v1_solve = v1[keep_mask]
     # subtract the mean  HIGHLIGHT: DONT DO THIS !!
-    solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
+    # solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
     if debug_plots:
         plt.plot(v1)
         plt.plot(v0)
@@ -179,7 +179,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
         last_centers.append(center_for_moving)
         print(f"Sample {i} collected")
         # save the images and voltages in a dataframe every 10 samples
-        if i % 5 == 0:
+        if i % 20 == 0:
             df = pd.DataFrame(
                 {"timestamp": timestamps, "images": images, "voltages": voltages})
             save_path_data = os.path.join(save_path,
@@ -307,7 +307,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                     plt.title("relative difference measured")
                     plt.show()
                 solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
-                PLOT = True
+                PLOT = False
                 if PLOT:
                     img_show = img.copy()
                     # plot big circle
@@ -371,7 +371,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_16_10_single_freq_40mm"
+    TEST_NAME = "Data_16_10_single_freq_40mm_overnight"
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
