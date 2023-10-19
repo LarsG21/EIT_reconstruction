@@ -127,7 +127,7 @@ ABSOLUTE_EIT = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 NORMALIZE = False
-USE_OPENCV_FOR_PLOTTING = True
+USE_OPENCV_FOR_PLOTTING = False
 USE_GREIT_FOR_RECONSTRUCTION = False
 
 ### Setings ###
@@ -152,13 +152,13 @@ def main():
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
 
-    norm, absolute = check_settings_of_model(model_path)
-    if norm is not None and norm != NORMALIZE:
-        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
-        NORMALIZE = norm
-    if absolute is not None and absolute != ABSOLUTE_EIT:
-        print(f"Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
-        ABSOLUTE_EIT = absolute
+    # norm, absolute = check_settings_of_model(model_path)
+    # if norm is not None and norm != NORMALIZE:
+    #     print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
+    #     NORMALIZE = norm
+    # if absolute is not None and absolute != ABSOLUTE_EIT:
+    #     print(f"Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+    #     ABSOLUTE_EIT = absolute
 
     # Test set training_data_path
     # df_test_set = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
@@ -167,7 +167,7 @@ def main():
     #### END Settings #######
 
     # load a regressor
-    regressor = pickle.load(open("../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl", 'rb'))
+    regressor = pickle.load(open("../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl", 'rb'))
 
     evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model, model_path, pca, regressor)
 
@@ -191,7 +191,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model, mode
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
-    mean = df["voltages"].mean()
+    mean = df["images"].mean().flatten()
     print(f"Length of dataframe: {len(df)}")
     if regressor is not None:
         print(f"USING REGRESSOR: {regressor.__class__.__name__} for reconstruction")
@@ -219,8 +219,10 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model, mode
             if regressor is None:
                 img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
             else:
-                new_flat_picture = regressor.predict(v1) + mean
+                v1 = v1.reshape(1, -1)
+                new_flat_picture = regressor.predict(v1) - mean
                 img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
+                img_reconstructed[img_reconstructed < 0.25] = 0
 
         ############################### For GREIT  EVALUATION ###############################
         else:

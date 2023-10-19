@@ -8,10 +8,10 @@ from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, 
 # df = pd.read_pickle(
 #     "Results/model_2023-10-12_11-55-44_epoche_232_of_300_best_model/evaluation_model_model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pkl")
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-10-16_18-32-26_epoche_163_of_200_best_model.pkl")
+    "Results/evaluation_regressor_LinearRegression.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
-N = 4
+N = 3
 border_amplitude_response = N * df["amplitude_response"].std()
 border_position_error = N * df["position_error"].std()
 border_shape_deformation = N * df["shape_deformation"].std()
@@ -19,9 +19,9 @@ print(border_amplitude_response)
 print(border_position_error)
 print(border_shape_deformation)
 print("Number of samples", len(df))
-df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
-df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
-df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
+# df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
+# df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
+# df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
 # replace outliers with mean
 # df["amplitude_response"] = df["amplitude_response"].apply(lambda x: x if np.abs(x - df["amplitude_response"].mean()) <= (1 * df["amplitude_response"].std()) else df["amplitude_response"].mean())
 # df["position_error"] = df["position_error"].apply(lambda x: x if np.abs(x - df["position_error"].mean()) <= (1 * df["position_error"].std()) else df["position_error"].mean())
