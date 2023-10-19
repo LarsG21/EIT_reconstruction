@@ -124,7 +124,7 @@ def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: 
     v0_solve = v0[keep_mask]
     v1_solve = v1[keep_mask]
     # subtract the mean  HIGHLIGHT: DONT DO THIS !!
-    # solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
+    solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v1_solve, v0_solve)
     if debug_plots:
         plt.plot(v1)
         plt.plot(v0)
@@ -170,6 +170,16 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     os.chdir(cwd)
     v0 = np.load("v0.npy")
     time.sleep(1)
+    # collect v0:
+    input("Remove the target and press enter to start the measurement...")
+    file_path = wait_1_file_and_get_next(eit_path)
+    print(file_path)
+    df_0 = convert_single_frequency_eit_file_to_df(file_path)
+    v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
+    # save v0
+    np.save(os.path.join(save_path, "v0.npy"), v0)
+    input("Place the target and press enter to start the measurement...")
+
     for i in range(number_of_samples):
         img, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
                                                         last_position=last_centers[-1])
@@ -371,7 +381,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_16_10_single_freq_40mm_overnight"
+    TEST_NAME = "Data_19_10_single_freq_40mm_overnight"
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
