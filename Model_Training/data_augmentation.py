@@ -99,11 +99,11 @@ def add_rotation_augmentation(train_voltage: torch.Tensor | np.ndarray,
     else:
         train_voltage_numpy = train_voltage
         train_images_numpy = train_images
-    # rotate all images by 90° using rotate function scipy
     train_voltage_rotated_combined = train_voltage
     train_images_rotated_combined = train_images
-    train_voltage_rotated_combined = train_voltage_rotated_combined.cpu()
-    train_images_rotated_combined = train_images_rotated_combined.cpu()
+    if type(train_voltage) == torch.Tensor and type(train_images) == torch.Tensor:
+        train_voltage_rotated_combined = train_voltage_rotated_combined.cpu()
+        train_images_rotated_combined = train_images_rotated_combined.cpu()
     for i in range(number_of_augmentations):
         train_images_rotated, train_voltage_rotated = generate_rotation_augmentation(train_images_numpy,
                                                                                      train_voltage_numpy,
