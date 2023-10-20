@@ -37,27 +37,13 @@ VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 
-# How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
-
-
-def trainings_loop(model_name: str, regressor, path_to_training_data: str,
-                   normalize=True, add_augmentation=False, results_folder="Results", ):
-    global VOLTAGE_VECTOR_LENGTH
-
-    ######################################################################################
-    if pca_components > 0:
-        VOLTAGE_VECTOR_LENGTH = pca_components
-    #################################
-    path = path_to_training_data
-    #################################
+def prepare_training_data(path, add_augmentation, normalize):
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
-
     # reduce the number of images
     # image_data_np = image_data_np[:200]
     # voltage_data_np = voltage_data_np[:200]
-
     # Highlight Step 1: In case of time difference EIT, we need to normalize the data with v0
     if not ABSOLUTE_EIT:
         print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
@@ -66,15 +52,11 @@ def trainings_loop(model_name: str, regressor, path_to_training_data: str,
         # normalize the voltage data
         voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
     # Now the model should learn the difference between the voltages and v0 (default state)
-
     # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
     voltage_data_np = add_normalizations(v1=voltage_data_np, NORMALIZE_MEDIAN=normalize,
                                          NORMALIZE_PER_ELECTRODE=False)
-
     print("Overall data shape: ", voltage_data_np.shape)
-
     trainX, testX, trainY, testY = train_test_split(voltage_data_np, image_data_np, test_size=0.2, random_state=42)
-
     # Highlight Step 4.1: Augment the training data
     if add_augmentation:
         # augment the training data
@@ -84,16 +66,28 @@ def trainings_loop(model_name: str, regressor, path_to_training_data: str,
         print("INFO: Adding rotation augmentation")
         trainX, trainY = add_rotation_augmentation(trainX, trainY,
                                                    number_of_rotation_augmentations, device="cpu")
-
     # flatten the images
     trainY = trainY.reshape(trainY.shape[0], -1)
     testY = testY.reshape(testY.shape[0], -1)
-
     print("TrainX shape: ", trainX.shape)
     print("TrainY shape: ", trainY.shape)
     print("TestX shape: ", testX.shape)
     print("TestY shape: ", testY.shape)
+    return testX, testY, trainX, trainY
 
+
+testX, testY, trainX, trainY = None, None, None, None
+
+
+def train_regressor(model_name: str, regressor, path_to_training_data: str,
+                    normalize=True, add_augmentation=False, results_folder="Results"):
+    global VOLTAGE_VECTOR_LENGTH, OUT_SIZE, testX, testY, trainX, trainY
+
+    if testX is None:
+        print("INFO: Preparing training data")
+        testX, testY, trainX, trainY = prepare_training_data(path_to_training_data, add_augmentation, normalize)
+    else:
+        print("INFO: Using cached training data")
     mean = trainY.mean()
     print("Mean: ", mean)
     regressor.fit(trainX, trainY - mean)
@@ -107,8 +101,8 @@ def trainings_loop(model_name: str, regressor, path_to_training_data: str,
     new_flat_pictures = regressor.predict(testX) + mean
     # only use the first 10 pictures
     new_flat_pictures = new_flat_pictures[:20]
-    testY = testY[:20]
-    for picture, testY_sample in zip(new_flat_pictures, testY):
+    testY_selection = testY[:20]
+    for picture, testY_sample in zip(new_flat_pictures, testY_selection):
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
         plt.imshow(testY_sample.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
@@ -130,13 +124,13 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Combined_dataset"
     pca_components = 0
     noise_level = 0.05
-    number_of_noise_augmentations = 1
-    number_of_rotation_augmentations = 0
+    number_of_noise_augmentations = 2
+    number_of_rotation_augmentations = 2
     add_augmentations = True
     results_folder = "Results_Traditional_Models_TDEIT"
     regressors = [
-        LinearRegression(),
-        Ridge(alpha=0.1),
+        # LinearRegression(),
+        # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
         KNeighborsRegressor(n_neighbors=10),
         # DecisionTreeRegressor(max_depth=40),
@@ -144,13 +138,12 @@ if __name__ == "__main__":
         # GradientBoostingRegressor(),
         # AdaBoostRegressor(),
         # BaggingRegressor(),
-        pickle.load(open("Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl", 'rb')),
+        # pickle.load(open("Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl", 'rb')),
     ]
     for regressor in regressors:
         model_name = regressor.__class__.__name__
         print("Training with regressor: ", regressor.__class__.__name__)
         start_time = time.time()
-        trainings_loop(model_name=model_name, regressor=regressor, path_to_training_data=path,
-                       normalize=True, add_augmentation=add_augmentations, results_folder=results_folder
-                       )
+        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=True,
+                        add_augmentation=add_augmentations, results_folder=results_folder)
         print("Training took: ", time.time() - start_time)

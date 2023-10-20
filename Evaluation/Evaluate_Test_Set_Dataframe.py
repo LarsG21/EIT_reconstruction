@@ -42,7 +42,7 @@ def get_position_error(img_reconstructed, target_image, show_plot=True):
     # plot a plot with two dots at the center of mass and the target position
     if show_plot:
         if USE_OPENCV_FOR_PLOTTING:
-            img_reconstructed = cv2.cvtColor(img_reconstructed, cv2.COLOR_GRAY2BGR)
+            img_reconstructed = cv2.cvtColor(img_reconstructed.astype(np.float32), cv2.COLOR_GRAY2BGR)
             img_reconstructed = cv2.resize(img_reconstructed, (0, 0), fx=4, fy=4)
             center_of_mass = center_of_mass * 4
             target_position = target_position * 4
@@ -123,11 +123,11 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = False
+ABSOLUTE_EIT = True
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = False
-USE_OPENCV_FOR_PLOTTING = False
+NORMALIZE = True
+USE_OPENCV_FOR_PLOTTING = True
 USE_GREIT_FOR_RECONSTRUCTION = False
 
 ### Setings ###
@@ -161,18 +161,28 @@ def main():
     #     ABSOLUTE_EIT = absolute
 
     # Test set training_data_path
-    # df_test_set = pd.read_pickle("../Collected_Data/Test_Set_Circular_06_10_3_freq/combined.pkl")
-    df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_single_freq/combined.pkl")
-    # df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
+    if ABSOLUTE_EIT:
+        df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
+    else:
+        df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_single_freq/combined.pkl")
+
     #### END Settings #######
 
     # load a regressor
-    regressor = pickle.load(open("../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl", 'rb'))
+    regressor = None
+    regressor = pickle.load(open("../Results_Traditional_Models_AbsoluteEIT/KNeighborsRegressor/model.pkl", 'rb'))
 
-    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model, model_path, pca, regressor)
+    pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+    if os.path.exists(pca_path) and regressor is None:
+        print("Loading PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+
+    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=None, model_path=None, pca=None,
+                                  regressor=regressor)
 
 
-def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model, model_path, pca, regressor=None):
+def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None, model_path=None, pca=None,
+                                  regressor=None):
     """
 
     :param ABSOLUTE_EIT: Whether to use absolute EIT or not
@@ -204,7 +214,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model, mode
         positions.append(target_position)
         if not ABSOLUTE_EIT:
             v1 = raw_voltages
-            v0 = np.load("v0.npy")
+            v0 = np.load("../Training_Data/1_Freq/v0.npy")
             # calculate the voltage difference
             difference = (v1 - v0)
             # normalize the voltage difference
@@ -222,8 +232,8 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model, mode
                 v1 = v1.reshape(1, -1)
                 new_flat_picture = regressor.predict(v1) - mean
                 img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
-                img_reconstructed[img_reconstructed < 0.25] = 0
-
+                # img_reconstructed[img_reconstructed > 0.2] = 1
+                img_reconstructed[img_reconstructed < 0.2] = 0
         ############################### For GREIT  EVALUATION ###############################
         else:
             v0_traditional_algorithims = v0[protocol_obj.keep_ba]
