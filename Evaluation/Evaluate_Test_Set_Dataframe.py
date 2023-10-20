@@ -123,7 +123,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
+ABSOLUTE_EIT = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 NORMALIZE = True
@@ -138,7 +138,7 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
@@ -170,15 +170,16 @@ def main():
 
     # load a regressor
     regressor = None
-    regressor = pickle.load(open("../Results_Traditional_Models_AbsoluteEIT/KNeighborsRegressor/model.pkl", 'rb'))
+    # regressor = pickle.load(open("../Results_Traditional_Models_AbsoluteEIT/KNeighborsRegressor/model.pkl", 'rb'))
 
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path) and regressor is None:
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
 
-    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=None, model_path=None, pca=None,
-                                  regressor=regressor)
+    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=model, model_path=model_path,
+                                  pca=pca,
+                                  regressor=None)
 
 
 def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None, model_path=None, pca=None,

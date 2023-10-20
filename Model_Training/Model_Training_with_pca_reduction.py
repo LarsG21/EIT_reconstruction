@@ -103,7 +103,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    ABSOLUTE_EIT = False
+    ABSOLUTE_EIT = True
     SAMPLE_RECONSTRUCTION_INDEX = 42  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
@@ -344,13 +344,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_19_10"
-    path = "../Training_Data/1_Freq"
+    model_name = "TESTING_20_10"
+    path = "../Training_Data/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     num_epochs = 200
     learning_rate = 0.001
-    pca_components = 0
+    pca_components = 128
     add_augmentation = True
     noise_level = 0.05
     number_of_noise_augmentations = 2

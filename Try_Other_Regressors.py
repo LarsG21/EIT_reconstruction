@@ -25,6 +25,7 @@ from sklearn.neighbors import KNeighborsRegressor
 
 from Model_Training.EarlyStoppingHandler import EarlyStoppingHandler
 from Model_Training.data_augmentation import add_noise_augmentation, add_rotation_augmentation
+from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from utils import add_normalizations
 
 import pickle
@@ -37,7 +38,18 @@ VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
 
-def prepare_training_data(path, add_augmentation, normalize):
+def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
+    """
+    Loads the training data from the given path and returns it as a tuple of numpy arrays
+    :param path: path to the training data
+    :param add_augmentation: if True, data augmentation is applied
+    :param normalize: if True, the data is normalized
+    :param pca_components: if > 0, PCA is applied to the data and the number of components is reduced to the given value
+    :return: tuple of numpy arrays, split into train and test data
+    """
+    global VOLTAGE_VECTOR_LENGTH
+    if pca_components > 0:
+        VOLTAGE_VECTOR_LENGTH = pca_components
 
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
@@ -66,6 +78,13 @@ def prepare_training_data(path, add_augmentation, normalize):
         print("INFO: Adding rotation augmentation")
         trainX, trainY = add_rotation_augmentation(trainX, trainY,
                                                    number_of_rotation_augmentations, device="cpu")
+    # Highlight Step4.2 Do PCA to reduce the number of input features
+    if pca_components > 0:
+        print("INFO: Performing PCA on input data")
+        trainX, testX, _, pca = perform_pca_on_input_data(voltage_data_np, trainX,
+                                                          testX, testX, path,
+                                                          "CPU",
+                                                          n_components=pca_components)
     # flatten the images
     trainY = trainY.reshape(trainY.shape[0], -1)
     testY = testY.reshape(testY.shape[0], -1)
@@ -80,12 +99,14 @@ testX, testY, trainX, trainY = None, None, None, None
 
 
 def train_regressor(model_name: str, regressor, path_to_training_data: str,
-                    normalize=True, add_augmentation=False, results_folder="Results"):
+                    normalize=True, add_augmentation=False, results_folder="Results",
+                    pca_components=0, ):
     global VOLTAGE_VECTOR_LENGTH, OUT_SIZE, testX, testY, trainX, trainY
 
     if testX is None:
         print("INFO: Preparing training data")
-        testX, testY, trainX, trainY = prepare_training_data(path_to_training_data, add_augmentation, normalize)
+        testX, testY, trainX, trainY = prepare_training_data(path_to_training_data, add_augmentation, normalize,
+                                                             pca_components=pca_components)
     else:
         print("INFO: Using cached training data")
     mean = trainY.mean()
@@ -100,8 +121,8 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
     new_flat_pictures = regressor.predict(testX) + mean
     # only use the first 10 pictures
-    new_flat_pictures = new_flat_pictures[:20]
-    testY_selection = testY[:20]
+    new_flat_pictures = new_flat_pictures[:10]
+    testY_selection = testY[:10]
     for picture, testY_sample in zip(new_flat_pictures, testY_selection):
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
@@ -122,18 +143,18 @@ if __name__ == "__main__":
     path = "Training_Data/1_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    pca_components = 0
+    pca_components = 128
     noise_level = 0.05
     number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 2
-    add_augmentations = True
+    add_augmentations = False
     results_folder = "Results_Traditional_Models_TDEIT"
     regressors = [
         # LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=10),
-        # DecisionTreeRegressor(max_depth=40),
+        # KNeighborsRegressor(n_neighbors=10),
+        DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
         # AdaBoostRegressor(),
@@ -145,5 +166,7 @@ if __name__ == "__main__":
         print("Training with regressor: ", regressor.__class__.__name__)
         start_time = time.time()
         train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=True,
-                        add_augmentation=add_augmentations, results_folder=results_folder)
+                        add_augmentation=add_augmentations, results_folder=results_folder,
+                        pca_components=pca_components)
         print("Training took: ", time.time() - start_time)
+        time.sleep(5)

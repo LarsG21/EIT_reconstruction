@@ -7,10 +7,10 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
-# df = pd.read_pickle(
-#     "Results/model_2023-10-12_11-55-44_epoche_232_of_300_best_model/evaluation_model_model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pkl")
 df = pd.read_pickle(
-    "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    "Results/evaluation_model_model_2023-10-19_11-21-28_epoche_134_of_200_best_model.pkl")
+# df = pd.read_pickle(
+#     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3
@@ -43,14 +43,14 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        save_path="Results/amplitude_response.png"
+                        # save_path="Results/amplitude_response.png"
                         )
 plot_position_error(df,
-                    save_path="Results/position_error.png"
+                    # save_path="Results/position_error.png"
                     )
 
 plot_shape_deformation(df,
-                       save_path="Results/shape_deformation.png"
+                       # save_path="Results/shape_deformation.png"
                        )
 
 # convert col error_vector to np.array
