@@ -23,7 +23,6 @@ pca = None
 mesh_obj = mesh.create(32, h0=0.1)
 n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
-v0 = np.load("v0.npy")
 
 
 # TODO: THE COL TARGET POSITION IS SOMETIMES WRONG ! USE  target_position = find_center_of_mass(row["images"]) instead
@@ -126,7 +125,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 ABSOLUTE_EIT = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = True
+NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 USE_GREIT_FOR_RECONSTRUCTION = False
 
@@ -138,33 +137,43 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     # New Path
-    model_path = "../Training_Data/1_Freq/Models/LinearModelWithDropout2/Run_19_10/model_2023-10-19_11-21-28_epoche_134_of_200_best_model.pth"
+    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_no_augment/model_2023-10-23_11-20-55_145_150.pth"
     model.load_state_dict(torch.load(model_path))
     pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
 
-    # norm, absolute = check_settings_of_model(model_path)
-    # if norm is not None and norm != NORMALIZE:
-    #     print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
-    #     NORMALIZE = norm
-    # if absolute is not None and absolute != ABSOLUTE_EIT:
-    #     print(f"Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
-    #     ABSOLUTE_EIT = absolute
+    # load v0 from the same folder as the model
+    # move up 4 directories up, then go to the v0.npy file
+    # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
+    #                           "v0.npy"))
+
+    norm, absolute = check_settings_of_model(model_path)
+    if norm is not None and norm != NORMALIZE:
+        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
+        NORMALIZE = norm
+    if absolute is not None and absolute != ABSOLUTE_EIT:
+        print(f"Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+        ABSOLUTE_EIT = absolute
 
     # Test set training_data_path
     if ABSOLUTE_EIT:
-        df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl")
+        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
     else:
-        df_test_set = pd.read_pickle("../Test_Data/Test_Set_Circular_single_freq/combined.pkl")
+        test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        # tes_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+
+    df_test_set = pd.read_pickle(test_set_path)
+    # load v0 from the same folder as the test set
+    v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
 
     #### END Settings #######
 
@@ -179,7 +188,7 @@ def main():
 
     evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=model, model_path=model_path,
                                   pca=pca,
-                                  regressor=None)
+                                  regressor=regressor)
 
 
 def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None, model_path=None, pca=None,
@@ -215,7 +224,6 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
         positions.append(target_position)
         if not ABSOLUTE_EIT:
             v1 = raw_voltages
-            v0 = np.load("../Training_Data/1_Freq/v0.npy")
             # calculate the voltage difference
             difference = (v1 - v0)
             # normalize the voltage difference

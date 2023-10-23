@@ -145,8 +145,8 @@ if __name__ == '__main__':
     protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
 
     # path = "../Collected_Data/Combined_dataset"
-    path = "../Collected_Data/Single_freq_Data/Data_05_09_negative_samples"
-    # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
+    # path = "../Training_Data/1_Freq_After_16_10"
+    path = "../Collected_Data/Test_Set_1_Freq_23_10_circular"
     # path = "../Collected_Data/Data_16_10_single_freq_40mm"
     # path = "../Training_Data/3_Freq"
 

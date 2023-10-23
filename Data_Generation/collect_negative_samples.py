@@ -51,8 +51,8 @@ def collect_samples(eit_path: str, save_path: str):
         else:
             df = convert_single_frequency_eit_file_to_df(file_path)
             v1 = df["amplitude"].to_numpy(dtype=np.float64)
-            plt.plot(v1)
-            plt.show()
+            # plt.plot(v1)
+            # plt.show()
 
         img = np.zeros([img_size, img_size])
 
@@ -66,8 +66,8 @@ def collect_samples(eit_path: str, save_path: str):
 
 
 if __name__ == '__main__':
-    eit_path = "../eit_data/20231019 11.39.56/setup"
-    save_path = "../Collected_Data/V0_SAMPLES_19_10_2023_upper_electrodes"
+    eit_path = "../eit_data/20231023 10.27.29/setup"
+    save_path = "../Collected_Data/1_freq_23_10_negatives"
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     collect_samples(eit_path, save_path)

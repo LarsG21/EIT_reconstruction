@@ -51,7 +51,8 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     difference = (v1 - v0)
     # normalize the voltage difference
     difference = difference / v0
-    normalized_difference = difference - np.mean(difference)
+    # normalized_difference = difference - np.mean(difference)
+    normalized_difference = difference
     if debug_plots:
         plt.plot(v0)
         plt.plot(v1)
@@ -141,10 +142,10 @@ print("Loading the model")
 
 model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 
-model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
+# model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
 #
-# model_path = "Collected_Data/old/Dataset_40mm_and_60_mm/Models/LinearModelWithDropout2/run2_4800_samples/model_2023-09-28_15-03-42_299_300.pth"
+model_path = "Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_no_augment/model_2023-10-23_11-20-55_145_150.pth"
 model.load_state_dict(torch.load(model_path))
 
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")

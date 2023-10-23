@@ -168,7 +168,6 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     file_path = wait_1_file_and_get_next(eit_path)
     print(file_path)
     os.chdir(cwd)
-    v0 = np.load("v0.npy")
     time.sleep(1)
     # collect v0:
     input("Remove the target and press enter to start the measurement...")
@@ -215,7 +214,6 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     :param gcode_device:
     :return:
     """
-    v0 = np.load("v0.npy")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     # create txt file with the metadata
@@ -231,8 +229,9 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     voltages = []
     timestamps = []
     """ Crate Circle Pattern """
-    degree_resolution = 60
-    radii = np.linspace(0.1, 1 - RELATIVE_RADIUS_TARGET - 0.05, 4)
+    degree_resolution = 15
+    radii = np.linspace(0.2, 1 - RELATIVE_RADIUS_TARGET - 0.05, 4)
+    # radii = np.array([0.1, 0.3, 0.5, 0.6, 1 - RELATIVE_RADIUS_TARGET - 0.05])
     # reverse the order of the radii
     radii = radii[::-1]
     num_of_angles = 360 // degree_resolution
@@ -244,6 +243,18 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(1)
+
+    input("Remove the target and press enter to start the measurement...")
+    file_path = wait_1_file_and_get_next(eit_path)
+    print(file_path)
+    df_0 = convert_single_frequency_eit_file_to_df(file_path)
+    v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
+    # save v0
+    np.save(os.path.join(save_path, "v0.npy"), v0)
+    input("Place the target and press enter to start the measurement...")
+
+    # v0 = np.load("../Collected_Data/Test_Set_1_Freq_23_10_circular/v0.npy")
+
     i = 0
     for a in range(0, number_of_runs):
         print(f"Run {a} of {number_of_runs}")
@@ -381,16 +392,16 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_20_10_single_freq_40mm_overnight"
+    TEST_NAME = "Test_Set_1_Freq_23_10_circular"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         raise Exception("Folder already exists")
-    collect_data(gcode_device=ender, number_of_samples=4000,
-                 eit_data_path="../eit_data",
-                 save_path=save_path)
-    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
-    #                             eit_data_path="../eit_data",
-    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    # collect_data(gcode_device=ender, number_of_samples=4000,
+    #              eit_data_path="../eit_data",
+    #              save_path=save_path)
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
+                                eit_data_path="../eit_data",
+                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':
     cwd = os.getcwd()
