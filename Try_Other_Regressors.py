@@ -139,22 +139,22 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
 
 if __name__ == "__main__":
-    ABSOLUTE_EIT = True
+    ABSOLUTE_EIT = False
     path = "Training_Data/1_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    pca_components = 128
+    pca_components = 0
     noise_level = 0.05
-    number_of_noise_augmentations = 2
-    number_of_rotation_augmentations = 2
+    number_of_noise_augmentations = 1
+    number_of_rotation_augmentations = 1
     add_augmentations = False
     results_folder = "Results_Traditional_Models_TDEIT"
     regressors = [
-        # LinearRegression(),
-        # Ridge(alpha=1),
+        LinearRegression(),
+        Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        # KNeighborsRegressor(n_neighbors=10),
-        DecisionTreeRegressor(max_depth=80),
+        KNeighborsRegressor(n_neighbors=10),
+        # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
         # AdaBoostRegressor(),

@@ -122,10 +122,10 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
+ABSOLUTE_EIT = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = True
+NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 USE_GREIT_FOR_RECONSTRUCTION = False
 
@@ -144,9 +144,9 @@ def main():
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
-    moddel_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
+    # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
-    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
+    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
     model.load_state_dict(torch.load(model_path))
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
@@ -167,10 +167,11 @@ def main():
         VOLTAGE_VECTOR_LENGTH = 128
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
-        test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+        # test_set_path = "../Training_Data/1_Freq/combined.pkl"
         VOLTAGE_VECTOR_LENGTH = 1024
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
-        # tes_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
     input("Press Enter to continue...")
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
@@ -179,8 +180,8 @@ def main():
     #### END Settings #######
 
     # load a regressor
-    regressor = None
-    # regressor = pickle.load(open("../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl", 'rb'))
+    # regressor = None
+    regressor = pickle.load(open("../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl", 'rb'))
     if regressor is not None:
         input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
               "Press Enter to continue...")
@@ -227,11 +228,10 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
         positions.append(target_position)
         if not ABSOLUTE_EIT:
             v1 = raw_voltages
-            # calculate the voltage difference
-            difference = (v1 - v0)
-            # normalize the voltage difference
-            difference = difference / v0
-            v1 = difference - np.mean(difference)
+            # calculate the normalized voltage difference
+            v1 = (v1 - v0) / v0
+            plt.plot(v1)
+            plt.show()
         else:
             v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
         if pca is not None:

@@ -25,6 +25,8 @@ def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
     # Interpolate the data using griddata
     zi = griddata((x, y), z, (xi, yi), method='cubic')
     zi = np.abs(zi)
+    # clip zi to 0.0 - 1.0
+    zi = np.clip(zi, 0.0, 1.0)
 
     # Create a heatmap with color coding
     for i in range(nr_of_blurs):
@@ -99,6 +101,8 @@ def plot_shape_deformation(df: pd.DataFrame, save_path: str = None):
     zi = griddata((x, y), z, (xi, yi), method='cubic')
     # get absolute value of position error
     zi = np.abs(zi)
+    # clip zi to 0.0 - 1.0
+    zi = np.clip(zi, 0.0, 1.0)
     # Create a heatmap with color coding
     for i in range(nr_of_blurs):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)

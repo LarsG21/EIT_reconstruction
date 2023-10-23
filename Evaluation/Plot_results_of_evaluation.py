@@ -8,7 +8,7 @@ from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, 
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-10-23_13-50-11_122_150.pkl")
+    "Results/evaluation_model_model_2023-10-23_15-02-47_149_150.pkl")
 # df = pd.read_pickle(
 #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
