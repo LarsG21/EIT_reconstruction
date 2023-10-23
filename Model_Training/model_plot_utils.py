@@ -66,7 +66,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     for i in random_indices:
         img = image_data_tensor[i]
         img = img.cpu()
-        OUT_SIZE = np.sqrt(img.shape[0])
+        OUT_SIZE = img.shape[0]
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         volt = volt.view(-1, volt.shape[0])
@@ -122,7 +122,7 @@ def plot_difference_for_some_sample_reconstruction_images(image_data_tensor, vol
         img = image_data_tensor[i]
         img = img.cpu()
         # output = output.cpu()
-        OUT_SIZE = np.sqrt(img.shape[0])
+        OUT_SIZE = img.shape[0]
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         output = model(volt)

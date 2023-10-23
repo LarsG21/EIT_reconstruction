@@ -342,11 +342,11 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
                                     save_path=model_path)
 
-    # plot_difference_for_some_sample_reconstruction_images(test_images, test_voltage, model, num_images=20)
+    plot_difference_for_some_sample_reconstruction_images(test_images, test_voltage, model, num_images=20)
 
-    # single_datapoint = voltage_data_np[0]
-    # voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
-    # plot_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
+    single_datapoint = voltage_data_np[0]
+    voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
+    infer_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
     return df, model
 
 
@@ -356,10 +356,10 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    num_epochs = 150
+    num_epochs = 1
     learning_rate = 0.001
     pca_components = 0
-    add_augmentation = True
+    add_augmentation = False
     noise_level = 0.05
     number_of_noise_augmentations = 1
     number_of_rotation_augmentations = 1
