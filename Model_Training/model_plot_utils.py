@@ -10,7 +10,6 @@ from matplotlib import pyplot as plt
 # from eidnburgh_cnn_test import OUT_SIZE, LOSS_SCALE_FACTOR
 
 LOSS_SCALE_FACTOR = 1000
-OUT_SIZE = 64
 
 def calc_average_loss_completly_black(image_data_tensor, criterion):
     """
@@ -25,6 +24,7 @@ def calc_average_loss_completly_black(image_data_tensor, criterion):
     # Display all reconstructed images
     average_loss = 0
     for img in image_data_tensor:
+        OUT_SIZE = np.sqrt(img.shape[0])
         output = np.zeros((OUT_SIZE, OUT_SIZE))
         loss = round(criterion(torch.tensor(output), img.view(OUT_SIZE, OUT_SIZE)).item(), 4) * LOSS_SCALE_FACTOR
         average_loss += loss
@@ -37,6 +37,7 @@ def calc_average_loss_completly_white(image_data_tensor, criterion):
     # Display all reconstructed images
     average_loss = 0
     for img in image_data_tensor:
+        OUT_SIZE = np.sqrt(img.shape[0])
         output = np.ones((OUT_SIZE, OUT_SIZE))
         loss = round(criterion(torch.tensor(output), img.view(OUT_SIZE, OUT_SIZE)).item(), 4) * LOSS_SCALE_FACTOR
         average_loss += loss
@@ -65,6 +66,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
     for i in random_indices:
         img = image_data_tensor[i]
         img = img.cpu()
+        OUT_SIZE = np.sqrt(img.shape[0])
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         volt = volt.view(-1, volt.shape[0])
@@ -120,6 +122,7 @@ def plot_difference_for_some_sample_reconstruction_images(image_data_tensor, vol
         img = image_data_tensor[i]
         img = img.cpu()
         # output = output.cpu()
+        OUT_SIZE = np.sqrt(img.shape[0])
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         output = model(volt)
@@ -165,6 +168,8 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     stop = time.time()
     # print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.cpu()
+    # outsize = sqrt of output shape
+    OUT_SIZE = int(np.sqrt(output.shape[0]))
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
     # pull everything under 0.2 to 0
     output[output < detection_threshold] = 0
