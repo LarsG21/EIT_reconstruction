@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Training_Data/1_Freq_After_16_10"
-    path = "../Collected_Data/Test_Set_1_Freq_23_10_circular"
+    path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data/Data_16_10_single_freq_40mm"
     # path = "../Training_Data/3_Freq"
 

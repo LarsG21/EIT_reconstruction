@@ -8,7 +8,7 @@ from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, 
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-10-23_11-20-55_145_150.pkl")
+    "Results/evaluation_model_model_2023-10-23_13-50-11_122_150.pkl")
 # df = pd.read_pickle(
 #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
@@ -43,14 +43,14 @@ df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 print("Number of samples", len(df))
 
 plot_amplitude_response(df,
-                        # save_path="Results/amplitude_response.png"
+                        save_path="Results/amplitude_response.png"
                         )
 plot_position_error(df,
-                    # save_path="Results/position_error.png"
+                    save_path="Results/position_error.png"
                     )
 
 plot_shape_deformation(df,
-                       # save_path="Results/shape_deformation.png"
+                       save_path="Results/shape_deformation.png"
                        )
 
 # convert col error_vector to np.array
@@ -60,8 +60,8 @@ plot_shape_deformation(df,
 # plt.colorbar()
 plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]))
 
-plt.xlabel("x error [mm]")
-plt.ylabel("y error [mm]")
+plt.xlabel("x error [px]")
+plt.ylabel("y error [px]")
 plt.title("Error vector")
 # save plot
 # plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\error_vector.png")
@@ -96,10 +96,10 @@ plt.show()
 
 plt.boxplot([df["position_error"]], labels=["position_error"])
 plt.title("Boxplot of position_error")
-plt.ylabel("Error [mm]")
+plt.ylabel("Error [px]")
 plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_position_error.png")
 plt.show()
 
 # save results dict in json file
-with open("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\results_dict.json", "w") as f:
-    json.dump(results_dict, f)
+# with open("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\results_dict.json", "w") as f:
+#     json.dump(results_dict, f)

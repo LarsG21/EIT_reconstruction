@@ -145,7 +145,7 @@ model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OU
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
 #
-model_path = "Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_no_augment/model_2023-10-23_11-20-55_145_150.pth"
+model_path = "Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_no_augment/model_2023-10-23_13-39-00_149_150.pth"
 model.load_state_dict(torch.load(model_path))
 
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
