@@ -89,7 +89,7 @@ print(f"Results: \n {results_dict}")
 # in one plot
 plt.boxplot([df["amplitude_response"], df["shape_deformation"]], labels=["amplitude_response", "shape_deformation"])
 plt.title("Boxplot of amplitude_response and shape_deformation")
-plt.ylabel("Relative error")
+plt.ylabel("Amplitude response/Shape deformation")
 plt.savefig(
     "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_amplitude_response_shape_deformation.png")
 plt.show()

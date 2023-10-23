@@ -344,9 +344,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_23_10_with_augment"
-    # path = "../Training_Data/1_Freq_After_16_10"
-    path = "../Collected_Data/Data_23_10_40mm"
+    model_name = "Run_23_10_with_augment_more_negative_set"
+    path = "../Training_Data/1_Freq_After_16_10"
+    # path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     num_epochs = 150
@@ -354,8 +354,8 @@ if __name__ == "__main__":
     pca_components = 0
     add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 4
-    number_of_rotation_augmentations = 4
+    number_of_noise_augmentations = 1
+    number_of_rotation_augmentations = 1
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
     early_stopping_handler = EarlyStoppingHandler(patience=20)

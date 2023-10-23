@@ -30,7 +30,7 @@ def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
     for i in range(nr_of_blurs):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
-    fig.update_layout(title='Amplitude response over space', xaxis_title="x [mm]", yaxis_title="y [mm]")
+    fig.update_layout(title='Amplitude response over space', xaxis_title="x [px]", yaxis_title="y [px]")
     # text to colorbar
     fig.update_layout(coloraxis_colorbar=dict(
         title="Amplitude response",
@@ -66,7 +66,7 @@ def plot_position_error(df: pd.DataFrame, save_path: str = None):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     # title
-    fig.update_layout(title="Position error over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
+    fig.update_layout(title="Position error over space", xaxis_title="x [px]", yaxis_title="y [px]")
     # text to colorbar
     fig.update_layout(coloraxis_colorbar=dict(
         title="Position error",
@@ -104,7 +104,7 @@ def plot_shape_deformation(df: pd.DataFrame, save_path: str = None):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     # title
-    fig.update_layout(title="Shape deformation over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
+    fig.update_layout(title="Shape deformation over space", xaxis_title="x [px]", yaxis_title="y [px]")
     # text to colorbar
     fig.update_layout(coloraxis_colorbar=dict(
         title="Shape deformation",
