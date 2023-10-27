@@ -147,7 +147,7 @@ def main():
     # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
-    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_25_10/model_2023-10-27_13-23-19_112_150.pth"
+    model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
     model.load_state_dict(torch.load(model_path))
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file

@@ -120,6 +120,46 @@ def combine_multiple_pickles(path):
     return complete_df
 
 
+def combine_multiple_pickles_and_calculate_normalized_voltage_diff(path):
+    df_complete = pd.DataFrame()
+    for folder in os.listdir(path):
+        if os.path.isdir(os.path.join(path, folder)) and folder != "Models" and folder != "Exclude":
+            print(folder)
+            # get v0 in folder
+            v0 = np.load(os.path.join(path, folder, "v0.npy"))
+            print(f"v0: {v0}")
+            combined = combine_multiple_pickles(os.path.join(path, folder))
+            # calculate normalized voltage difference
+            example_diff = (combined["voltages"].iloc[0] - v0) / v0
+            print(f"example_diff: {example_diff}")
+            # do the same for all voltages and save in col "voltage_diff"
+            combined["voltage_diff"] = combined["voltages"].apply(lambda x: (x - v0) / v0)
+            print(combined["voltage_diff"].iloc[0])
+            # add to df_complete
+            df_complete = pd.concat([df_complete, combined])
+        elif folder.endswith(".pkl") and folder != "combined.pkl":  # For Empty image samples (V0s):
+            df = pd.read_pickle(os.path.join(path, folder))
+            # for those use v0 as average of all v0
+            v0_empty_images = np.array(df["voltages"].mean())
+            df["voltage_diff"] = df["voltages"].apply(lambda x: (
+                                                                            x - v0_empty_images) / v0_empty_images)  # Not perfect but just calculate with v0 from last folder
+            df_complete = pd.concat([df_complete, df])
+
+    df_complete.to_pickle(os.path.join(path, "combined.pkl"))
+    # save images as npy
+    img_array = df_complete["images"].to_list()
+    img_array = np.array(img_array)
+    np.save(os.path.join(path, "img_array.npy"), img_array)
+    # save voltages as npy
+    voltage_array = df_complete["voltage_diff"].to_list()
+    voltage_array = np.array(voltage_array)
+    np.save(os.path.join(path, "voltage_diff_array.npy"), voltage_array)
+
+    return df_complete
+
+
+
+
 def get_infos_about_eit_dataframe(df, complex_values=True):
     """
     This function prints some infos about the dataframe like number of samples,
@@ -140,31 +180,21 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
     print(f"Number of electrodes: {number_electrodes}")
 
 if __name__ == '__main__':
-    # read df from pickle
-    # df = pd.read_pickle("Data_measured2023-08-23 16_04_17.pkl")
-    protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
+    path = "../Training_Data/1_Freq_with_individual_v0s"
 
-    # path = "../Collected_Data/Combined_dataset"
-    # path = "../Collected_Data/Data_25_10_40mm"
-    # path = "../Collected_Data/Data_23_10_40mm"
-    # path = "../Collected_Data/Data_16_10_single_freq_40mm"
-    path = "../Training_Data/1_Freq_After_16_10"
+    combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
 
-    df = combine_multiple_pickles(path=path)
-    img_array = df["images"].to_list()
+    # df = combine_multiple_pickles(path=path)
+    img_array = combined["images"].to_list()
     img_array = np.array(img_array)
-    voltages_df = df["voltages"]
-
-    v0 = np.load("../Collected_Data/Combined_dataset/v0.npy")
-    # shuffle dataframe
-    df = df.sample(frac=1).reset_index(drop=True)
-    voltage_array, img_array = convert_df_to_separate_npy_files(df,
-                                                                save_path=path, )
+    voltages_df = combined["voltages"]
+    voltage_array = voltages_df.to_list()
+    voltage_array = np.array(voltage_array)
+    #
+    # df = df.sample(frac=1).reset_index(drop=True)
+    # voltage_array, img_array = convert_df_to_separate_npy_files(df,
+    #                                                             save_path=path, )
     look_at_dataset(img_array=img_array, v1_array=voltage_array,
                     # v0=v0,
                     )
-    # reconstruct_multiple_voltages(voltage_array=voltage_array, v0=v0, img_array=img_array)
 
-    # v0 = np.load("../Collected_Data/V0_SAMPLES_13_10_2023/v0_13_10.npy")
-    # plt.plot(v0)
-    # plt.show()

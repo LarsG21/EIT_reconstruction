@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from CustomDataset import CustomDataset
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
-from data_augmentation import add_noise_augmentation, add_rotation_augmentation
+from data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
 from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2, \
     LinearModelWithDropoutAndBatchNorm
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, \
@@ -148,8 +148,17 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         f.write(f"normalize: {normalize}\n")
         f.write(f"electrode_level_normalization: {electrode_level_normalization}\n")
         f.write("\n")
-
-    voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+    USE_DIFF_DIRECTLY = False
+    if os.path.exists(os.path.join(path, "v1_array.npy")):
+        voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+        print("INFO: Using v1 voltages and calculating voltage differences with one v0 as reference")
+    else:
+        try:
+            voltage_data_np = np.load(os.path.join(path, "voltage_diff_array.npy"))
+            print("INFO: Using voltage differences directly")
+            USE_DIFF_DIRECTLY = True
+        except FileNotFoundError:
+            raise Exception("No voltage data found")
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
 
     if OUT_SIZE == 128:
@@ -163,12 +172,15 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Highlight Step 1: In case of time difference EIT, we need to normalize the data with v0
     if not ABSOLUTE_EIT:
-        print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
-        v0 = np.load(os.path.join(path, "v0.npy"))
-        # v0 = np.load("../ScioSpec_EIT_Device/v0.npy")
-        # normalize the voltage data
-        voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-        # Now the model should learn the difference between the voltages and v0 (default state)
+        if not USE_DIFF_DIRECTLY:
+            print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
+            v0 = np.load(os.path.join(path, "v0.npy"))
+            # v0 = np.load("../ScioSpec_EIT_Device/v0.npy")
+            # normalize the voltage data
+            voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+            # Now the model should learn the difference between the voltages and v0 (default state)
+        else:
+            print("INFO: Single frequency EIT data is used. Using voltage differences directly")
 
     # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
     voltage_data_np = add_normalizations(v1=voltage_data_np, NORMALIZE_MEDIAN=normalize,
@@ -211,6 +223,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("INFO: Adding rotation augmentation")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 number_of_rotation_augmentations, device=device)
+        # blurr the images with a gaussian filter
+        train_images = add_gaussian_blur(train_images, device=device)
+
     train_voltage_original = train_voltage.clone()
     test_voltage_original = test_voltage.clone()
     # Highlight Step4.2 Do PCA to reduce the number of input features
@@ -349,8 +364,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_25_10"
-    path = "../Training_Data/1_Freq_After_16_10"
+    model_name = "Run_25_10_blurr_augment"
+    path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"

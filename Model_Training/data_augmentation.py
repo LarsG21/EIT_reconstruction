@@ -175,6 +175,31 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     return train_images_rotated, train_voltage_rotated
 
 
+def add_gaussian_blur(train_images, device="cpu"):
+    """
+    Add gaussian blur to the images.
+    :param train_images:
+    :param device:
+    :return:
+    """
+    train_images_numpy = train_images.cpu().numpy()
+    train_images_blurred_numpy = []
+    for img in train_images_numpy:
+        img_blurred = cv2.GaussianBlur(img, (3, 3), 1)
+        train_images_blurred_numpy.append(img_blurred)
+    train_images_blurred_numpy = np.array(train_images_blurred_numpy)
+    train_images_blurred = torch.tensor(train_images_blurred_numpy).to(device)
+    # show example
+    # plt.subplot(1, 2, 1)
+    # plt.imshow(train_images_numpy[0])
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(train_images_blurred_numpy[0])
+    # plt.show()
+
+    return train_images_blurred
+
+
+
 if __name__ == '__main__':
     pass
     # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"

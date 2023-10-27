@@ -51,18 +51,32 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
     if pca_components > 0:
         VOLTAGE_VECTOR_LENGTH = pca_components
 
-    voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+    USE_DIFF_DIRECTLY = False
+    if os.path.exists(os.path.join(path, "v1_array.npy")):
+        voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+        print("INFO: Using v1 voltages and calculating voltage differences with one v0 as reference")
+    else:
+        try:
+            voltage_data_np = np.load(os.path.join(path, "voltage_diff_array.npy"))
+            print("INFO: Using voltage differences directly")
+            USE_DIFF_DIRECTLY = True
+        except FileNotFoundError:
+            raise Exception("No voltage data found")
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
     # reduce the number of images
     # image_data_np = image_data_np[:200]
     # voltage_data_np = voltage_data_np[:200]
     # Highlight Step 1: In case of time difference EIT, we need to normalize the data with v0
     if not ABSOLUTE_EIT:
-        print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
-        v0 = np.load(os.path.join(path, "v0.npy"))
-        # v0 = np.load("../ScioSpec_EIT_Device/v0.npy")
-        # normalize the voltage data
-        voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+        if not USE_DIFF_DIRECTLY:
+            print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
+            v0 = np.load(os.path.join(path, "v0.npy"))
+            # v0 = np.load("../ScioSpec_EIT_Device/v0.npy")
+            # normalize the voltage data
+            voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+            # Now the model should learn the difference between the voltages and v0 (default state)
+        else:
+            print("INFO: Single frequency EIT data is used. Using voltage differences directly")
     # Now the model should learn the difference between the voltages and v0 (default state)
     # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
     voltage_data_np = add_normalizations(v1=voltage_data_np, NORMALIZE_MEDIAN=normalize,
@@ -143,7 +157,7 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
 if __name__ == "__main__":
     ABSOLUTE_EIT = False
-    path = "Training_Data/1_Freq"
+    path = "Training_Data/1_Freq_with_individual_v0s"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     pca_components = 0
@@ -154,9 +168,9 @@ if __name__ == "__main__":
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
         LinearRegression(),
-        Ridge(alpha=1),
+        # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=10),
+        # KNeighborsRegressor(n_neighbors=10),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
