@@ -135,8 +135,8 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
     new_flat_pictures = regressor.predict(testX) + mean
     # only use the first 10 pictures
-    new_flat_pictures = new_flat_pictures[:10]
-    testY_selection = testY[:10]
+    new_flat_pictures = new_flat_pictures[:20]
+    testY_selection = testY[:20]
     for picture, testY_sample in zip(new_flat_pictures, testY_selection):
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     noise_level = 0.05
     number_of_noise_augmentations = 1
     number_of_rotation_augmentations = 1
-    add_augmentations = True
+    add_augmentations = False
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
         LinearRegression(),

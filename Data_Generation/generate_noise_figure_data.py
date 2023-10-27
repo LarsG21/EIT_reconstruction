@@ -10,7 +10,7 @@ def generate_noise_figure_data():
     images = []
     for v in range(VOLTAGE_VECTOR_LENGTH):
         voltage_vector = np.zeros(VOLTAGE_VECTOR_LENGTH)
-        voltage_vector[v] = 0.1
+        voltage_vector[v] = 0.001
         voltages.append(voltage_vector)
         images.append(np.zeros([OUT_SIZE, OUT_SIZE]))
     # save as df

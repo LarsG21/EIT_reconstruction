@@ -140,6 +140,7 @@ def combine_multiple_pickles_and_calculate_normalized_voltage_diff(path):
             df_complete = pd.concat([df_complete, combined])
         elif folder.endswith(".pkl") and folder != "combined.pkl":  # For Empty image samples (V0s):
             df = pd.read_pickle(os.path.join(path, folder))
+            print(f"length of {folder}: {len(df)}")
             # for those use v0 as average of all v0
             v0_empty_images = np.array(df["voltages"].mean())
             df["voltage_diff"] = df["voltages"].apply(lambda x: (
@@ -181,11 +182,11 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
     print(f"Number of electrodes: {number_electrodes}")
 
 if __name__ == '__main__':
+    # path = "../Collected_Data/Test_Set_Circular_16_10_3_freq"
     path = "../Training_Data/1_Freq_with_individual_v0s"
-    path = "../Collected_Data/Test_Set_Circular_16_10_3_freq"
 
-    # combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
-    combined = combine_multiple_pickles(path=path)
+    combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+    # combined = combine_multiple_pickles(path=path)
 
     # df = combine_multiple_pickles(path=path)
     img_array = combined["images"].to_list()

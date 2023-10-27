@@ -137,7 +137,7 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
@@ -181,9 +181,9 @@ def main():
     #### END Settings #######
 
     # load a regressor
-    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
-    regressor = None
-    # regressor = pickle.load(open(regressor_path, 'rb'))
+    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
+    # regressor = None
+    regressor = pickle.load(open(regressor_path, 'rb'))
     if regressor is not None:
         input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
               "Press Enter to continue...")
