@@ -26,7 +26,7 @@ from EarlyStoppingHandler import EarlyStoppingHandler
 LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 6144
 VOLTAGE_VECTOR_LENGTH = 1024
-OUT_SIZE = 128
+OUT_SIZE = 64
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
 
@@ -152,12 +152,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
 
-    # double the resolution of the images
-    image_data_np = np.repeat(image_data_np, 2, axis=1)
-    image_data_np = np.repeat(image_data_np, 2, axis=2)
-    # show example image
-    # plt.imshow(image_data_np[0])
-    # plt.show()
+    if OUT_SIZE == 128:
+        # double the resolution of the images
+        image_data_np = np.repeat(image_data_np, 2, axis=1)
+        image_data_np = np.repeat(image_data_np, 2, axis=2)
 
     # reduce the number of images
     # image_data_np = image_data_np[:800]
@@ -351,15 +349,15 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_23_10_higher_res"
+    model_name = "Run_25_10"
     path = "../Training_Data/1_Freq_After_16_10"
     # path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    num_epochs = 1
+    num_epochs = 150
     learning_rate = 0.001
     pca_components = 0
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.05
     number_of_noise_augmentations = 1
     number_of_rotation_augmentations = 1

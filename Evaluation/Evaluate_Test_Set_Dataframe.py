@@ -125,7 +125,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 ABSOLUTE_EIT = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = False
+NORMALIZE = True
 USE_OPENCV_FOR_PLOTTING = True
 USE_GREIT_FOR_RECONSTRUCTION = False
 
@@ -137,7 +137,7 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
@@ -146,7 +146,8 @@ def main():
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
-    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
+    # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
+    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_25_10/model_2023-10-27_13-23-19_112_150.pth"
     model.load_state_dict(torch.load(model_path))
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
@@ -154,12 +155,12 @@ def main():
     #                           "v0.npy"))
 
     norm, absolute = check_settings_of_model(model_path)
-    if norm is not None and norm != NORMALIZE:
-        print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
-        NORMALIZE = norm
-    if absolute is not None and absolute != ABSOLUTE_EIT:
-        print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
-        ABSOLUTE_EIT = absolute
+    # if norm is not None and norm != NORMALIZE:
+    #     print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
+    #     NORMALIZE = norm
+    # if absolute is not None and absolute != ABSOLUTE_EIT:
+    #     print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+    #     ABSOLUTE_EIT = absolute
 
     # Test set training_data_path
     if ABSOLUTE_EIT:
@@ -180,13 +181,14 @@ def main():
     #### END Settings #######
 
     # load a regressor
-    # regressor = None
-    regressor = pickle.load(open("../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl", 'rb'))
+    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
+    regressor = None
+    # regressor = pickle.load(open(regressor_path, 'rb'))
     if regressor is not None:
         input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
               "Press Enter to continue...")
-    pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-    if os.path.exists(pca_path) and regressor is None:
+    pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+    if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
 
@@ -230,8 +232,8 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
             v1 = raw_voltages
             # calculate the normalized voltage difference
             v1 = (v1 - v0) / v0
-            plt.plot(v1)
-            plt.show()
+            # plt.plot(v1)
+            # plt.show()
         else:
             v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
         if pca is not None:

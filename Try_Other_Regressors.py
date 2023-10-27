@@ -47,7 +47,7 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
     :param pca_components: if > 0, PCA is applied to the data and the number of components is reduced to the given value
     :return: tuple of numpy arrays, split into train and test data
     """
-    global VOLTAGE_VECTOR_LENGTH
+    global VOLTAGE_VECTOR_LENGTH, pca
     if pca_components > 0:
         VOLTAGE_VECTOR_LENGTH = pca_components
 
@@ -85,27 +85,27 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
                                                           testX, testX, path,
                                                           "CPU",
                                                           n_components=pca_components)
-    # flatten the images
+    # Highlight: flatten the images
     trainY = trainY.reshape(trainY.shape[0], -1)
     testY = testY.reshape(testY.shape[0], -1)
     print("TrainX shape: ", trainX.shape)
     print("TrainY shape: ", trainY.shape)
     print("TestX shape: ", testX.shape)
     print("TestY shape: ", testY.shape)
-    return testX, testY, trainX, trainY
+    return testX, testY, trainX, trainY, pca
 
 
-testX, testY, trainX, trainY = None, None, None, None
+testX, testY, trainX, trainY, pca = None, None, None, None, None
 
 
 def train_regressor(model_name: str, regressor, path_to_training_data: str,
                     normalize=True, add_augmentation=False, results_folder="Results",
                     pca_components=0, ):
-    global VOLTAGE_VECTOR_LENGTH, OUT_SIZE, testX, testY, trainX, trainY
+    global VOLTAGE_VECTOR_LENGTH, OUT_SIZE, testX, testY, trainX, trainY, pca
 
     if testX is None:
         print("INFO: Preparing training data")
-        testX, testY, trainX, trainY = prepare_training_data(path_to_training_data, add_augmentation, normalize,
+        testX, testY, trainX, trainY, pca = prepare_training_data(path_to_training_data, add_augmentation, normalize,
                                                              pca_components=pca_components)
     else:
         print("INFO: Using cached training data")
@@ -135,7 +135,10 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
     # save the model as pickle file
     pickle.dump(regressor, open(f"{results_path}/model.pkl", 'wb'))
-    # dump(regressor, f"{results_path}/model.joblib")
+    # save the pca as pickle file
+    if pca_components > 0:
+        pickle.dump(pca, open(f"{results_path}/pca.pkl", 'wb'))
+
 
 
 if __name__ == "__main__":
@@ -147,8 +150,8 @@ if __name__ == "__main__":
     noise_level = 0.05
     number_of_noise_augmentations = 1
     number_of_rotation_augmentations = 1
-    add_augmentations = False
-    results_folder = "Results_Traditional_Models_TDEIT"
+    add_augmentations = True
+    results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
         LinearRegression(),
         Ridge(alpha=1),
