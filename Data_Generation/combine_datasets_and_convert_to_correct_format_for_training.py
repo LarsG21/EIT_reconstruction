@@ -36,6 +36,7 @@ def reconstruct_multiple_voltages(voltage_array, v0, img_array=None):
     :return:
     """
     mesh_obj = mesh.create(32, h0=0.1)
+    protocol_obj = protocol.create(32, dist_exc=1, step_meas=1, parser_meas="std")
     if img_array is None:
         for v1 in voltage_array:
             solve_and_plot_jack(v0=v0, v1=v1, mesh_obj=mesh_obj, protocol_obj=protocol_obj)
@@ -181,8 +182,10 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
 
 if __name__ == '__main__':
     path = "../Training_Data/1_Freq_with_individual_v0s"
+    path = "../Collected_Data/Test_Set_Circular_16_10_3_freq"
 
-    combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+    # combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+    combined = combine_multiple_pickles(path=path)
 
     # df = combine_multiple_pickles(path=path)
     img_array = combined["images"].to_list()
