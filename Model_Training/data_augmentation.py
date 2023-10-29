@@ -152,7 +152,12 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
             plt.plot(voltage)
             # put vertical lines at the electrodes
             NUMBER_OF_FREQUENCIES = 3
-            AMPLITUDE_OR_COMPLEX = 2
+            if len(voltage) == 1024:
+                AMPLITUDE_OR_COMPLEX = 1
+            elif len(voltage) >= 1024:
+                AMPLITUDE_OR_COMPLEX = 2
+            else:
+                raise Exception("Voltage length is not correct")
             for i in range(0, len(voltage),
                            32 * NUMBER_OF_FREQUENCIES * AMPLITUDE_OR_COMPLEX):  # *2 for real and imaginary part
                 plt.axvline(x=i, color="red", linestyle="--", label='_nolegend_')
