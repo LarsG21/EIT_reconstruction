@@ -73,8 +73,8 @@ def add_noise_augmentation(train_voltage: torch.Tensor,
     return train_voltages_combined, train_images_combined
 
 
-def add_rotation_augmentation(train_voltage: torch.Tensor | np.ndarray,
-                              train_images: torch.Tensor | np.ndarray,
+def add_rotation_augmentation(train_voltage: torch.Tensor,
+                              train_images: torch.Tensor,
                               number_of_augmentations=1,
                               show_examples=False,
                               save_examples=False,

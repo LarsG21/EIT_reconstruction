@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 
 
 def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, test_voltage, model_path, device,
-                              n_components=128):
+                              n_components=128, debug=True, train_images=None):
     """
     Performs PCA on the input data and returns the transformed data.
     Saves the PCA model for later reconstruction-
@@ -49,9 +49,47 @@ def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, t
     train_voltage = pca.transform(train_voltage_to_transform)
     val_voltage = pca.transform(val_voltage_to_transform)
     test_voltage = pca.transform(test_voltage_to_transform)
+    #
+    if debug:
+        for i in range(0, 127):
+            analyze_principal_component(train_images, train_voltage, component_index=i)
+
     # transform back to tensor
     if transform_back_to_tensor:
         train_voltage = torch.tensor(train_voltage, dtype=torch.float32).to(device)
         val_voltage = torch.tensor(val_voltage, dtype=torch.float32).to(device)
         test_voltage = torch.tensor(test_voltage, dtype=torch.float32).to(device)
     return train_voltage, val_voltage, test_voltage, pca
+
+
+def analyze_principal_component(train_images, train_voltage, component_index):
+    """
+    Shows the mean of the train images of the corresponding voltages with principal_component > 0 and principal_component < 0
+    :param train_images: train images to look at
+    :param train_voltage: pca of the train voltages in the same order as train_images (pc0, pc1, pc2, ...)
+    :param component_index: index of the principal component to look at
+    """
+    train_images = train_images.cpu().numpy()
+    # get indices of train_voltages with pc0 > 0
+    indices = np.where(train_voltage[:, component_index] > 0)[0]
+    # get the corresponding train_images
+    train_images_pc1_pos = train_images[indices]
+    # get mean of those
+    mean_train_images_pc1_pos = np.mean(train_images_pc1_pos, axis=0)
+    # get indices of train_voltages with pc0 < 0
+    indices = np.where(train_voltage[:, component_index] < -0)[0]
+    # get the corresponding train_images
+    train_images_pc1_neg = train_images[indices]
+    # get mean of those
+    mean_train_images_pc1_neg = np.mean(train_images_pc1_neg, axis=0)
+    # compare thos images
+    import matplotlib.pyplot as plt
+    # same but with subplots
+    fig, axs = plt.subplots(1, 2)
+    axs[0].imshow(mean_train_images_pc1_pos)
+    axs[0].set_title(f"mean of train images with pc{component_index} > 0")
+    axs[1].imshow(mean_train_images_pc1_neg)
+    axs[1].set_title(f"mean of train images with pc{component_index} < 0")
+    # save the figure
+    plt.savefig(f"mean_train_images_pc{component_index}.png")
+    plt.show()
