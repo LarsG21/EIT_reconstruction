@@ -24,7 +24,7 @@ from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 
 from Model_Training.EarlyStoppingHandler import EarlyStoppingHandler
-from Model_Training.data_augmentation import add_noise_augmentation, add_rotation_augmentation
+from Model_Training.data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from utils import add_normalizations
 
@@ -92,12 +92,16 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
         print("INFO: Adding rotation augmentation")
         trainX, trainY = add_rotation_augmentation(trainX, trainY,
                                                    number_of_rotation_augmentations, device="cpu")
+
+        trainY = add_gaussian_blur(trainY, device="cpu")
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
         trainX, testX, _, pca = perform_pca_on_input_data(voltage_data_np, trainX,
-                                                          testX, testX, path,
+                                                          testX, testX, f"{path}/Models",
                                                           "CPU",
+                                                          debug=False,
+                                                          train_images=image_data_np,
                                                           n_components=pca_components)
     # Highlight: flatten the images
     trainY = trainY.reshape(trainY.shape[0], -1)
@@ -157,14 +161,14 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
 if __name__ == "__main__":
     ABSOLUTE_EIT = False
-    path = "Training_Data/1_Freq_with_individual_v0s"
+    path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    pca_components = 0
+    pca_components = 128
     noise_level = 0.05
-    number_of_noise_augmentations = 1
-    number_of_rotation_augmentations = 1
-    add_augmentations = False
+    number_of_noise_augmentations = 0
+    number_of_rotation_augmentations = 0
+    add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
         LinearRegression(),

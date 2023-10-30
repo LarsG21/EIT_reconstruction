@@ -51,9 +51,11 @@ def perform_pca_on_input_data(voltage_data_tensor, train_voltage, val_voltage, t
     test_voltage = pca.transform(test_voltage_to_transform)
     #
     if debug:
+        # how mouch variance is explained by the first n components
+        print(f"Explained variance ratio of the first {n_components} components: "
+              f"{np.sum(pca.explained_variance_ratio_[:n_components])}")
         for i in range(0, 127):
             analyze_principal_component(train_images, train_voltage, component_index=i)
-
     # transform back to tensor
     if transform_back_to_tensor:
         train_voltage = torch.tensor(train_voltage, dtype=torch.float32).to(device)

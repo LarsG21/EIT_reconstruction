@@ -187,19 +187,31 @@ def add_gaussian_blur(train_images, device="cpu"):
     :param device:
     :return:
     """
-    train_images_numpy = train_images.cpu().numpy()
+    convert_back_to_tensor = False
+    if type(train_images) == torch.Tensor:
+        train_images_numpy = train_images.cpu().numpy()
+        convert_back_to_tensor = True
+    elif type(train_images) == np.ndarray:
+        train_images_numpy = train_images
+    else:
+        raise Exception("Type of train images not recognized")
     train_images_blurred_numpy = []
     for img in train_images_numpy:
         img_blurred = cv2.GaussianBlur(img, (3, 3), 1)
+        for i in range(0, 40):
+            img_blurred = cv2.GaussianBlur(img_blurred, (3, 3), 1)
         train_images_blurred_numpy.append(img_blurred)
     train_images_blurred_numpy = np.array(train_images_blurred_numpy)
-    train_images_blurred = torch.tensor(train_images_blurred_numpy).to(device)
     # show example
-    # plt.subplot(1, 2, 1)
-    # plt.imshow(train_images_numpy[0])
-    # plt.subplot(1, 2, 2)
-    # plt.imshow(train_images_blurred_numpy[0])
-    # plt.show()
+    plt.subplot(1, 2, 1)
+    plt.imshow(train_images_numpy[0])
+    plt.subplot(1, 2, 2)
+    plt.imshow(train_images_blurred_numpy[0])
+    plt.show()
+    if convert_back_to_tensor:
+        train_images_blurred = torch.tensor(train_images_blurred_numpy).to(device)
+    else:
+        train_images_blurred = train_images_blurred_numpy
 
     return train_images_blurred
 

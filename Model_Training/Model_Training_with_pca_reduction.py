@@ -103,7 +103,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    ABSOLUTE_EIT = True
+    ABSOLUTE_EIT = False
     SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
@@ -235,7 +235,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                                              val_voltage, test_voltage, model_path,
                                                                              device,
                                                                              n_components=pca_components,
-                                                                             debug=False,
+                                                                                  debug=True,
                                                                              train_images=train_images)
 
     # Highlight Step 5: Create the DataLoader for train, test, and validation sets
@@ -367,7 +367,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     model_name = "TESTING"
-    path = "../Own_Simulation_Dataset"
+    path = "../Training_Data/1_Freq"
     # path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     pca_components = 128
     add_augmentation = False
     noise_level = 0.05
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 2
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
