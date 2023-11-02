@@ -93,7 +93,7 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
         trainX, trainY = add_rotation_augmentation(trainX, trainY,
                                                    number_of_rotation_augmentations, device="cpu")
 
-        trainY = add_gaussian_blur(trainY, device="cpu")
+        trainY = add_gaussian_blur(trainY, device="cpu", nr_of_blurs=number_of_blur_augmentations)
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
@@ -161,20 +161,22 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
 if __name__ == "__main__":
     ABSOLUTE_EIT = False
-    path = "Own_Simulation_Dataset"
+    # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
+    path = "Training_Data/1_Freq_with_individual_v0s"
     pca_components = 128
     noise_level = 0.05
     number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
+    number_of_blur_augmentations = 10
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
         LinearRegression(),
-        # Ridge(alpha=1),
+        Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        # KNeighborsRegressor(n_neighbors=10),
+        KNeighborsRegressor(n_neighbors=10),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),

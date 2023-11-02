@@ -217,14 +217,12 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # Highlight Step 4.1: Augment the training data
     if add_augmentation:
         # augment the training data
-        print("INFO: Adding noise augmentation")
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
                                                              number_of_noise_augmentations, noise_level, device=device)
-        print("INFO: Adding rotation augmentation")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 number_of_rotation_augmentations, device=device)
         # blurr the images with a gaussian filter
-        train_images = add_gaussian_blur(train_images, device=device)
+        train_images = add_gaussian_blur(train_images, device=device, nr_of_blurs=number_of_blur_augmentations)
 
     train_voltage_original = train_voltage.clone()
     test_voltage_original = test_voltage.clone()
@@ -232,11 +230,11 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
         train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
-                                                                             val_voltage, test_voltage, model_path,
-                                                                             device,
-                                                                             n_components=pca_components,
-                                                                                  debug=True,
-                                                                             train_images=train_images)
+                                                                                  val_voltage, test_voltage, model_path,
+                                                                                  device,
+                                                                                  n_components=pca_components,
+                                                                                  debug=False,
+                                                                                  train_images=train_images)
 
     # Highlight Step 5: Create the DataLoader for train, test, and validation sets
     train_dataset = CustomDataset(train_voltage, train_images)
@@ -366,18 +364,19 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "TESTING"
-    path = "../Training_Data/1_Freq"
+    model_name = "Run_02_11_noise_augment"
+    path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Collected_Data/Data_23_10_40mm"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    num_epochs = 150
+    num_epochs = 200
     learning_rate = 0.001
     pca_components = 128
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 2
-    number_of_rotation_augmentations = 2
+    number_of_noise_augmentations = 3
+    number_of_rotation_augmentations = 0
+    number_of_blur_augmentations = 0
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
     early_stopping_handler = EarlyStoppingHandler(patience=20)

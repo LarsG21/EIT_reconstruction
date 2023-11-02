@@ -26,6 +26,7 @@ def add_noise_augmentation(train_voltage: torch.Tensor,
     :param show_examples: Whether to show example plots
     :return: The augmented training voltages and images
     """
+    print("INFO: Adding noise to the training data")
     convert_to_numpy = False
     if number_of_augmentations == 0:
         return train_voltage, train_images
@@ -89,6 +90,7 @@ def add_rotation_augmentation(train_voltage: torch.Tensor,
     :param number_of_augmentations:
     :return:
     """
+    print("INFO: Rotating the training data")
     convert_back_to_tensor = False
     if number_of_augmentations == 0:
         return train_voltage, train_images
@@ -180,13 +182,16 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     return train_images_rotated, train_voltage_rotated
 
 
-def add_gaussian_blur(train_images, device="cpu"):
+def add_gaussian_blur(train_images, device="cpu", nr_of_blurs=1):
     """
     Add gaussian blur to the images.
     :param train_images:
     :param device:
     :return:
     """
+    if nr_of_blurs == 0:
+        return train_images
+    print(f"INFO: Adding {nr_of_blurs} gaussian blurs to the images")
     convert_back_to_tensor = False
     if type(train_images) == torch.Tensor:
         train_images_numpy = train_images.cpu().numpy()
@@ -198,7 +203,7 @@ def add_gaussian_blur(train_images, device="cpu"):
     train_images_blurred_numpy = []
     for img in train_images_numpy:
         img_blurred = cv2.GaussianBlur(img, (3, 3), 1)
-        for i in range(0, 40):
+        for i in range(0, nr_of_blurs):
             img_blurred = cv2.GaussianBlur(img_blurred, (3, 3), 1)
         train_images_blurred_numpy.append(img_blurred)
     train_images_blurred_numpy = np.array(train_images_blurred_numpy)

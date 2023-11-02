@@ -392,7 +392,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_25_10_40mm"
+    TEST_NAME = "Data_30_10_40mm"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")

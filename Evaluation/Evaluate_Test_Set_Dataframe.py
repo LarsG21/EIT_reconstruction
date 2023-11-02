@@ -181,7 +181,7 @@ def main():
     #### END Settings #######
 
     # load a regressor
-    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
+    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
     # regressor = None
     regressor = pickle.load(open(regressor_path, 'rb'))
     if regressor is not None:

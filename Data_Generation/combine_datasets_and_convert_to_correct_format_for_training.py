@@ -182,7 +182,7 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
     print(f"Number of electrodes: {number_electrodes}")
 
 if __name__ == '__main__':
-    # path = "../Collected_Data/Test_Set_Circular_16_10_3_freq"
+    # path = "../Collected_Data/Data_30_10_40mm"
     path = "../Training_Data/1_Freq_with_individual_v0s"
 
     combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
