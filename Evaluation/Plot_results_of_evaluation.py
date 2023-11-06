@@ -7,10 +7,10 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, plot_amplitude_response, plot_ringing
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
-# df = pd.read_pickle(
-#     "Results/evaluation_model_model_2023-10-27_14-25-23_148_150.pkl")
 df = pd.read_pickle(
-    "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    "Results/evaluation_model_model_2023-10-27_14-25-23_148_150.pkl")
+# df = pd.read_pickle(
+#     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3
@@ -91,9 +91,11 @@ results_dict = {"avg_ar": avg_ar,
 print(f"Results: \n {results_dict}")
 
 # in one plot
-plt.boxplot([df["amplitude_response"], df["shape_deformation"]], labels=["amplitude_response", "shape_deformation"])
-plt.title("Boxplot of amplitude_response and shape_deformation")
-plt.ylabel("Amplitude response/Shape deformation")
+plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], labels=["amplitude_response",
+                                                                                        "shape_deformation",
+                                                                                        "ringing"])
+plt.title("Evaluation metrics")
+plt.ylabel("Relative Metric")
 plt.savefig(
     "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_amplitude_response_shape_deformation.png")
 plt.show()

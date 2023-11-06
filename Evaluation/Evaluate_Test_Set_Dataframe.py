@@ -53,7 +53,9 @@ def get_position_error(img_reconstructed, target_image, show_plot=True):
             plt.scatter(center_of_mass[0], center_of_mass[1], c="red")
             plt.scatter(target_position[0], target_position[1], c="blue")
             plt.show()
-
+    # divide by radius of the tank to get the relative position error
+    # error_vect = error_vect / (img_reconstructed.shape[0] / 2)
+    # distance_between_centers = distance_between_centers / (img_reconstructed.shape[0] / 2)
     print("Distance between centers: ", distance_between_centers)
     print("Error vector: ", error_vect)
     return distance_between_centers, error_vect
@@ -137,7 +139,7 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
@@ -205,7 +207,7 @@ def main():
 
 
 def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None, model_path=None, pca=None,
-                                  regressor=None, debug=True):
+                                  regressor=None, debug=False):
     """
 
     :param ABSOLUTE_EIT: Whether to use absolute EIT or not
