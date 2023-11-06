@@ -123,9 +123,9 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 ### Setings ###
 ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 128
+VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-NORMALIZE = False
+NORMALIZE = True
 USE_OPENCV_FOR_PLOTTING = True
 USE_GREIT_FOR_RECONSTRUCTION = False
 
@@ -155,12 +155,12 @@ def main():
     #                           "v0.npy"))
 
     norm, absolute = check_settings_of_model(model_path)
-    # if norm is not None and norm != NORMALIZE:
-    #     print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
-    #     NORMALIZE = norm
-    # if absolute is not None and absolute != ABSOLUTE_EIT:
-    #     print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
-    #     ABSOLUTE_EIT = absolute
+    if norm is not None and norm != NORMALIZE:
+        print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
+        NORMALIZE = norm
+    if absolute is not None and absolute != ABSOLUTE_EIT:
+        print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+        ABSOLUTE_EIT = absolute
 
     # Test set training_data_path
     if ABSOLUTE_EIT:
@@ -187,10 +187,14 @@ def main():
     if regressor is not None:
         input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
               "Press Enter to continue...")
+        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+
     else:  # use nn model
         model.load_state_dict(torch.load(model_path))
         model.eval()
-    pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+
+    # load pca if it exists
     if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
