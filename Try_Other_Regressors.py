@@ -137,10 +137,20 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
     if not os.path.exists(results_path):
         os.makedirs(results_path)
 
+    # save the model as pickle file
+    pickle.dump(regressor, open(f"{results_path}/model.pkl", 'wb'))
+    # save the pca as pickle file
+    if pca_components > 0:
+        pickle.dump(pca, open(f"{results_path}/pca.pkl", 'wb'))
+
+
     new_flat_pictures = regressor.predict(testX) + mean
     # only use the first 10 pictures
-    new_flat_pictures = new_flat_pictures[:20]
-    testY_selection = testY[:20]
+    new_flat_pictures = new_flat_pictures[:12]
+    testY_selection = testY[:12]
+    plt.plot(testX[0])
+    plt.title("Input data example")
+    plt.show()
     for picture, testY_sample in zip(new_flat_pictures, testY_selection):
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
@@ -151,11 +161,6 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         plt.savefig(f"{results_path}/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
         plt.show()
 
-    # save the model as pickle file
-    pickle.dump(regressor, open(f"{results_path}/model.pkl", 'wb'))
-    # save the pca as pickle file
-    if pca_components > 0:
-        pickle.dump(pca, open(f"{results_path}/pca.pkl", 'wb'))
 
 
 
@@ -164,17 +169,20 @@ if __name__ == "__main__":
     # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    path = "Training_Data/1_Freq_with_individual_v0s"
-    pca_components = 128
+    # path = "Training_Data/1_Freq_with_individual_v0s"
+    # path = "Training_Data/1_Freq"
+    path = "Training_Data/1_Freq_After_16_10"
+    path = "Training_Data/3_Freq"
+    pca_components = 0
     noise_level = 0.05
     number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 10
+    number_of_blur_augmentations = 20
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
-        LinearRegression(),
-        Ridge(alpha=1),
+        # LinearRegression(),
+        # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
         KNeighborsRegressor(n_neighbors=10),
         # DecisionTreeRegressor(max_depth=80),

@@ -122,7 +122,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = False
+ABSOLUTE_EIT = True
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 NORMALIZE = True
@@ -181,7 +181,7 @@ def main():
     #### END Settings #######
 
     # load a regressor
-    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
+    regressor_path = "../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl"
     # regressor = None
     regressor = pickle.load(open(regressor_path, 'rb'))
     if regressor is not None:
@@ -198,7 +198,7 @@ def main():
 
 
 def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None, model_path=None, pca=None,
-                                  regressor=None):
+                                  regressor=None, debug=True):
     """
 
     :param ABSOLUTE_EIT: Whether to use absolute EIT or not
@@ -209,6 +209,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
     :param model_path: path to the model
     :param pca: Principal Component Analysis object
     :param regressor: a regressor for image reconstruction to use instead of the pytorch model
+    :param debug:
     :return:
     """
     global v0
@@ -232,13 +233,20 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
             v1 = raw_voltages
             # calculate the normalized voltage difference
             v1 = (v1 - v0) / v0
-            # plt.plot(v1)
-            # plt.show()
         else:
             v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
+        if debug:
+            plt.plot(v1)
+            plt.title("v1 normalized")
+            plt.show()
         if pca is not None:
             print("Transforming with PCA")
             v1 = pca.transform(v1.reshape(1, -1))
+            if debug:
+                v1_plot = v1.flatten()
+                plt.bar(range(len(v1_plot)), v1_plot)
+                plt.title("v1 pca")
+                plt.show()
         if not USE_GREIT_FOR_RECONSTRUCTION:
             if regressor is None:
                 img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
