@@ -123,7 +123,6 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 ### Setings ###
 ABSOLUTE_EIT = False
-VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
 NORMALIZE = True
 USE_OPENCV_FOR_PLOTTING = True
@@ -160,6 +159,18 @@ def main():
 
     #### END Settings #######
 
+    # Choose the correct test set and set the voltage vector length
+    if ABSOLUTE_EIT:
+        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
+        VOLTAGE_VECTOR_LENGTH = 128
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+    else:
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+        # test_set_path = "../Training_Data/1_Freq/combined.pkl"
+        VOLTAGE_VECTOR_LENGTH = 1024
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+
     if regressor is None:  # Use the nn model
         # check if the settings.txt file is in the same folder as the model
         norm, absolute = check_settings_of_model(model_path)
@@ -184,17 +195,6 @@ def main():
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
 
-    # Choose the correct test set
-    if ABSOLUTE_EIT:
-        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
-        VOLTAGE_VECTOR_LENGTH = 128
-        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
-    else:
-        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
-        test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
-        # test_set_path = "../Training_Data/1_Freq/combined.pkl"
-        VOLTAGE_VECTOR_LENGTH = 1024
-        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     input("Press Enter to continue...")
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
@@ -238,8 +238,8 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
         target_image = row["images"]
         target_position = find_center_of_mass(target_image)
         positions.append(target_position)
+        v1 = raw_voltages
         if not ABSOLUTE_EIT:
-            v1 = raw_voltages
             # calculate the normalized voltage difference
             v1 = (v1 - v0) / v0
         v1 = add_normalizations(v1, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
