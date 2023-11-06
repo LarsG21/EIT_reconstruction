@@ -140,7 +140,6 @@ if __name__ == '__main__':
     pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
     pca = pickle.load(open(pca_path, "rb"))
     model_pca.load_state_dict(torch.load(model_pca_path))
-
     model_pca.eval()
     try:
         plot_eit_video(path)

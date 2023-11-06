@@ -172,16 +172,16 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq_with_individual_v0s"
     # path = "Training_Data/1_Freq"
     path = "Training_Data/1_Freq_After_16_10"
-    path = "Training_Data/3_Freq"
+    # path = "Training_Data/3_Freq"
     pca_components = 0
     noise_level = 0.05
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 20
+    number_of_blur_augmentations = 5
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [
-        # LinearRegression(),
+        LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
         KNeighborsRegressor(n_neighbors=10),

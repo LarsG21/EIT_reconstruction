@@ -147,6 +147,7 @@ model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OU
 #
 model_path = "Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
 model.load_state_dict(torch.load(model_path))
+model.eval()
 
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
 if PCA:

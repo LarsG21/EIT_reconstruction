@@ -8,7 +8,7 @@ from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, p
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-10-27_14-25-23_148_150.pkl")
+    "Results/evaluation_model_model_2023-11-06_16-45-47_85_200.pkl")
 # df = pd.read_pickle(
 #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
@@ -75,18 +75,23 @@ plt.show()
 avg_ar = df["amplitude_response"].mean()
 avg_pe = df["position_error"].mean()
 avg_sd = df["shape_deformation"].mean()
+avg_ringing = df["ringing"].mean()
 
 # std of amplitude response, position error and shape deformation
 std_ar = df["amplitude_response"].std()
 std_pe = df["position_error"].std()
 std_sd = df["shape_deformation"].std()
+std_ringing = df["ringing"].std()
 
 results_dict = {"avg_ar": avg_ar,
                 "avg_pe": avg_pe,
                 "avg_sd": avg_sd,
+                "avg_ringing": avg_ringing,
                 "std_ar": std_ar,
                 "std_pe": std_pe,
-                "std_sd": std_sd}
+                "std_sd": std_sd,
+                "std_ringing": std_ringing
+                }
 
 print(f"Results: \n {results_dict}")
 

@@ -16,8 +16,6 @@ from Model_Training.Models import LinearModelWithDropout2
 from plot_utils import solve_and_get_center_with_nural_network, preprocess_greit_img
 import matplotlib.pyplot as plt
 
-
-
 pca = None
 
 mesh_obj = mesh.create(32, h0=0.1)
@@ -124,12 +122,12 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 1024
+ABSOLUTE_EIT = False
+VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
 NORMALIZE = True
 USE_OPENCV_FOR_PLOTTING = True
-USE_GREIT_FOR_RECONSTRUCTION = False
+
 
 ### Setings ###
 
@@ -139,32 +137,54 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
-    # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
+    model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
-    model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
-    model.load_state_dict(torch.load(model_path))
+    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
+
+    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    norm, absolute = check_settings_of_model(model_path)
-    if norm is not None and norm != NORMALIZE:
-        print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
-        NORMALIZE = norm
-    if absolute is not None and absolute != ABSOLUTE_EIT:
-        print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
-        ABSOLUTE_EIT = absolute
+    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
+    # regressor = None
+    regressor = pickle.load(open(regressor_path, 'rb'))
 
-    # Test set training_data_path
+    #### END Settings #######
+
+    if regressor is None:  # Use the nn model
+        # check if the settings.txt file is in the same folder as the model
+        norm, absolute = check_settings_of_model(model_path)
+        if norm is not None and norm != NORMALIZE:
+            print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
+            NORMALIZE = norm
+        if absolute is not None and absolute != ABSOLUTE_EIT:
+            print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+            ABSOLUTE_EIT = absolute
+        model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
+        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+    else:
+        input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
+              "Press Enter to continue...")
+        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+        model = None
+
+    # load pca if it exists
+    if os.path.exists(pca_path):
+        print("Loading PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+
+    # Choose the correct test set
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         VOLTAGE_VECTOR_LENGTH = 128
@@ -179,27 +199,6 @@ def main():
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
-
-    #### END Settings #######
-
-    # load a regressor
-    regressor_path = "../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl"
-    regressor = None
-    # regressor = pickle.load(open(regressor_path, 'rb'))
-    if regressor is not None:
-        input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
-              "Press Enter to continue...")
-        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
-
-    else:  # use nn model
-        model.load_state_dict(torch.load(model_path))
-        model.eval()
-        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-
-    # load pca if it exists
-    if os.path.exists(pca_path):
-        print("Loading PCA")
-        pca = pickle.load(open(pca_path, "rb"))
 
     evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=model, model_path=model_path,
                                   pca=pca,
@@ -243,8 +242,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
             v1 = raw_voltages
             # calculate the normalized voltage difference
             v1 = (v1 - v0) / v0
-        else:
-            v1 = add_normalizations(raw_voltages, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
+        v1 = add_normalizations(v1, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
         if debug:
             plt.plot(v1)
             plt.title("v1 normalized")
@@ -257,35 +255,21 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
                 plt.bar(range(len(v1_plot)), v1_plot)
                 plt.title("v1 pca")
                 plt.show()
-        if not USE_GREIT_FOR_RECONSTRUCTION:
-            if regressor is None:
-                img_reconstructed, _, img_non_thresh = solve_and_get_center_with_nural_network(model=model,
-                                                                                               model_input=v1)
-            else:
-                v1 = v1.reshape(1, -1)
-                new_flat_picture = regressor.predict(v1) - mean
-                img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
-                # img_reconstructed[img_reconstructed > 0.2] = 1
-                img_reconstructed[img_reconstructed < 0.2] = 0
-        ############################### For GREIT  EVALUATION ###############################
+        if regressor is None and model is not None:
+            img_reconstructed, _, img_non_thresh = solve_and_get_center_with_nural_network(model=model,
+                                                                                           model_input=v1)
         else:
-            v0_traditional_algorithims = v0[protocol_obj.keep_ba]
-            v1_traditional_algorithims = v1[protocol_obj.keep_ba]
-            img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-                                             mesh_obj, protocol_obj,
-                                             plot=False)
-            plt.imshow(img_greit)
-            plt.title("GREIT original")
-            plt.show()
-            img_reconstructed = preprocess_greit_img(img_greit)
-            plt.imshow(img_reconstructed)
-            plt.title("GREIT preprocessed")
-            plt.show()
-            time.sleep(0.5)
+            v1 = v1.reshape(1, -1)
+            new_flat_picture = regressor.predict(v1) - mean
+            img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
+            # img_reconstructed[img_reconstructed > 0.2] = 1
+            img_reconstructed[img_reconstructed < 0.25] = 0
         ######################## Ringing #################################
-
         # Ringing is the sum of all negative values in the image devided by the sum of |all values| in the image
-        ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
+        if regressor is None:
+            ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
+        else:
+            ringing = - np.sum(img_reconstructed[img_reconstructed < 0]) / np.sum(np.abs(img_reconstructed))
         print(f"Ringing: {ringing}")
         ringings.append(ringing)
 
@@ -312,13 +296,11 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,
               "ringing": ringings})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
-    if not USE_GREIT_FOR_RECONSTRUCTION:
-        if regressor is None:
-            eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
-        else:
-            eval_df_name = f"evaluation_regressor_{regressor.__class__.__name__}.pkl"
+    if regressor is None:
+        eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
     else:
-        eval_df_name = f"evaluation_GREIT.pkl"
+        eval_df_name = f"evaluation_regressor_{regressor.__class__.__name__}.pkl"
+
     # eval_df_name = "TESTING.pickle"
     save_path = os.path.join(path, eval_df_name)
     if not os.path.exists(os.path.join(path)):
