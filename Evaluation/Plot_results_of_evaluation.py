@@ -5,12 +5,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, plot_amplitude_response, plot_ringing
+import tikzplotlib
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
-df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-11-06_16-45-47_85_200.pkl")
 # df = pd.read_pickle(
-#     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+#     "Results/evaluation_model_model_2023-11-06_16-45-47_85_200.pkl")
+df = pd.read_pickle(
+    "Results/evaluation_regressor_LinearRegression.pkl")
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3
@@ -101,6 +102,7 @@ plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], 
                                                                                         "ringing"])
 plt.title("Evaluation metrics")
 plt.ylabel("Relative Metric")
+tikzplotlib.save("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_all.tikz")
 plt.savefig(
     "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_amplitude_response_shape_deformation.png")
 plt.show()
@@ -108,6 +110,8 @@ plt.show()
 plt.boxplot([df["position_error"]], labels=["position_error"])
 plt.title("Boxplot of position_error")
 plt.ylabel("Error [px]")
+tikzplotlib.save(
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_position_error.tikz")
 plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_position_error.png")
 plt.show()
 

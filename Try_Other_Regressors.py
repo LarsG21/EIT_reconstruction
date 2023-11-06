@@ -37,6 +37,8 @@ LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
+plt.rcParams.update({'font.size': 22})
+
 
 def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
     """
@@ -63,6 +65,7 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
         except FileNotFoundError:
             raise Exception("No voltage data found")
     image_data_np = np.load(os.path.join(path, "img_array.npy"))
+    print(f"INFO: Loaded {len(image_data_np)} images and {len(voltage_data_np)} voltage vectors")
     # reduce the number of images
     # image_data_np = image_data_np[:200]
     # voltage_data_np = voltage_data_np[:200]
@@ -142,6 +145,11 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
     # save the pca as pickle file
     if pca_components > 0:
         pickle.dump(pca, open(f"{results_path}/pca.pkl", 'wb'))
+    else:
+        # if an pca dile already exists, delete it
+        if os.path.exists(f"{results_path}/pca.pkl"):
+            print("INFO: Deleting old pca.pkl file")
+            os.remove(f"{results_path}/pca.pkl")
 
 
     new_flat_pictures = regressor.predict(testX) + mean
@@ -155,6 +163,7 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
         plt.imshow(testY_sample.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
+        plt.title("Target")
         plt.subplot(122)
         plt.imshow(picture.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
         plt.title(model_name)
@@ -169,15 +178,15 @@ if __name__ == "__main__":
     # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    # path = "Training_Data/1_Freq_with_individual_v0s"
+    path = "Training_Data/1_Freq_with_individual_v0s"
     # path = "Training_Data/1_Freq"
-    path = "Training_Data/1_Freq_After_16_10"
+    # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    pca_components = 0
+    pca_components = 0  # 0 means no pca
     noise_level = 0.05
-    number_of_noise_augmentations = 2
+    number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
+    number_of_blur_augmentations = 0
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     regressors = [

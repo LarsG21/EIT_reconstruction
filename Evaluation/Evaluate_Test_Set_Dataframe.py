@@ -23,7 +23,6 @@ n_el = 32  # nb of electrodes
 protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 
 
-# TODO: THE COL TARGET POSITION IS SOMETIMES WRONG ! USE  target_position = find_center_of_mass(row["images"]) instead
 def get_position_error(img_reconstructed, target_image, show_plot=True):
     """
     Calculates the position error between the center of mass of the reconstructed image and the target position.
@@ -132,11 +131,8 @@ USE_OPENCV_FOR_PLOTTING = True
 
 def main():
     global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
-    input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
-          f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
-          f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
@@ -194,12 +190,15 @@ def main():
     if os.path.exists(pca_path):
         print("Loading PCA")
         pca = pickle.load(open(pca_path, "rb"))
+        input("Press Enter to continue...")
 
-    input("Press Enter to continue...")
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
 
+    input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
+          f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
+          f"Press Enter to continue...")
     evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=model, model_path=model_path,
                                   pca=pca,
                                   regressor=regressor)

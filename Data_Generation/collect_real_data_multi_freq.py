@@ -35,7 +35,7 @@ protocol_obj = protocol.create(n_el, dist_exc=dist_exc, step_meas=step_meas, par
 keep_mask = protocol_obj.keep_ba
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
-RADIUS_TARGET_IN_MM = 40
+RADIUS_TARGET_IN_MM = 60
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -303,13 +303,19 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_16_10_3_freq_40mm"
-    # collect_data(gcode_device=ender, number_of_samples=3000,
-    #              eit_data_path="../eit_data",
-    #              save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=4,
-                                eit_data_path="../eit_data",
-                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    TEST_NAME = "Data_06_11_3_freq_60mm_over_night"
+    # warn if the folder already exists
+    if os.path.exists(f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"):
+        input("WARNING: The folder already exists. Press enter to continue")
+    # warn if folder name has other number before mm than the actual radius
+    if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
+        input("WARNING: The folder name does not contain the radius. Press enter to continue")
+    collect_data(gcode_device=ender, number_of_samples=3000,
+                 eit_data_path="../eit_data",
+                 save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=4,
+    #                             eit_data_path="../eit_data",
+    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 
 if __name__ == '__main__':

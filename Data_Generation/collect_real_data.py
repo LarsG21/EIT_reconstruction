@@ -397,6 +397,8 @@ def main():
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
         input("Are you really sure? Press enter to continue...")
+    if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
+        input("WARNING: The folder name does not contain the radius. Press enter to continue")
     collect_data(gcode_device=ender, number_of_samples=4000,
                  eit_data_path="../eit_data",
                  save_path=save_path)
