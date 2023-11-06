@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-from Evaluation.eval_plots import plot_amplitude_response, plot_position_error, plot_shape_deformation
+from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, plot_amplitude_response, plot_ringing
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 # df = pd.read_pickle(
@@ -52,6 +52,10 @@ plot_position_error(df,
 plot_shape_deformation(df,
                        save_path="Results/shape_deformation.png"
                        )
+
+plot_ringing(df,
+             # save_path="Results/ringing.png"
+             )
 
 # convert col error_vector to np.array
 

@@ -80,7 +80,7 @@ def get_amplitude_response(img_reconstructed, target_image, show_plot=True):
             cv2.imshow("Amplitude Response", cv2.resize(img_reconstructed_intersect, (512, 512)))
         else:
             plt.imshow(img_reconstructed_intersect)
-            plt.title(f"Amplitude response: {amplitude_response}")
+            plt.title(f"Amplitude response: {np.round(amplitude_response, 2)}")
             plt.show()
     return amplitude_response
 
@@ -123,9 +123,9 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 ### Setings ###
 ABSOLUTE_EIT = True
-VOLTAGE_VECTOR_LENGTH = 1024
+VOLTAGE_VECTOR_LENGTH = 128
 OUT_SIZE = 64
-NORMALIZE = True
+NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 USE_GREIT_FOR_RECONSTRUCTION = False
 
@@ -219,6 +219,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
     mean = df["images"].mean().flatten()
+    ringings = []  # ringing of the reconstructed image
     print(f"Length of dataframe: {len(df)}")
     if regressor is not None:
         print(f"USING REGRESSOR: {regressor.__class__.__name__} for reconstruction")
@@ -256,6 +257,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
                 img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
                 # img_reconstructed[img_reconstructed > 0.2] = 1
                 img_reconstructed[img_reconstructed < 0.2] = 0
+            img_reconstructed, _, img_non_thresh = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ############################### For GREIT  EVALUATION ###############################
         else:
             v0_traditional_algorithims = v0[protocol_obj.keep_ba]
@@ -271,6 +273,13 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
             plt.title("GREIT preprocessed")
             plt.show()
             time.sleep(0.5)
+        ######################## Ringing #################################
+
+        # Ringing is the sum of all negative values in the image devided by the sum of |all values| in the image
+        ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
+        print(f"Ringing: {ringing}")
+        ringings.append(ringing)
+
         ####################### Amplitude response #######################
         amplitude_response = get_amplitude_response(img_reconstructed, target_image, show_plot=SHOW)
         amplitude_responses.append(amplitude_response)
@@ -291,7 +300,8 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
             cv2.waitKey(300)
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
-              "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
+              "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,
+              "ringing": ringings})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
     if not USE_GREIT_FOR_RECONSTRUCTION:
         if regressor is None:

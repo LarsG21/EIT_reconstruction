@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import torch
 from matplotlib import pyplot as plt
+import tikzplotlib
 
 # from eidnburgh_cnn_test import OUT_SIZE, LOSS_SCALE_FACTOR
 
@@ -140,7 +141,7 @@ def plot_difference_for_some_sample_reconstruction_images(image_data_tensor, vol
 
 
 def infer_single_reconstruction(model, voltage_data, title="Reconstructed image", original_image: np.array = None,
-                                save_path=None, detection_threshold=0, show=True):
+                                save_path=None, detection_threshold=0, show=True, debug=False):
     """
     Plots a single reconstruction using the model
     :param title:
@@ -168,11 +169,33 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     stop = time.time()
     # print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.cpu()
-    # outsize = sqrt of output shape
-    OUT_SIZE = int(np.sqrt(output.shape[0]))
+    # plot the output
+    # plt.plot(output.detach().numpy())
+    # plt.title("Output")
+    # plt.show()
+
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
+    if debug:
+        plt.imshow(output)
+        plt.title("Original Reconstruction")
+        plt.xlabel("X [pixel]")
+        plt.ylabel("Y [pixel]")
+        plt.colorbar()
+        plt.show()
     # pull everything under 0.2 to 0
+    output_non_threshold = output.copy()
     output[output < detection_threshold] = 0
+    # pull everything above 0.2 to 1
+    output_binary = output.copy()
+    output_binary[output_binary >= detection_threshold] = 1
+    if debug:
+        plt.imshow(output)
+        plt.title("QAS")
+        plt.xlabel("X [pixel]")
+        plt.ylabel("Y [pixel]")
+        plt.colorbar()
+        plt.show()
+
     if show:
         if original_image is not None:
             plt.subplot(1, 2, 1)
@@ -191,7 +214,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
         if save_path is not None:
             plt.savefig(save_path)
         plt.show()
-    return output
+    return output, output_binary, output_non_threshold
 
 
 def plot_loss(val_loss_list, loss_list=None, save_name=""):
