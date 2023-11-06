@@ -111,7 +111,8 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
     :param use_opencv_for_plotting:
     :return:
     """
-    img, img_binary = infer_single_reconstruction(model, model_input, title=title, original_image=original_image,
+    img, img_binary, img_non_thres = infer_single_reconstruction(model, model_input, title=title,
+                                                                 original_image=original_image,
                                       save_path=save_path, detection_threshold=0.25, show=False)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
     SCALE_FACTOR = 4
@@ -133,14 +134,15 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
 
 
 def solve_and_get_center_with_nural_network(model, model_input,
-                                            debug=True):
+                                            debug=False):
     """
     Solve the reconstruction and return the center of mass of the image
     :param model:
     :param model_input:
     :return:
     """
-    img, img_binary = infer_single_reconstruction(model, model_input, detection_threshold=0.25, show=False)
+    img, img_binary, img_non_thresh = infer_single_reconstruction(model, model_input, detection_threshold=0.25,
+                                                                  show=False)
     center_of_mass = find_center_of_mass(img)
     # show center of mass in image matplotlib
     if debug:
@@ -161,7 +163,7 @@ def solve_and_get_center_with_nural_network(model, model_input,
         # plt.title("Slice row and column at center of mass")
         # plt.legend(["row", "column"])
         # plt.show()
-    return img, center_of_mass
+    return img, center_of_mass, img_non_thresh
 
 
 def preprocess_greit_img(img_greit):

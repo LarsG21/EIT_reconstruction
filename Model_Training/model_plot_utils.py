@@ -138,7 +138,7 @@ def plot_difference_for_some_sample_reconstruction_images(image_data_tensor, vol
 
 
 def infer_single_reconstruction(model, voltage_data, title="Reconstructed image", original_image: np.array = None,
-                                save_path=None, detection_threshold=0, show=True, debug=True):
+                                save_path=None, detection_threshold=0, show=True, debug=False):
     """
     Plots a single reconstruction using the model
     :param title:
@@ -180,6 +180,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
         plt.colorbar()
         plt.show()
     # pull everything under 0.2 to 0
+    output_non_threshold = output.copy()
     output[output < detection_threshold] = 0
     # pull everything above 0.2 to 1
     output_binary = output.copy()
@@ -210,7 +211,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
         if save_path is not None:
             plt.savefig(save_path)
         plt.show()
-    return output, output_binary
+    return output, output_binary, output_non_threshold
 
 
 def plot_loss(val_loss_list, loss_list=None, save_name=""):

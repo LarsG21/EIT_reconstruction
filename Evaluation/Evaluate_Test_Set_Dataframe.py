@@ -133,12 +133,12 @@ USE_GREIT_FOR_RECONSTRUCTION = False
 ### Setings ###
 
 def main():
-    global pca, NORMALIZE, ABSOLUTE_EIT, v0
+    global pca, NORMALIZE, ABSOLUTE_EIT, v0, img_non_thresh
     input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
@@ -168,6 +168,7 @@ def main():
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
+    ringings = []  # ringing of the reconstructed image
     print(f"Length of dataframe: {len(df)}")
     for i, row in df.iterrows():
         raw_voltages = row["voltages"]
@@ -188,7 +189,7 @@ def main():
                 print("Transforming with PCA")
                 v1 = pca.transform(v1.reshape(1, -1))
         if not USE_GREIT_FOR_RECONSTRUCTION:
-            img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+            img_reconstructed, _, img_non_thresh = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ############################### For GREIT  EVALUATION ###############################
         else:
             v0_traditional_algorithims = v0[protocol_obj.keep_ba]
@@ -204,6 +205,13 @@ def main():
             plt.title("GREIT preprocessed")
             plt.show()
             time.sleep(0.5)
+        ######################## Ringing #################################
+
+        # Ringing is the sum of all negative values in the image devided by the sum of |all values| in the image
+        ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
+        print(f"Ringing: {ringing}")
+        ringings.append(ringing)
+
         ####################### Amplitude response #######################
         amplitude_response = get_amplitude_response(img_reconstructed, target_image, show_plot=SHOW)
         amplitude_responses.append(amplitude_response)
@@ -225,7 +233,8 @@ def main():
 
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
-              "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations})
+              "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,
+              "ringing": ringings})
     path = "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results"
     if not USE_GREIT_FOR_RECONSTRUCTION:
         eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
