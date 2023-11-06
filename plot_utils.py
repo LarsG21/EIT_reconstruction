@@ -111,7 +111,7 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
     :param use_opencv_for_plotting:
     :return:
     """
-    img = infer_single_reconstruction(model, model_input, title=title, original_image=original_image,
+    img, img_binary = infer_single_reconstruction(model, model_input, title=title, original_image=original_image,
                                       save_path=save_path, detection_threshold=0.25, show=False)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
     SCALE_FACTOR = 4
@@ -132,15 +132,35 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
     return img
 
 
-def solve_and_get_center_with_nural_network(model, model_input):
+def solve_and_get_center_with_nural_network(model, model_input,
+                                            debug=True):
     """
     Solve the reconstruction and return the center of mass of the image
     :param model:
     :param model_input:
     :return:
     """
-    img = infer_single_reconstruction(model, model_input, detection_threshold=0.25, show=False)
+    img, img_binary = infer_single_reconstruction(model, model_input, detection_threshold=0.25, show=False)
     center_of_mass = find_center_of_mass(img)
+    # show center of mass in image matplotlib
+    if debug:
+        SCALE_FACTOR = 1
+        imshow = cv2.resize(img, (0, 0), fx=SCALE_FACTOR, fy=SCALE_FACTOR)
+        # add an marker with matplotlib
+        plt.plot(center_of_mass[0], center_of_mass[1], "ro")
+        plt.legend(["center of gravity"])
+        plt.imshow(imshow)
+        plt.colorbar()
+        plt.title("Detected center of gravity")
+        plt.xlabel("x [pixels]")
+        plt.ylabel("y [pixels]")
+        plt.show()
+        # # plot slice row and column of the image at the center of mass
+        # plt.plot(img[:, center_of_mass[0]])
+        # plt.plot(img[center_of_mass[1], :])
+        # plt.title("Slice row and column at center of mass")
+        # plt.legend(["row", "column"])
+        # plt.show()
     return img, center_of_mass
 
 

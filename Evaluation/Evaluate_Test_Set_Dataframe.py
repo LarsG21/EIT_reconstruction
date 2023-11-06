@@ -81,7 +81,7 @@ def get_amplitude_response(img_reconstructed, target_image, show_plot=True):
             cv2.imshow("Amplitude Response", cv2.resize(img_reconstructed_intersect, (512, 512)))
         else:
             plt.imshow(img_reconstructed_intersect)
-            plt.title(f"Amplitude response: {amplitude_response}")
+            plt.title(f"Amplitude response: {np.round(amplitude_response, 2)}")
             plt.show()
     return amplitude_response
 
@@ -138,7 +138,7 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
     model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
