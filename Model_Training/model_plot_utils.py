@@ -11,6 +11,7 @@ import tikzplotlib
 # from eidnburgh_cnn_test import OUT_SIZE, LOSS_SCALE_FACTOR
 
 LOSS_SCALE_FACTOR = 1000
+OUT_SIZE = 64
 
 def calc_average_loss_completly_black(image_data_tensor, criterion):
     """

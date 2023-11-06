@@ -182,11 +182,14 @@ def main():
 
     # load a regressor
     regressor_path = "../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl"
-    # regressor = None
-    regressor = pickle.load(open(regressor_path, 'rb'))
+    regressor = None
+    # regressor = pickle.load(open(regressor_path, 'rb'))
     if regressor is not None:
         input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
               "Press Enter to continue...")
+    else:  # use nn model
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
     pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
     if os.path.exists(pca_path):
         print("Loading PCA")
@@ -250,14 +253,14 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
                 plt.show()
         if not USE_GREIT_FOR_RECONSTRUCTION:
             if regressor is None:
-                img_reconstructed, _ = solve_and_get_center_with_nural_network(model=model, model_input=v1)
+                img_reconstructed, _, img_non_thresh = solve_and_get_center_with_nural_network(model=model,
+                                                                                               model_input=v1)
             else:
                 v1 = v1.reshape(1, -1)
                 new_flat_picture = regressor.predict(v1) - mean
                 img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
                 # img_reconstructed[img_reconstructed > 0.2] = 1
                 img_reconstructed[img_reconstructed < 0.2] = 0
-            img_reconstructed, _, img_non_thresh = solve_and_get_center_with_nural_network(model=model, model_input=v1)
         ############################### For GREIT  EVALUATION ###############################
         else:
             v0_traditional_algorithims = v0[protocol_obj.keep_ba]
