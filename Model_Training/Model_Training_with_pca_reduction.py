@@ -103,7 +103,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    ABSOLUTE_EIT = False
+    ABSOLUTE_EIT = True
     SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
@@ -364,9 +364,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_06_11_with_blurr"
-    path = "../Training_Data/1_Freq_with_individual_v0s"
-    # path = "../Collected_Data/Data_23_10_40mm"
+    model_name = "Run_08_11"
+    # path = "../Training_Data/1_Freq_with_individual_v0s"
+    path = "../Collected_Data/Data_06_11_3_freq_60mm_over_night"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     num_epochs = 200
@@ -374,9 +374,9 @@ if __name__ == "__main__":
     pca_components = 128
     add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 40
+    number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
     early_stopping_handler = EarlyStoppingHandler(patience=20)

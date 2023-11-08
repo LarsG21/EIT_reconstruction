@@ -26,16 +26,8 @@ from utils import wait_for_start_of_measurement
 TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 n_el = 32
-mesh_obj = mesh.create(n_el, h0=0.1)
-dist_exc = 1
-step_meas = 1
-protocol_obj = protocol.create(n_el, dist_exc=dist_exc, step_meas=step_meas, parser_meas="std")
-# Dist_exc is the distance between the excitation and measurement electrodes (in number of electrodes)
 
-keep_mask = protocol_obj.keep_ba
-df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
-
-RADIUS_TARGET_IN_MM = 60
+RADIUS_TARGET_IN_MM = 40
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -123,8 +115,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
                 "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
-                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas,
-                "number_of_freqs": NUMBER_OF_FREQUENCIES,
+                "current": CURRENT, "number_of_freqs": NUMBER_OF_FREQUENCIES,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
         file.write(json.dumps(metadata))
@@ -176,8 +167,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
                 "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
-                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas,
-                "number_of_freqs": NUMBER_OF_FREQUENCIES,
+                "current": CURRENT, "number_of_freqs": NUMBER_OF_FREQUENCIES,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
         file.write(json.dumps(metadata))
@@ -299,11 +289,17 @@ def main():
             calibrate = input("Do you want to calibrate the device? (y/n)")
             if calibrate == "y":
                 calibration_procedure(ender, RADIUS_TARGET_IN_MM)
+            else:
+                # move to the center
+                limit_x = ender.maximal_limits[0]
+                limit_z = ender.maximal_limits[2]
+                ender.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+                input("Press enter when the device is in the center...")
             break
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_06_11_3_freq_60mm_over_night"
+    TEST_NAME = "Data_08_11_3_freq_40mm"
     # warn if the folder already exists
     if os.path.exists(f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"):
         input("WARNING: The folder already exists. Press enter to continue")

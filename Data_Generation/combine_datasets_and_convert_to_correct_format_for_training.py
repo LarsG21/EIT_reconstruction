@@ -183,7 +183,8 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
 
 if __name__ == '__main__':
     # path = "../Collected_Data/Data_30_10_40mm"
-    path = "../Training_Data/1_Freq_After_16_10"
+    # path = "../Training_Data/1_Freq_After_16_10"
+    path = "../Collected_Data/Data_06_11_3_freq_60mm_over_night"
 
     # combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
     combined = combine_multiple_pickles(path=path)
@@ -195,9 +196,9 @@ if __name__ == '__main__':
     voltage_array = voltages_df.to_list()
     voltage_array = np.array(voltage_array)
     #
-    # df = df.sample(frac=1).reset_index(drop=True)
-    # voltage_array, img_array = convert_df_to_separate_npy_files(df,
-    #                                                             save_path=path, )
+    df = combined.sample(frac=1).reset_index(drop=True)
+    voltage_array, img_array = convert_df_to_separate_npy_files(df,
+                                                                save_path=path, )
     look_at_dataset(img_array=img_array, v1_array=voltage_array,
                     # v0=v0,
                     )

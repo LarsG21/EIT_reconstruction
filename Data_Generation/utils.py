@@ -130,6 +130,10 @@ def wait_1_file_and_get_next(path):
     # select only files that have ending .eit
     paths = [path for path in paths if path.endswith(".eit")]
     newest = max(paths, key=os.path.getctime)
+    # delete all files except the newest
+    for file in files:
+        if file != os.path.basename(newest):
+            os.remove(os.path.join(path, file))
     os.chdir(cwd)
     return newest
 

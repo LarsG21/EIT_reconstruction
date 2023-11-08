@@ -14,7 +14,7 @@ from pyeit.eit import protocol
 from pyeit.mesh.shape import thorax
 import os
 
-from reconstruction_algorithims import solve_and_plot_jack, solve_and_plot_greit
+from reconstruction_algorithims import solve_and_plot_jack, solve_and_plot_greit, solve_and_plot_bp
 from utils import wait_for_start_of_measurement
 
 """ 0. build mesh """
@@ -63,25 +63,23 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
         plt.show()
     if PCA:
         normalized_difference = pca.transform(normalized_difference.reshape(1, -1))
-    v0_traditional_algorithims = v0[protocol_obj.keep_ba]
-    v1_traditional_algorithims = v1[protocol_obj.keep_ba]
+    # v0_traditional_algorithims = v0[protocol_obj.keep_ba]
+    # v1_traditional_algorithims = v1[protocol_obj.keep_ba]
     # solve_and_plot_jack(v0_traditional_algorithims, v1_traditional_algorithims, mesh_obj, protocol_obj,
     #                     path1_for_name_only=v1_path, path2_for_name_only=v0_path)
-    img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
-                                     mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path,
-                                     plot=False)
+    # img_greit = solve_and_plot_greit(v0_traditional_algorithims, v1_traditional_algorithims,
+    #                                  mesh_obj, protocol_obj, path1_for_name_only=v1_path, path2_for_name_only=v0_path,
+    #                                  plot=False)
     # normalize the image
-    img_greit = preprocess_greit_img(img_greit)
-    # plt.imshow(img_greit)
-    # plt.show()
-    # np clip between 0  and 255
-    cv2.imshow("GREIT", cv2.resize(img_greit, (0, 0), fx=4, fy=4))
-    cv2.waitKey(1)
+    # img_greit = preprocess_greit_img(img_greit)
+    # # plt.imshow(img_greit)
+    # # plt.show()
+    # # np clip between 0  and 255
+    # cv2.imshow("GREIT", cv2.resize(img_greit, (0, 0), fx=4, fy=4))
+    # cv2.waitKey(1)
 
-    # solve_and_plot_bp(v0, v1, mesh_obj, protocol_obj, path1_for_name_only=path1, path2_for_name_only=path2)
     solve_and_plot_with_nural_network(model=model, model_input=normalized_difference, chow_center_of_mass=False,
                                       use_opencv_for_plotting=True)
-    time.sleep(0.1)
 
 
 def plot_eit_images_in_folder(path):
@@ -128,7 +126,7 @@ def plot_eit_video(path):
                 if default_frame is None:
                     default_frame = current_frame
                 else:
-                    time.sleep(0.01)  # wait for file to be written
+                    time.sleep(0.001)  # wait for file to be written
                     plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
                                              v0_path=os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
@@ -151,6 +149,7 @@ model.eval()
 
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
 if PCA:
+    print("Loading the PCA")
     pca = pickle.load(open(pca_path, "rb"))
 # get the pca.pkl in the same folder as the model
 
