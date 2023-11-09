@@ -33,7 +33,7 @@ delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 default_frame = None
 
 
-def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
+def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=True):
     global default_frame
     df_v1 = convert_multi_frequency_eit_to_df(v1_path)
     if default_frame is None:
@@ -132,7 +132,7 @@ def plot_eit_video(path):
                     seen_files.append(current_frame)
 
 
-path = "eit_data"
+path = "C:\\Users\\lgudjons\\Desktop\\eit_data"
 PCA = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64

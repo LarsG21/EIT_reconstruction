@@ -9,6 +9,8 @@ from sklearn.model_selection import train_test_split
 
 import torch.utils.data as data
 
+from Model_Training.CustomDataset import CustomDataset
+
 
 def add_noise_augmentation(train_voltage: torch.Tensor,
                            train_images: torch.Tensor,
@@ -130,8 +132,8 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     DEGREES_PER_ELECTRODE = 11.25
     for img, voltage in zip(train_images_numpy, train_voltage_numpy):
         # use 11.25° steps for the rotation
-        angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
-        # angle = np.random.randint(1, 4) * 90
+        # angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
+        angle = np.random.randint(1, 4) * 90
         # print(f"Rotating image by {angle}°")
         img_rotated = rotate(img, angle, reshape=False)
         # smaller than 0.001 set to 0
@@ -223,46 +225,46 @@ def add_gaussian_blur(train_images, device="cpu", nr_of_blurs=1):
 
 
 if __name__ == '__main__':
-    pass
+    # pass
     # path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-    # # path = "../Collected_Data/Combined_dataset"
-    # device = "cpu"
-    #
-    # voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
-    # image_data_np = np.load(os.path.join(path, "img_array.npy"))
-    # print(f"Length of voltage data: {len(voltage_data_np)}")
-    # # v0 = np.load(os.path.join(path, "v0.npy"))
-    # # subtract v0 from all voltages
-    # # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
-    #
-    # # reduce the number of images
-    # image_data_np = image_data_np[:100]
-    # voltage_data_np = voltage_data_np[:100]
-    #
-    # # Now the model should learn the difference between the voltages and v0 (default state)
-    #
-    # print("Overall data shape: ", voltage_data_np.shape)
-    #
-    # voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to(device)
-    # image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32).to(device)
-    #
-    # dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
-    # dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
-    #
-    # # Step 4: Split the data into train, test, and validation sets
-    # # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
-    # # Note: Adjust the test_size and validation_size according to your preference.
-    # train_voltage, val_voltage, train_images, val_images = train_test_split(
-    #     voltage_data_tensor, image_data_tensor, test_size=0.01, random_state=42)
-    #
-    # # train_voltage = train_voltage[:1]
-    # # train_images = train_images[:1]
+    path = "../Collected_Data/Combined_dataset"
+    device = "cpu"
+
+    voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+    image_data_np = np.load(os.path.join(path, "img_array.npy"))
+    print(f"Length of voltage data: {len(voltage_data_np)}")
+    # v0 = np.load(os.path.join(path, "v0.npy"))
+    # subtract v0 from all voltages
+    # voltage_data_np = (voltage_data_np - v0) / v0  # normalized voltage difference
+
+    # reduce the number of images
+    image_data_np = image_data_np[:100]
+    voltage_data_np = voltage_data_np[:100]
+
+    # Now the model should learn the difference between the voltages and v0 (default state)
+
+    print("Overall data shape: ", voltage_data_np.shape)
+
+    voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to(device)
+    image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32).to(device)
+
+    dataset = CustomDataset(voltage_data_tensor, image_data_tensor)
+    dataloader = data.DataLoader(dataset, batch_size=32, shuffle=True)
+
+    # Step 4: Split the data into train, test, and validation sets
+    # Assuming you have 'voltage_data_tensor' and 'image_data_tensor' as your PyTorch tensors
+    # Note: Adjust the test_size and validation_size according to your preference.
+    train_voltage, val_voltage, train_images, val_images = train_test_split(
+        voltage_data_tensor, image_data_tensor, test_size=0.01, random_state=42)
+
+    # train_voltage = train_voltage[:1]
+    # train_images = train_images[:1]
     # train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
     #                                                      4, 0.04,
     #                                                      show_examples=True, save_examples=False)
-    #
-    # train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-    #                                                         4, show_examples=True, save_examples=False)
+
+    train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+                                                            4, show_examples=True, save_examples=False)
 
     # print("OK")
     # # convert both to numpy

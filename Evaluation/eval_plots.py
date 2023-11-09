@@ -146,10 +146,10 @@ def plot_ringing(df, save_path=None):
         zi = ndimage.gaussian_filter(zi, sigma=1, radius=1)
     fig = px.imshow(zi, x=xi[0, :], y=yi[:, 0], color_continuous_scale='Viridis')
     # title
-    fig.update_layout(title="Shape deformation over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
+    fig.update_layout(title="Ringing over space", xaxis_title="x [mm]", yaxis_title="y [mm]")
     # text to colorbar
     fig.update_layout(coloraxis_colorbar=dict(
-        title="Shape deformation",
+        title="Ringing",
         thicknessmode="pixels", thickness=50,
         lenmode="pixels",
         yanchor="top", y=1,

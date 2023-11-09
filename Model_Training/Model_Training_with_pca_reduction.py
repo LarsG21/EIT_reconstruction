@@ -364,12 +364,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_08_11"
+    model_name = "Test_Run_less_neg_normalized_rot_aug"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
-    path = "../Collected_Data/Data_06_11_3_freq_60mm_over_night"
+    path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    num_epochs = 200
+    # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
+    num_epochs = 100
     learning_rate = 0.001
     pca_components = 128
     add_augmentation = True
@@ -385,5 +386,5 @@ if __name__ == "__main__":
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
+                   weight_decay=weight_decay, normalize=True, electrode_level_normalization=False,
                    )

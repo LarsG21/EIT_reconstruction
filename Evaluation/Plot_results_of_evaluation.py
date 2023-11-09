@@ -11,10 +11,12 @@ import tikzplotlib
 # df = pd.read_pickle(
 #     "Results/evaluation_model_model_2023-11-06_16-45-47_85_200.pkl")
 df = pd.read_pickle(
-    "Results/evaluation_regressor_LinearRegression.pkl")
+    "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+
+remove_outliers = False
 
 # remove outliers from df in amplitude_response and position_error > or < N std
-N = 3
+N = 4
 border_amplitude_response = N * df["amplitude_response"].std()
 border_position_error = N * df["position_error"].std()
 border_shape_deformation = N * df["shape_deformation"].std()
@@ -22,9 +24,10 @@ print(border_amplitude_response)
 print(border_position_error)
 print(border_shape_deformation)
 print("Number of samples", len(df))
-df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
-df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
-df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
+if remove_outliers:
+    df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
+    df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
+    df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
 # replace outliers with mean
 # df["amplitude_response"] = df["amplitude_response"].apply(lambda x: x if np.abs(x - df["amplitude_response"].mean()) <= (1 * df["amplitude_response"].std()) else df["amplitude_response"].mean())
 # df["position_error"] = df["position_error"].apply(lambda x: x if np.abs(x - df["position_error"].mean()) <= (1 * df["position_error"].std()) else df["position_error"].mean())
@@ -104,7 +107,7 @@ plt.title("Evaluation metrics")
 plt.ylabel("Relative Metric")
 tikzplotlib.save("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_all.tikz")
 plt.savefig(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_amplitude_response_shape_deformation.png")
+    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_all.png")
 plt.show()
 
 plt.boxplot([df["position_error"]], labels=["position_error"])

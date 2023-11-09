@@ -40,7 +40,7 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
             plt.ylabel("Intensity")
             plt.show()
     img = solve_and_plot_with_nural_network(model=model_pca, model_input=v1, chow_center_of_mass=False,
-                                            use_opencv_for_plotting=False)
+                                            use_opencv_for_plotting=True)
 
     # save the video to a folder
     if save_video:
@@ -114,12 +114,12 @@ def convert_pngs_in_folder_to_video(path):
 if __name__ == '__main__':
 
     ### Settings ###
-    path = "eit_data"
+    path = "C:\\Users\\lgudjons\\Desktop\\eit_data"
     VOLTAGE_VECTOR_LENGTH = 1024
     VOLTAGE_VECTOR_LENGTH_PCA = 128
     OUT_SIZE = 64
     # Normalize the data
-    NORMALIZE = False
+    NORMALIZE = True
 
     print("Loading the model")
     ### Settings end ###
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     model_pca = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH_PCA, output_size=OUT_SIZE ** 2)
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
-    model_pca_path = "Collected_Data_Variation_Experiments/High_Variation_multi/Models/LinearModelWithDropout2/Test_Run/model_2023-10-06_12-15-26_epoche_143_of_300_best_model.pth"
+    model_pca_path = "Trainings_Data_EIT32/3_Freq/Models/LinearModelWithDropout2/Test_Run_less_neg_normalized/model_2023-11-09_13-47-42_99_100.pth"
     norm, absolute = check_settings_of_model(model_pca_path)
     if norm is not None and norm != NORMALIZE:
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
@@ -145,7 +145,7 @@ if __name__ == '__main__':
         plot_eit_video(path)
     except RuntimeError as e:
         if str(e) == "mat1 and mat2 shapes cannot be multiplied (128x1 and 128x128)":
-            logging.warning("comment out model plot utils line 160")
+            logging.warning("comment out line 160 in model_plot_utils ")
             logging.warning("Problem with Batch Norm Modles")
 
     # convert_pngs_in_folder_to_video("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\test\\3_freq_move_Target\\setup_1\eit_video")
