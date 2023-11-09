@@ -10,7 +10,7 @@ from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df, c
 img_size = 64
 TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
-ABSOLUTE_EIT = False
+ABSOLUTE_EIT = True
 
 
 # TODO: Import form utils instead
@@ -66,8 +66,14 @@ def collect_samples(eit_path: str, save_path: str):
 
 
 if __name__ == '__main__':
-    eit_path = "../eit_data/20231108 12.36.48/setup_1"
+    eit_path = "../eit_data/20231109 13.21.12/setup_1"
     save_path = "../Collected_Data/3_freq_08_11_negatives"
+    absolute_eit = input("Absolute EIT? (y/n)")
+    if absolute_eit == "y":
+        ABSOLUTE_EIT = True
+    else:
+        ABSOLUTE_EIT = False
+
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     collect_samples(eit_path, save_path)
