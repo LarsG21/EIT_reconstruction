@@ -3,8 +3,10 @@ import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
+import tikzplotlib
 import torch
 from sklearn.decomposition import PCA
+from sklearn.model_selection import train_test_split
 
 
 def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_voltage, val_voltage, test_voltage,
@@ -34,6 +36,8 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
     else:
         raise ValueError("voltage_data_tensor must be a numpy array or torch tensor")
     pca.fit(voltage_data_tensor_np)
+    # if debug:
+    #     plot_first_n_eigenvoltages(pca, 10)
     # save the pca for later reconstruction
     if not os.path.exists(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
@@ -56,11 +60,27 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         # how mouch variance is explained by the first n components
         print(f"Explained variance ratio of the first {n_components} components: "
               f"{np.sum(pca.explained_variance_ratio_[:n_components])}")
-        for i in range(0, 127):
-            analyze_principal_component(train_images, train_voltage, component_index=i)
+        # plot the non cumulative variance explained by the first n components
+        plt.figure(figsize=(10, 5))
+        plt.plot(pca.explained_variance_ratio_)
+        plt.title("Variance explained by the first n components")
+        plt.xlabel("Number of components")
+        plt.ylabel("Explained variance")
+        tikzplotlib.save("variance_explained_by_first_n_components.tikz")
+        plt.show()
+        # plot the variance explained by the first n components
+        plt.figure(figsize=(10, 5))
+        plt.plot(np.cumsum(pca.explained_variance_ratio_))
+        plt.title("Cumulative variance explained by the first n components")
+        plt.xlabel("Number of components")
+        plt.ylabel("Cumulative explained variance")
+        tikzplotlib.save("cumulative_variance_explained_by_first_n_components.tikz")
+        plt.show()
+        # for i in range(0, 127):
+        #     analyze_principal_component(train_images, train_voltage, component_index=i)
     # reconstruct_images_from_pca(pca, train_images, train_voltage, voltage_data_tensor,
     #                             image_data_tensor, n_components=80)
-    reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=128)
+    reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=20)
     # transform back to tensor
     if transform_back_to_tensor:
         train_voltage = torch.tensor(train_voltage, dtype=torch.float32).to(device)
@@ -108,6 +128,29 @@ def reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=128):
         plt.show()
 
         print("ok")
+
+
+def plot_first_n_eigenvoltages(pca, n_components=128):
+    """
+    Plots the first n eigenvoltages.
+    :param pca: pca model
+    :param n_components: number of principal components to use for reconstruction
+    :return:
+    """
+    eigen_voltages = pca.components_
+    for i in range(0, n_components):
+        plt.plot(eigen_voltages[i])
+        plt.title(f"Eigen voltage {i}")
+        plt.show()
+    # combine the fist 9 in one plot with 3 rows and 3 columns
+    fig, axs = plt.subplots(3, 3, figsize=(15, 15))
+    for i in range(0, 3):
+        for j in range(0, 3):
+            axs[i, j].plot(eigen_voltages[i * 3 + j])
+            axs[i, j].set_title(f"Eigen voltage {i * 3 + j}")
+    # save as tikz
+    tikzplotlib.save("first_9_eigenvoltages.tikz")
+    plt.show()
 
 
 def reconstruct_images_from_pca(pca, train_images, train_voltage, voltage_data_tensor,
@@ -212,3 +255,42 @@ def get_pos_and_neg_pc_image(component_index, train_images, train_voltage):
     # get mean of those
     mean_train_images_pc1_neg = np.mean(train_images_pc1_neg, axis=0)
     return mean_train_images_pc1_neg, mean_train_images_pc1_pos
+
+
+if __name__ == '__main__':
+    path = "../Own_Simulation_Dataset"
+    model_path = os.path.join(path, "Models")
+
+    if os.path.exists(os.path.join(path, "v1_array.npy")):
+        voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
+        print("INFO: Using v1 voltages and calculating voltage differences with one v0 as reference")
+    else:
+        try:
+            voltage_data_np = np.load(os.path.join(path, "voltage_diff_array.npy"))
+            print("INFO: Using voltage differences directly")
+            USE_DIFF_DIRECTLY = True
+        except FileNotFoundError:
+            raise Exception("No voltage data found")
+    image_data_np = np.load(os.path.join(path, "img_array.npy"))
+
+    print("Overall data shape: ", voltage_data_np.shape)
+
+    voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to("cpu")
+    image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32).to("cpu")
+
+    # Highlight Step 4: Split the data into train, test, and validation sets
+    print("INFO: Splitting data into train, validation and test sets")
+    train_voltage, val_voltage, train_images, val_images = train_test_split(
+        voltage_data_tensor, image_data_tensor, test_size=0.2, random_state=42)
+
+    val_voltage, test_voltage, val_images, test_images = train_test_split(
+        val_voltage, val_images, test_size=0.2, random_state=42)
+
+    train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor,
+                                                                              image_data_tensor,
+                                                                              train_voltage,
+                                                                              val_voltage, test_voltage, model_path,
+                                                                              "CPU",
+                                                                              n_components=128,
+                                                                              debug=True,
+                                                                              train_images=train_images)
