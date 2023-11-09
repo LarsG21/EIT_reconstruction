@@ -207,7 +207,9 @@ def trainings_loop(model: nn.Module, model_name: str, path_to_training_data: str
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
-        train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
+        train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor,
+                                                                                  image_data_tensor,
+                                                                                  train_voltage,
                                                                                   val_voltage, test_voltage, model_path,
                                                                                   device,
                                                                                   n_components=pca_components)

@@ -229,7 +229,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
-        train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor, train_voltage,
+        train_voltage, val_voltage, test_voltage, pca = perform_pca_on_input_data(voltage_data_tensor,
+                                                                                  image_data_tensor,
+                                                                                  train_voltage,
                                                                                   val_voltage, test_voltage, model_path,
                                                                                   device,
                                                                                   n_components=pca_components,
@@ -364,20 +366,21 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Test_Run_less_neg_normalized_rot_aug"
+    model_name = "TESTING"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
-    path = "../Trainings_Data_EIT32/3_Freq"
+    # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
+    path = "../Own_Simulation_Dataset"
     num_epochs = 100
     learning_rate = 0.001
     pca_components = 128
-    add_augmentation = True
+    add_augmentation = False
     noise_level = 0.05
     number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
+    number_of_blur_augmentations = 0
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
     early_stopping_handler = EarlyStoppingHandler(patience=20)
