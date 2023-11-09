@@ -55,6 +55,7 @@ VOLTAGE_FREQUENCY = 1000
 CURRENT = 0.1
 CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
 CONDUCTIVITY_TARGET = 0.1  # in S/m
+EIT_32_used = True
 
 
 # TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
@@ -152,7 +153,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
                 "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
-                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas,
+                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas, "EIT_32_used": EIT_32_used,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
         file.write(json.dumps(metadata))
@@ -230,12 +231,18 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     timestamps = []
     """ Crate Circle Pattern """
     degree_resolution = 15
-    radii = np.linspace(0.2, 1 - RELATIVE_RADIUS_TARGET - 0.05, 4)
+    radii = np.linspace(0.25, 1 - RELATIVE_RADIUS_TARGET - 0.05, 5)
     # radii = np.array([0.1, 0.3, 0.5, 0.6, 1 - RELATIVE_RADIUS_TARGET - 0.05])
     # reverse the order of the radii
     radii = radii[::-1]
     num_of_angles = 360 // degree_resolution
     angles = np.linspace(0, 2 * np.pi, num_of_angles)
+    # plot the circle pattern
+    if debug_plots:
+        plt.figure()
+        for radius in radii:
+            plt.plot(radius * np.cos(angles), radius * np.sin(angles), 'o')
+        plt.show()
     # print overall number of samples
     print(f"Number of samples that will be collected: {len(radii) * len(angles) * number_of_runs}")
 
@@ -254,7 +261,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     input("Place the target and press enter to start the measurement...")
 
     # v0 = np.load("../Collected_Data/Test_Set_1_Freq_23_10_circular/v0.npy")
-
+    overall_nr_of_samples = len(radii) * len(angles) * number_of_runs
     i = 0
     for a in range(0, number_of_runs):
         print(f"Run {a} of {number_of_runs}")
@@ -262,6 +269,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
             print(f"Measuring at radius: {radius}")
             for angle in angles:
                 print(f"Measuring at radius: {radius}, angle: {angle}")
+                print(f"Sample {i} of {overall_nr_of_samples}")
                 x = radius * np.cos(angle)
                 y = radius * np.sin(angle)
                 center = np.array([x, y])
@@ -392,7 +400,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_30_10_40mm"
+    TEST_NAME = "Data_09_11_40mm_eit32_2"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
@@ -400,10 +408,10 @@ def main():
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
     collect_data(gcode_device=ender, number_of_samples=4000,
-                 eit_data_path="../eit_data",
+                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                  save_path=save_path)
     # collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
-    #                             eit_data_path="../eit_data",
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':

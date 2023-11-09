@@ -6,6 +6,7 @@ import time
 import cv2
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
     solve_eit_using_jac, wait_1_file_and_get_next, calibration_procedure
@@ -34,9 +35,6 @@ img_size = 64
 
 RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
-
-
-# TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
 
 
 def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray):
@@ -151,13 +149,15 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
             timestamps = []
 
 
-def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, eit_data_path: str, save_path: str):
+def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, eit_data_path: str, save_path: str,
+                                debug_plots: bool = True):
     """
     Moves the target in circular pattern at multiple radii and collects the data.
     :param number_of_runs:
     :param save_path:
     :param eit_data_path:
     :param gcode_device:
+    :param debug_plots:
     :return:
     """
     if not os.path.exists(save_path):
@@ -176,22 +176,31 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     timestamps = []
     """ Crate Circle Pattern """
     degree_resolution = 20
-    radii = np.linspace(0.1, 1 - RELATIVE_RADIUS_TARGET - 0.05, 4)
+    radii = np.linspace(0.1, 1 - RELATIVE_RADIUS_TARGET - 0.05, 5)
     # reverse the order of the radii
     radii = radii[::-1]
     num_of_angles = 360 // degree_resolution
     angles = np.linspace(0, 2 * np.pi, num_of_angles)
+    # plot the circle pattern
+    if debug_plots:
+        plt.figure()
+        for radius in radii:
+            plt.plot(radius * np.cos(angles), radius * np.sin(angles), 'o')
+        plt.show()
 
     last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(1)
+    overall_nr_of_samples = len(radii) * len(angles) * number_of_runs
+
     i = 0
     for a in range(0, number_of_runs):
         for radius in radii:
             print(f"Measuring at radius: {radius}")
             for angle in angles:
                 print(f"Measuring at radius: {radius}, angle: {angle}")
+                print(f"Sample {i} of {overall_nr_of_samples}")
                 x = radius * np.cos(angle)
                 y = radius * np.sin(angle)
                 center = np.array([x, y])
@@ -299,7 +308,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_08_11_3_freq_40mm"
+    TEST_NAME = "Training_set_circular_08_11_3_freq_40mm"
     # warn if the folder already exists
     if os.path.exists(f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"):
         input("WARNING: The folder already exists. Press enter to continue")
@@ -309,7 +318,7 @@ def main():
     collect_data(gcode_device=ender, number_of_samples=3000,
                  eit_data_path="../eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
-    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=4,
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=8,
     #                             eit_data_path="../eit_data",
     #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
