@@ -19,7 +19,8 @@ def wait_for_start_of_measurement(path):
         time.sleep(0.5)
     print("EIT capture started")
     time.sleep(1)
-    for file_or_folder in os.listdir(path):
+    # reverse sort the file list
+    for file_or_folder in os.listdir(path)[::-1]:
         if os.path.isdir(os.path.join(path, file_or_folder)):
             os.chdir(os.path.join(path, file_or_folder))  # Move into folder with the name of the current date
             print(os.getcwd())

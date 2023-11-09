@@ -2,6 +2,7 @@ import copy
 import os.path
 import time
 from datetime import datetime
+from random import random
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +13,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor, GradientBoostingRegressor, AdaBoostRegressor
 from PIL import Image
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, PredefinedSplit
 from sklearn.random_projection import GaussianRandomProjection
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.linear_model import LinearRegression
@@ -26,6 +27,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from Model_Training.EarlyStoppingHandler import EarlyStoppingHandler
 from Model_Training.data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
+from plot_utils import GridSearch_table_plot
 from utils import add_normalizations
 
 import pickle
@@ -40,7 +42,7 @@ OUT_SIZE = 64
 plt.rcParams.update({'font.size': 22})
 
 
-def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
+def prepare_training_data(path, add_augmentation, normalize, pca_components=0, test_size=0.2):
     """
     Loads the training data from the given path and returns it as a tuple of numpy arrays
     :param path: path to the training data
@@ -85,7 +87,8 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
     voltage_data_np = add_normalizations(v1=voltage_data_np, NORMALIZE_MEDIAN=normalize,
                                          NORMALIZE_PER_ELECTRODE=False)
     print("Overall data shape: ", voltage_data_np.shape)
-    trainX, testX, trainY, testY = train_test_split(voltage_data_np, image_data_np, test_size=0.2, random_state=42)
+    trainX, testX, trainY, testY = train_test_split(voltage_data_np, image_data_np, test_size=test_size,
+                                                    random_state=42)
     # Highlight Step 4.1: Augment the training data
     if add_augmentation:
         # augment the training data
@@ -113,7 +116,7 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0):
     print("TrainY shape: ", trainY.shape)
     print("TestX shape: ", testX.shape)
     print("TestY shape: ", testY.shape)
-    return testX, testY, trainX, trainY, pca
+    return testX, testY, trainX, trainY, pca, voltage_data_np
 
 
 testX, testY, trainX, trainY, pca = None, None, None, None, None
@@ -126,8 +129,8 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
 
     if testX is None:
         print("INFO: Preparing training data")
-        testX, testY, trainX, trainY, pca = prepare_training_data(path_to_training_data, add_augmentation, normalize,
-                                                             pca_components=pca_components)
+        testX, testY, trainX, trainY, pca, _ = prepare_training_data(path_to_training_data, add_augmentation, normalize,
+                                                                     pca_components=pca_components)
     else:
         print("INFO: Using cached training data")
     mean = trainY.mean()
@@ -151,7 +154,6 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
             print("INFO: Deleting old pca.pkl file")
             os.remove(f"{results_path}/pca.pkl")
 
-
     new_flat_pictures = regressor.predict(testX) + mean
     # only use the first 10 pictures
     new_flat_pictures = new_flat_pictures[:12]
@@ -171,6 +173,35 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         plt.show()
 
 
+from sklearn.model_selection import GridSearchCV
+
+
+def hyperparameter_tuning():
+    global VOLTAGE_VECTOR_LENGTH, OUT_SIZE, testX, testY, trainX, trainY, pca, add_augmentations
+    print("INFO: Preparing training data")
+    testX, testY, trainX, trainY, pca, voltage_data_np = prepare_training_data(path, add_augmentation=
+    add_augmentations, normalize=True,
+                                                                               pca_components=pca_components,
+                                                                               test_size=0.05)
+    voltage_data_df = pd.DataFrame(voltage_data_np)
+
+    # set random 20% of the data to be test data
+    split_index = [-1 if random() < 0.2 else 0 for x in voltage_data_df.index]
+
+    # Use the list to create PredefinedSplit
+    pds = PredefinedSplit(test_fold=split_index)
+    mean = trainY.mean()
+    print("Mean: ", mean)
+    regressor = KNeighborsRegressor()
+    parameters = {'n_neighbors': [1, 2, 3, 4, 5, 6, 7, 8, 9]}
+    reg = GridSearchCV(regressor, parameters, verbose=10, cv=pds
+                       , scoring='neg_mean_squared_error')
+
+    reg.fit(trainX, trainY - mean)
+    GridSearch_table_plot(reg, "n_neighbors", negative=False, display_all_params=False)
+
+    print(reg.best_params_)
+    print(reg.best_score_)
 
 
 if __name__ == "__main__":
@@ -182,18 +213,19 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    pca_components = 0  # 0 means no pca
+    pca_components = 128  # 0 means no pca
     noise_level = 0.05
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 3
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 0
+    number_of_blur_augmentations = 5
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
+    # hyperparameter_tuning()
     regressors = [
-        LinearRegression(),
+        # LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=10),
+        KNeighborsRegressor(n_neighbors=4),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
