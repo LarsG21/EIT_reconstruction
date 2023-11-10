@@ -373,21 +373,21 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Combined_test_1"
+    model_name = "More_neg_set_less_noise"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    path = "../Training_data_combined_devices/1_Freq"
-    ABSOLUTE_EIT = True
+    path = "../Trainings_Data_EIT32/1_Freq"
+    ABSOLUTE_EIT = False
     num_epochs = 150
     learning_rate = 0.001
-    pca_components = 256
+    pca_components = 128
     add_augmentation = True
-    noise_level = 0.05
-    number_of_noise_augmentations = 2
+    noise_level = 0.01
+    number_of_noise_augmentations = 10
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
@@ -398,5 +398,5 @@ if __name__ == "__main__":
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=True, electrode_level_normalization=False,
+                   weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
                    )
