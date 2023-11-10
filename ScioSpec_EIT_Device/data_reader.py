@@ -186,7 +186,7 @@ def convert_multi_frequency_eit_to_df(path):
     :param path:
     :return:
     """
-    time.sleep(0.001)  # wait for file to be written
+    time.sleep(0.005)  # wait for file to be written
     dictionary = _read_eit_data_multi_frequency(path)
     df = _convert_multi_frequency_voltage_dict_to_dataframe(dictionary)
     df = _convert_cols_to_complex(df)

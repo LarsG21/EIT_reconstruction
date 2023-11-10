@@ -103,7 +103,6 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    ABSOLUTE_EIT = False
     SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
@@ -111,8 +110,6 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     ######################################################################################
     if pca_components > 0:
         VOLTAGE_VECTOR_LENGTH = pca_components
-    # model = LinearModelWithDropoutAndBatchNorm(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
     #################################
     path = path_to_training_data
     #################################
@@ -123,31 +120,6 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     if not ABSOLUTE_EIT and normalize:
         raise Exception("Relative EIT and Normalization didnt work well")
 
-    model_class_name = model.__class__.__name__
-    model_path = os.path.join(path, "Models", model_class_name, model_name)
-    print(f"Model path: {model_path}")
-    if not os.path.exists(model_path):
-        print("Creating model directory")
-        os.makedirs(model_path)
-    else:
-        input("Model directory already exists. Press any key if you want to overwrite...")
-
-    # Save settings in txt file
-    with open(os.path.join(model_path, "settings.txt"), "w") as f:
-        f.write(f"Model: {model_class_name}\n")
-        f.write(f"Absolute EIT: {ABSOLUTE_EIT}\n")
-        f.write(f"NOISE_LEVEL: {noise_level}\n")
-        f.write(f"LEARNING_RATE: {learning_rate}\n")
-        f.write(f"weight_decay: {weight_decay}\n")
-        f.write(f"patience: {early_stopping_handler.patience}\n")
-        f.write(f"num_epochs: {num_epochs}\n")
-        f.write(f"Augmentations: {add_augmentation}\n")
-        f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
-        f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
-        f.write(f"PCA_COMPONENTS: {pca_components}\n")
-        f.write(f"normalize: {normalize}\n")
-        f.write(f"electrode_level_normalization: {electrode_level_normalization}\n")
-        f.write("\n")
     USE_DIFF_DIRECTLY = False
     if os.path.exists(os.path.join(path, "v1_array.npy")):
         voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
@@ -187,6 +159,37 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                          NORMALIZE_PER_ELECTRODE=electrode_level_normalization)
 
     print("Overall data shape: ", voltage_data_np.shape)
+    if VOLTAGE_VECTOR_LENGTH != voltage_data_np.shape[1] and pca_components == 0:
+        print("Using the Voltage vector length from the data: ", voltage_data_np.shape[1])
+        VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
+
+    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+
+    model_class_name = model.__class__.__name__
+    model_path = os.path.join(path, "Models", model_class_name, model_name)
+    print(f"Model path: {model_path}")
+    if not os.path.exists(model_path):
+        print("Creating model directory")
+        os.makedirs(model_path)
+    else:
+        input("Model directory already exists. Press any key if you want to overwrite...")
+
+    # Save settings in txt file
+    with open(os.path.join(model_path, "settings.txt"), "w") as f:
+        f.write(f"Model: {model_class_name}\n")
+        f.write(f"Absolute EIT: {ABSOLUTE_EIT}\n")
+        f.write(f"NOISE_LEVEL: {noise_level}\n")
+        f.write(f"LEARNING_RATE: {learning_rate}\n")
+        f.write(f"weight_decay: {weight_decay}\n")
+        f.write(f"patience: {early_stopping_handler.patience}\n")
+        f.write(f"num_epochs: {num_epochs}\n")
+        f.write(f"Augmentations: {add_augmentation}\n")
+        f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
+        f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
+        f.write(f"PCA_COMPONENTS: {pca_components}\n")
+        f.write(f"normalize: {normalize}\n")
+        f.write(f"electrode_level_normalization: {electrode_level_normalization}\n")
+        f.write("\n")
 
     voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to(device)
     image_data_tensor = torch.tensor(image_data_np, dtype=torch.float32).to(device)
@@ -235,7 +238,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                                                   val_voltage, test_voltage, model_path,
                                                                                   device,
                                                                                   n_components=pca_components,
-                                                                                  debug=False,
+                                                                                  debug=True,
                                                                                   train_images=train_images)
     else:  # if ther still is a pca object from a previous run, delete it
         if os.path.exists(os.path.join(model_path, "pca.pkl")):
@@ -370,17 +373,18 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_with_pca"
+    model_name = "Run_10_11_more_pcs"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
-    # path = "../Trainings_Data_EIT32/3_Freq"
+    path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq"
+    ABSOLUTE_EIT = True
     num_epochs = 150
     learning_rate = 0.001
-    pca_components = 128
+    pca_components = 1024
     add_augmentation = True
     noise_level = 0.05
     number_of_noise_augmentations = 10
@@ -394,5 +398,5 @@ if __name__ == "__main__":
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
+                   weight_decay=weight_decay, normalize=True, electrode_level_normalization=False,
                    )

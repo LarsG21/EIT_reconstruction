@@ -92,10 +92,10 @@ def add_rotation_augmentation(train_voltage: torch.Tensor,
     :param number_of_augmentations:
     :return:
     """
-    print("INFO: Rotating the training data")
     convert_back_to_tensor = False
     if number_of_augmentations == 0:
         return train_voltage, train_images
+    print("INFO: Rotating the training data")
     if type(train_voltage) == torch.Tensor and type(train_images) == torch.Tensor:
         train_voltage_numpy = train_voltage.cpu().numpy()
         train_images_numpy = train_images.cpu().numpy()
