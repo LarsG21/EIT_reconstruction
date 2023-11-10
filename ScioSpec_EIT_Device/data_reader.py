@@ -84,18 +84,24 @@ def _read_eit_data_multi_frequency(path):
     """
     metadata = {}
     with open(path) as f:
-        lines = f.readlines()
-        metadata["Number_of_Metadata_Entries"] = int(lines[0].strip())
-        metadata["Fiel_Version_Number"] = lines[1].strip()
-        metadata["Dataset_Name"] = lines[2].strip()
-        metadata["Timestamp"] = lines[3].strip()
-        metadata["Minimum_frequency"] = float(lines[4].strip())  # Hz
-        metadata["Maximum_frequency"] = float(lines[5].strip())  # Hz
-        metadata["Frequency_scale"] = lines[6].strip()  # 0 = linear, 1 = logarithmic
-        metadata["Number_of_frequencies"] = int(float(lines[7].strip()))
-        metadata["Amplitude"] = float(lines[8].strip())  # A
-        metadata["FPS"] = float(lines[9].strip())  # Frames per second
-        metadata["Phase_correction_parameter"] = float(lines[10].strip())
+        try:
+            lines = f.readlines()
+            metadata["Number_of_Metadata_Entries"] = int(lines[0].strip())
+            metadata["Fiel_Version_Number"] = lines[1].strip()
+            metadata["Dataset_Name"] = lines[2].strip()
+            metadata["Timestamp"] = lines[3].strip()
+            metadata["Minimum_frequency"] = float(lines[4].strip())  # Hz
+            metadata["Maximum_frequency"] = float(lines[5].strip())  # Hz
+            metadata["Frequency_scale"] = lines[6].strip()  # 0 = linear, 1 = logarithmic
+            metadata["Number_of_frequencies"] = int(float(lines[7].strip()))
+            metadata["Amplitude"] = float(lines[8].strip())  # A
+            metadata["FPS"] = float(lines[9].strip())  # Frames per second
+            metadata["Phase_correction_parameter"] = float(lines[10].strip())
+        except IndexError:
+            print("IndexError: ", path)
+            print("Trying to read again...")
+            time.sleep(0.01)
+            read_eit_data_single_frequency(path)
         # find line with "Measurement channels"
         index_start_measurement_channels = 0
         for i, line in enumerate(lines):
@@ -180,7 +186,7 @@ def convert_multi_frequency_eit_to_df(path):
     :param path:
     :return:
     """
-    time.sleep(0.05)  # wait for file to be written
+    time.sleep(0.001)  # wait for file to be written
     dictionary = _read_eit_data_multi_frequency(path)
     df = _convert_multi_frequency_voltage_dict_to_dataframe(dictionary)
     df = _convert_cols_to_complex(df)
@@ -318,6 +324,7 @@ def convert_single_frequency_eit_file_to_df(path):
     """
     Converts a single frequency EIT file to a dataframe
     """
+    time.sleep(0.001)  # wait a bit to avoid file access errors
     voltage_dict = read_eit_data_single_frequency(path)
     complex_dict = convert_voltage_dict_to_complex(voltage_dict)
     amplitude_phase, all_amplitudes, all_phases = convert_complex_dict_to_amplitude_phase(complex_dict)

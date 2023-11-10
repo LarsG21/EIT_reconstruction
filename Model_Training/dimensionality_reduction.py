@@ -76,11 +76,12 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         plt.ylabel("Cumulative explained variance")
         tikzplotlib.save("cumulative_variance_explained_by_first_n_components.tikz")
         plt.show()
+        # More detailed analysis of the first n components
         # for i in range(0, 127):
         #     analyze_principal_component(train_images, train_voltage, component_index=i)
-    # reconstruct_images_from_pca(pca, train_images, train_voltage, voltage_data_tensor,
-    #                             image_data_tensor, n_components=80)
-    reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=20)
+        # reconstruct_images_from_pca(pca, train_images, train_voltage, voltage_data_tensor,
+        #                             image_data_tensor, n_components=80)
+        # reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=20)
     # transform back to tensor
     if transform_back_to_tensor:
         train_voltage = torch.tensor(train_voltage, dtype=torch.float32).to(device)

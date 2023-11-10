@@ -15,7 +15,7 @@ from pyeit.mesh.shape import thorax
 import os
 
 from reconstruction_algorithims import solve_and_plot_jack, solve_and_plot_greit, solve_and_plot_bp
-from utils import wait_for_start_of_measurement
+from utils import wait_for_start_of_measurement, add_normalizations
 
 """ 0. build mesh """
 n_el = 32  # nb of electrodes
@@ -33,7 +33,7 @@ delta_perm = np.real(mesh_new.perm - mesh_obj.perm)
 default_frame = None
 
 
-def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=True):
+def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     global default_frame
     df_v1 = convert_multi_frequency_eit_to_df(v1_path)
     if default_frame is None:
@@ -44,24 +44,23 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=True):
     df_v0 = df_v0[df_v0["frequency"] == 1000]
     v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
     v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
-    # v0 = np.load("v0.npy")
+    v0 = np.load(os.path.join(path, "v0.npy"))
     # save v0 as npy
-    np.save("v0.npy", v0)
+    # np.save("v0.npy", v0)
     # calculate the voltage difference
-    difference = (v1 - v0)
+    difference = (v1 - v0) / v0
     # normalize the voltage difference
-    difference = difference / v0
-    # normalized_difference = difference - np.mean(difference)
     normalized_difference = difference
     if debug_plots:
-        plt.plot(v0)
-        plt.plot(v1)
+        plt.plot(v0, label="v0")
+        plt.plot(v1, label="v1")
+        plt.legend()
         plt.title("Voltage")
         plt.show()
         plt.plot(normalized_difference)
         plt.title("Normalized Voltage difference")
         plt.show()
-    if PCA:
+    if pca is not None:
         normalized_difference = pca.transform(normalized_difference.reshape(1, -1))
     # v0_traditional_algorithims = v0[protocol_obj.keep_ba]
     # v1_traditional_algorithims = v1[protocol_obj.keep_ba]
@@ -119,21 +118,27 @@ def plot_eit_video(path):
     seen_files = []
     eit_path = wait_for_start_of_measurement(path)
     default_frame = None
+    start_time = time.time()
     while True:
         for current_frame in os.listdir(os.getcwd()):
+            # calculate the frame rate
+            if time.time() - start_time > 1:
+                print("FPS: ", len(seen_files) / (time.time() - start_time))
             if current_frame.endswith(".eit") and current_frame not in seen_files:
                 print(current_frame)
                 if default_frame is None:
                     default_frame = current_frame
                 else:
-                    time.sleep(0.001)  # wait for file to be written
                     plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
                                              v0_path=os.path.join(eit_path, default_frame))
                     seen_files.append(current_frame)
+                    # for file in seen_files:
+                    #     os.remove(file)
+                    # seen_files = []
+
 
 
 path = "C:\\Users\\lgudjons\\Desktop\\eit_data"
-PCA = False
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 print("Loading the model")
@@ -143,14 +148,17 @@ model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OU
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
 #
-model_path = "Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
+model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/TESTING2/model_2023-11-10_13-19-10_93_150.pth"
 model.load_state_dict(torch.load(model_path))
 model.eval()
 
+pca = None
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-if PCA:
+if os.path.exists(pca_path):
     print("Loading the PCA")
     pca = pickle.load(open(pca_path, "rb"))
+    print("PCA loaded")
+    VOLTAGE_VECTOR_LENGTH = pca.n_components_
 # get the pca.pkl in the same folder as the model
 
 model.eval()

@@ -206,7 +206,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
 
 
 def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, eit_data_path: str, save_path: str,
-                                debug_plots: bool = True):
+                                debug_plots: bool = False):
     """
     Moves the target in circular pattern at multiple radii and collects the data.
     :param number_of_runs:
@@ -400,7 +400,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_09_11_40mm_eit32_2"
+    TEST_NAME = "Data_09_11_40mm_eit32_over_night"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")

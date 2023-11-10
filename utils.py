@@ -14,7 +14,7 @@ def wait_for_start_of_measurement(path):
     :return:
     """
     eit_path = ""
-    while len(os.listdir(path)) == 0:
+    while len(os.listdir(path)) == 0 or not os.path.isdir(os.path.join(path, os.listdir(path)[0])):
         print("Waiting for files to be written")
         time.sleep(0.5)
     print("EIT capture started")
