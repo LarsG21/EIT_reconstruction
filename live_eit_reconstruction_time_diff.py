@@ -141,16 +141,12 @@ def plot_eit_video(path):
 path = "C:\\Users\\lgudjons\\Desktop\\eit_data"
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-print("Loading the model")
 
-model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
 #
-model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/TESTING2/model_2023-11-10_13-19-10_93_150.pth"
-model.load_state_dict(torch.load(model_path))
-model.eval()
+model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Run_with_pca/model_2023-11-10_14-03-18_98_150.pth"
 
 pca = None
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
@@ -159,7 +155,12 @@ if os.path.exists(pca_path):
     pca = pickle.load(open(pca_path, "rb"))
     print("PCA loaded")
     VOLTAGE_VECTOR_LENGTH = pca.n_components_
-# get the pca.pkl in the same folder as the model
+
+print("Loading the model")
+model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+model.load_state_dict(torch.load(model_path))
+model.eval()
+
 
 model.eval()
 plot_eit_video(path)

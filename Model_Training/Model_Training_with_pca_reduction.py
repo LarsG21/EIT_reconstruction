@@ -237,6 +237,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                                                   n_components=pca_components,
                                                                                   debug=False,
                                                                                   train_images=train_images)
+    else:  # if ther still is a pca object from a previous run, delete it
+        if os.path.exists(os.path.join(model_path, "pca.pkl")):
+            os.remove(os.path.join(model_path, "pca.pkl"))
+            print("INFO: Deleted pca.pkl file from previous run")
 
     # Highlight Step 5: Create the DataLoader for train, test, and validation sets
     train_dataset = CustomDataset(train_voltage, train_images)
@@ -366,7 +370,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "TESTING2"
+    model_name = "Run_with_pca"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
@@ -376,7 +380,7 @@ if __name__ == "__main__":
     path = "../Trainings_Data_EIT32/1_Freq"
     num_epochs = 150
     learning_rate = 0.001
-    pca_components = 0
+    pca_components = 128
     add_augmentation = True
     noise_level = 0.05
     number_of_noise_augmentations = 10
