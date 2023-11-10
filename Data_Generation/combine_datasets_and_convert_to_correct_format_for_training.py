@@ -183,11 +183,11 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
 
 if __name__ == '__main__':
     # path = "../Collected_Data/Data_30_10_40mm"
-    # path = "../Collected_Data/Data_09_11_40mm_eit32"
-    path = "../Trainings_Data_EIT32/1_Freq"
+    path = "../Training_data_combined_devices/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq"
 
-    # combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
-    combined = combine_multiple_pickles(path=path)
+    combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+    # combined = combine_multiple_pickles(path=path)
 
     # df = combine_multiple_pickles(path=path)
     img_array = combined["images"].to_list()

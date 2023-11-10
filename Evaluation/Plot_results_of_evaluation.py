@@ -8,10 +8,10 @@ from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, p
 import tikzplotlib
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
-# df = pd.read_pickle(
-#     "Results/evaluation_model_model_2023-11-06_16-45-47_85_200.pkl")
 df = pd.read_pickle(
-    "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    "Results/evaluation_model_model_2023-11-10_13-19-10_93_150.pkl")
+# df = pd.read_pickle(
+#     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
 remove_outliers = False
 

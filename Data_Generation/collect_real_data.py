@@ -400,19 +400,19 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Data_09_11_40mm_eit32_over_night"
+    TEST_NAME = "Test_set_circular_10_11_1_freq_40mm"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
         input("Are you really sure? Press enter to continue...")
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    collect_data(gcode_device=ender, number_of_samples=4000,
-                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                 save_path=save_path)
-    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
-    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    # collect_data(gcode_device=ender, number_of_samples=4000,
+    #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #              save_path=save_path)
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
+                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':
     cwd = os.getcwd()

@@ -124,7 +124,8 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 ### Setings ###
 ABSOLUTE_EIT = False
 OUT_SIZE = 64
-NORMALIZE = True
+VOLTAGE_VECTOR_LENGTH = 1024
+NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 
 
@@ -133,39 +134,50 @@ USE_OPENCV_FOR_PLOTTING = True
 def main():
     global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
-    model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
+    # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
-
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Good_results/model_2023-11-10_13-19-10_93_150.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
     regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
-    # regressor = None
-    regressor = pickle.load(open(regressor_path, 'rb'))
+    regressor = None
+    # regressor = pickle.load(open(regressor_path, 'rb'))
 
     #### END Settings #######
+
+    if regressor is None:
+        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+    else:
+        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+
+    # load pca if it exists
+    if os.path.exists(pca_path):
+        print("Loading PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+        VOLTAGE_VECTOR_LENGTH = pca.n_components_
+        input("Press Enter to continue...")
 
     # Choose the correct test set and set the voltage vector length
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
-        VOLTAGE_VECTOR_LENGTH = 128
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
         # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
-        test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
         # test_set_path = "../Training_Data/1_Freq/combined.pkl"
-        VOLTAGE_VECTOR_LENGTH = 1024
+        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
     if regressor is None:  # Use the nn model
@@ -180,18 +192,10 @@ def main():
         model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
         model.load_state_dict(torch.load(model_path))
         model.eval()
-        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
     else:
         input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
               "Press Enter to continue...")
-        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
         model = None
-
-    # load pca if it exists
-    if os.path.exists(pca_path):
-        print("Loading PCA")
-        pca = pickle.load(open(pca_path, "rb"))
-        input("Press Enter to continue...")
 
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set

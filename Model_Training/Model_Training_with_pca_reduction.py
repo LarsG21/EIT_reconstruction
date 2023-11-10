@@ -373,21 +373,21 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "Run_10_11_more_pcs"
+    model_name = "Combined_test_1"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
-    path = "../Trainings_Data_EIT32/3_Freq"
+    # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    # path = "../Trainings_Data_EIT32/1_Freq"
+    path = "../Training_data_combined_devices/1_Freq"
     ABSOLUTE_EIT = True
     num_epochs = 150
     learning_rate = 0.001
-    pca_components = 1024
+    pca_components = 256
     add_augmentation = True
     noise_level = 0.05
-    number_of_noise_augmentations = 10
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
