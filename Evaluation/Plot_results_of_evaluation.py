@@ -9,14 +9,14 @@ import tikzplotlib
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-11-10_13-19-10_93_150.pkl")
+    "Results/evaluation_model_model_2023-11-11_13-37-03_143_150.pkl")
 # df = pd.read_pickle(
 #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
 remove_outliers = False
 
 # remove outliers from df in amplitude_response and position_error > or < N std
-N = 4
+N = 3
 border_amplitude_response = N * df["amplitude_response"].std()
 border_position_error = N * df["position_error"].std()
 border_shape_deformation = N * df["shape_deformation"].std()
@@ -105,17 +105,15 @@ plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], 
                                                                                         "ringing"])
 plt.title("Evaluation metrics")
 plt.ylabel("Relative Metric")
-tikzplotlib.save("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_all.tikz")
-plt.savefig(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_all.png")
+tikzplotlib.save("Results/boxplot_all.tikz")
+plt.savefig("Results/boxplot_all.png")
 plt.show()
 
 plt.boxplot([df["position_error"]], labels=["position_error"])
 plt.title("Boxplot of position_error")
 plt.ylabel("Error [px]")
-tikzplotlib.save(
-    "C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_position_error.tikz")
-plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\boxplot_position_error.png")
+tikzplotlib.save("Results/boxplot_position_error.tikz")
+plt.savefig("Results/boxplot_position_error.png")
 plt.show()
 
 # save results dict in json file
