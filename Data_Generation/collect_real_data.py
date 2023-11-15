@@ -236,7 +236,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     timestamps = []
     """ Crate Circle Pattern """
     degree_resolution = 15
-    radii = np.linspace(0.25, 1 - RELATIVE_RADIUS_TARGET - 0.05, 5)
+    radii = np.linspace(0.1, 1 - RELATIVE_RADIUS_TARGET - 0.05, 5)
     # radii = np.array([0.1, 0.3, 0.5, 0.6, 1 - RELATIVE_RADIUS_TARGET - 0.05])
     # reverse the order of the radii
     radii = radii[::-1]
