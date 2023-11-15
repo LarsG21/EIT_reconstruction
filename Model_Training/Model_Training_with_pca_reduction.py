@@ -373,7 +373,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "More_neg_set_less_noise"
+    model_name = "Run_15_11"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"

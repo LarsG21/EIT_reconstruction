@@ -47,6 +47,7 @@ img_size = 64
 RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
 v0 = None
+SAVE_V0 = True
 
 # METADATA
 TARGET = "CYLINDER"
@@ -171,14 +172,18 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     os.chdir(cwd)
     time.sleep(1)
     # collect v0:
-    input("Remove the target and press enter to start the measurement...")
-    file_path = wait_1_file_and_get_next(eit_path)
-    print(file_path)
-    df_0 = convert_single_frequency_eit_file_to_df(file_path)
-    v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
-    # save v0
-    np.save(os.path.join(save_path, "v0.npy"), v0)
-    input("Place the target and press enter to start the measurement...")
+    if SAVE_V0:
+        input("Remove the target and press enter to start the measurement...")
+        file_path = wait_1_file_and_get_next(eit_path)
+        print(file_path)
+        df_0 = convert_single_frequency_eit_file_to_df(file_path)
+        v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
+        # save v0
+        np.save(os.path.join(save_path, "v0.npy"), v0)
+        input("Place the target and press enter to start the measurement...")
+    else:
+        print("Skipping v0 measurement because it is already measured")
+        v0 = np.load(os.path.join(save_path, "v0.npy"))
 
     for i in range(number_of_samples):
         img, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
@@ -373,6 +378,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
 
 
 def main():
+    global SAVE_V0
     print("MAKE SURE THAT YOU DELETE OLD DATA FROM THE EIT_DATA FOLDER !")
     devices = list_serial_devices()
     ender = None
@@ -400,19 +406,26 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_set_circular_10_11_1_freq_40mm"
+    TEST_NAME = "Training_set_15_11_40mm_eit32"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
         input("Are you really sure? Press enter to continue...")
+        SAVE_V0 = False
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    # collect_data(gcode_device=ender, number_of_samples=4000,
-    #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #              save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
-                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    try:
+        collect_data(gcode_device=ender, number_of_samples=8000,
+                     eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                     save_path=save_path)
+    except FileNotFoundError as e:  # Deleted the folder because eit32 crashed
+        # Just restart the collection
+        collect_data(gcode_device=ender, number_of_samples=8000,
+                     eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                     save_path=save_path)
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':
     cwd = os.getcwd()
