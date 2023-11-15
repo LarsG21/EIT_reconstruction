@@ -182,7 +182,7 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
     print(f"Number of electrodes: {number_electrodes}")
 
 if __name__ == '__main__':
-    # path = "../Collected_Data/Data_30_10_40mm"
+    # path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm"
     path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Trainings_Data_EIT32/1_Freq"
 

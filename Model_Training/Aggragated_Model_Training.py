@@ -3,27 +3,31 @@ import pandas as pd
 from EarlyStoppingHandler import EarlyStoppingHandler
 from Model_Training_with_pca_reduction import trainings_loop
 import matplotlib.pyplot as plt
+import tikzplotlib
 
-path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies"
-num_epochs = 80
+path = "../Training_Data/1_Freq_with_individual_v0s"
+num_epochs = 400
 learning_rate = 0.001
-pca_components = 128
-add_augmentation = False
-noise_level = 0.05
-number_of_noise_augmentations = 2
-number_of_rotation_augmentations = 2
+pca_components = 0
+add_augmentation = True
+noise_level = 0.02
+number_of_noise_augmentations = 10
+number_of_rotation_augmentations = 0
+number_of_blur_augmentations = 0
 weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
 df_complete = pd.DataFrame()
-for i in range(1, 3):
+for i in range(1, 10):
     print(f"Run {i}")
     early_stopping_handler = EarlyStoppingHandler(patience=20)
     df_losses, model = trainings_loop(model_name=f"TESTING_{i}", path_to_training_data=path,
                                       num_epochs=num_epochs, learning_rate=learning_rate,
                                       early_stopping_handler=early_stopping_handler,
-                                      pca_components=128, add_augmentation=add_augmentation, noise_level=noise_level,
+                                      pca_components=pca_components, add_augmentation=add_augmentation,
+                                      noise_level=noise_level,
                                       number_of_noise_augmentations=number_of_noise_augmentations,
                                       number_of_rotation_augmentations=number_of_rotation_augmentations,
-                                      weight_decay=weight_decay, normalize=True,
+                                      number_of_blur_augmentations=number_of_blur_augmentations,
+                                      weight_decay=weight_decay, normalize=False,
                                       )
     print(df_losses)
     # rename the columns
@@ -34,6 +38,9 @@ for i in range(1, 3):
 
 # save the complete dataframe
 df_complete.to_pickle("df_complete_no_normalization.pkl")
+# df_complete = pd.read_pickle("df_complete_no_normalization.pkl")
+average_length_col_without_nan = int(df_complete.count(axis=0).median())
+df_complete = df_complete.iloc[:300, :]
 # get the mean of the complete dataframe
 # select the columns with the loss values
 df_complete_train_loss = df_complete.filter(regex="loss")
@@ -55,5 +62,9 @@ plt.plot(df_complete_val_loss["mean"])
 plt.fill_between(df_complete_val_loss.index, df_complete_val_loss["mean"] - df_complete_val_loss["std"],
                  df_complete_val_loss["mean"] + df_complete_val_loss["std"], alpha=0.2)
 plt.legend(["train_loss", "std_train_loss", "val_loss", "std_val_loss"])
+# save as tikz
+# tikzplotlib.save("losses.tex")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
 
 plt.show()

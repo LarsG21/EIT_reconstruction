@@ -15,8 +15,8 @@ from tqdm import tqdm
 from CustomDataset import CustomDataset
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
-from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, LinearModel2, \
-    LinearModelWithDropoutAndBatchNorm
+from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, \
+    LinearModelWithDropoutAndBatchNorm, ConvolutionalModelWithDropout, ConvolutionalModelWithDecoder
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, \
     plot_loss_and_sample_reconstruction, plot_difference_for_some_sample_reconstruction_images
 from utils import add_normalizations
@@ -27,6 +27,7 @@ LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 6144
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
+ABSOLUTE_EIT = False
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
 
@@ -100,12 +101,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    early_stopping_handler: EarlyStoppingHandler, loading_path: str = "",
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
-                   weight_decay: float = 1e-3, normalize=True, electrode_level_normalization=False,
+                   number_of_blur_augmentations: int = 0, weight_decay: float = 1e-3, normalize=True,
+                   electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
     SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
-    LOSS_PLOT_INTERVAL = 10
+    LOSS_PLOT_INTERVAL = 1000
 
     ######################################################################################
     if pca_components > 0:
@@ -139,8 +141,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         image_data_np = np.repeat(image_data_np, 2, axis=2)
 
     # reduce the number of images
-    # image_data_np = image_data_np[:800]
-    # voltage_data_np = voltage_data_np[:800]
+    USE = 100
+    indices = np.random.choice(image_data_np.shape[0], USE, replace=False)
+    image_data_np = image_data_np[indices]
+    voltage_data_np = voltage_data_np[indices]
 
     # Highlight Step 1: In case of time difference EIT, we need to normalize the data with v0
     if not ABSOLUTE_EIT:
@@ -163,7 +167,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("Using the Voltage vector length from the data: ", voltage_data_np.shape[1])
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+
+    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+
+    # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+
+    # model = ConvolutionalModelWithDecoder(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     model_class_name = model.__class__.__name__
     model_path = os.path.join(path, "Models", model_class_name, model_name)
@@ -368,31 +378,31 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     single_datapoint = voltage_data_np[0]
     voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
-    infer_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
+    # infer_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
     return df, model
 
 
 if __name__ == "__main__":
-    model_name = "Run_15_11"
-    # path = "../Training_Data/1_Freq_with_individual_v0s"
+    model_name = "DEBUG"
+    path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq"
     ABSOLUTE_EIT = False
-    num_epochs = 150
+    num_epochs = 200
     learning_rate = 0.001
-    pca_components = 128
+    pca_components = 0
     add_augmentation = True
-    noise_level = 0.01
-    number_of_noise_augmentations = 10
-    number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
+    noise_level = 0.02
+    number_of_noise_augmentations = 5
+    number_of_rotation_augmentations = 5
+    number_of_blur_augmentations = 0
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
 
-    early_stopping_handler = EarlyStoppingHandler(patience=20)
+    early_stopping_handler = EarlyStoppingHandler(patience=30)
     trainings_loop(model_name=model_name, path_to_training_data=path,
                    num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,

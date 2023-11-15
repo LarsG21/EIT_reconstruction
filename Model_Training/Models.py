@@ -8,32 +8,6 @@ class LinearModel(nn.Module):
         self.encoder = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.ReLU(True),
-            nn.Linear(128, 256),
-            nn.ReLU(True),
-            nn.Linear(256, 512),
-            nn.ReLU(True),
-        )
-        self.decoder = nn.Sequential(
-            nn.Linear(512, 256),
-            nn.ReLU(True),
-            nn.Linear(256, 128),
-            nn.ReLU(True),
-            nn.Linear(128, output_size),
-            # nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
-        )
-
-    def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
-        return x
-
-
-class LinearModel2(nn.Module):
-    def __init__(self, input_size, output_size):
-        super(LinearModel2, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Linear(input_size, 128),
-            nn.ReLU(True),
             nn.Linear(128, 64),
             nn.ReLU(True),
             nn.Linear(64, 32),
@@ -185,6 +159,40 @@ class ConvolutionalModelWithDropout(nn.Module):
         x = self.decoder(x)
         return x
 
+
+class ConvolutionalModelWithDecoder(nn.Module):
+    def __init__(self, input_size, output_size, dropout_prob=0.1):
+        super(ConvolutionalModelWithDecoder, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
+            nn.ReLU(True),
+        )
+
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(in_channels=16, out_channels=1, kernel_size=3, padding=1),
+            nn.Sigmoid()  # Using Sigmoid activation to ensure output values are between 0 and 1
+        )
+
+        # Additional layers for reshaping the input into a 2D shape
+        # self.reshape_layer = nn.Linear(input_size, 64 * initial_length)  # Adjust initial_length according to your data
+
+    def forward(self, x):
+        # Reshape input to 2D
+        # x = self.reshape_layer(x)
+        # x = x.view(x.size(0), 64, -1)  # Assuming 64 channels, adjust if needed
+
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
 
 
 class UNetModel(nn.Module):

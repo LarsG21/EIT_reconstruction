@@ -12,7 +12,7 @@ from pyeit.eit import protocol
 from reconstruction_algorithims import solve_and_plot_greit
 from utils import find_center_of_mass, add_normalizations, check_settings_of_model
 
-from Model_Training.Models import LinearModelWithDropout2
+from Model_Training.Models import LinearModelWithDropout2, LinearModel
 from plot_utils import solve_and_get_center_with_nural_network, preprocess_greit_img
 import matplotlib.pyplot as plt
 
@@ -134,7 +134,7 @@ USE_OPENCV_FOR_PLOTTING = True
 def main():
     global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
@@ -145,7 +145,7 @@ def main():
     # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
-    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/TESTING_CUDA/model_2023-11-11_13-37-03_143_150.pth"
+    model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
@@ -174,10 +174,9 @@ def main():
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
-        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
-        # test_set_path = "../Training_Data/1_Freq/combined.pkl"
-        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        # test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
     if regressor is None:  # Use the nn model
@@ -189,7 +188,8 @@ def main():
         if absolute is not None and absolute != ABSOLUTE_EIT:
             print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
             ABSOLUTE_EIT = absolute
-        model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
         model.load_state_dict(torch.load(model_path))
         model.eval()
     else:

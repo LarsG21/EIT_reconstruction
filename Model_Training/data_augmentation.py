@@ -132,8 +132,8 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     DEGREES_PER_ELECTRODE = 11.25
     for img, voltage in zip(train_images_numpy, train_voltage_numpy):
         # use 11.25° steps for the rotation
-        # angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
-        angle = np.random.randint(1, 4) * 90
+        angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
+        # angle = np.random.randint(1, 4) * 90
         # print(f"Rotating image by {angle}°")
         img_rotated = rotate(img, angle, reshape=False)
         # smaller than 0.001 set to 0
@@ -271,7 +271,7 @@ if __name__ == '__main__':
     # train_voltage = train_voltage.cpu().numpy().tolist()
     # train_images = train_images.cpu().numpy().tolist()
     # # save in one df
-    # df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined.pkl")
+    # df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined")
     # df = pd.DataFrame(data={"images": train_images, "voltages": train_voltage},
     #                   index=[0] * len(train_voltage)
     #                   )

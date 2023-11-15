@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
+from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout, LinearModel
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
 from plot_utils import solve_and_plot_with_nural_network, preprocess_greit_img
 from pyeit import mesh
@@ -146,7 +146,7 @@ OUT_SIZE = 64
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
 #
-model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/More_neg_set_less_noise/model_2023-11-10_16-45-50_102_150.pth"
+model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Debug3_rot_augment/model_2023-11-15_15-05-53_59_60.pth"
 
 pca = None
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")

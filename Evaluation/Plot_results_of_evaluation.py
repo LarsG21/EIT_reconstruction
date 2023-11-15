@@ -9,11 +9,11 @@ import tikzplotlib
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-11-11_13-37-03_143_150.pkl")
+    "Results/evaluation_model_model_2023-11-15_16-36-57_152_200.pkl")
 # df = pd.read_pickle(
 #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
-remove_outliers = False
+remove_outliers = True
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3
