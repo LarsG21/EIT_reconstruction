@@ -44,7 +44,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     df_v0 = df_v0[df_v0["frequency"] == 1000]
     v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
     v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
-    v0 = np.load(os.path.join(path, "v0.npy"))
+    # v0 = np.load(os.path.join(path, "v0.npy"))
     # save v0 as npy
     # np.save("v0.npy", v0)
     # calculate the voltage difference
@@ -145,9 +145,8 @@ OUT_SIZE = 64
 
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
-#
-model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Debug3_rot_augment/model_2023-11-15_15-05-53_59_60.pth"
-
+model_path = "Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Test_16_11/model_2023-11-16_14-41-24_145_200.pth"
+# model_path = "Collected_Data/Even_Orientation_Dataset/Models/LinearModelWithDropout2/DEBUG/model_2023-11-16_13-44-26_112_200.pth"
 pca = None
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
 if os.path.exists(pca_path):

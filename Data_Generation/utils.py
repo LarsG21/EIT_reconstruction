@@ -26,6 +26,8 @@ def generate_random_anomaly_list(max_number_of_anomalies, min_radius, max_radius
     :return: list of anomalies
     """
     anomaly_list = []
+    if max_number_of_anomalies == 0:
+        return anomaly_list
     if max_number_of_anomalies != 1:
         number_of_anomalies = np.random.randint(1, max_number_of_anomalies)
     else:

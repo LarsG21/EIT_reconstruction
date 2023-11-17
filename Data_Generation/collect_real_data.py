@@ -52,7 +52,7 @@ SAVE_V0 = True
 # METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
-TANK_ORIENTATION = "Klebeband auf Elektrode 13"
+TANK_ORIENTATION = "Klebeband auf Elektrode 20"
 VOLTAGE_FREQUENCY = 1000
 CURRENT = 0.1
 CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
@@ -409,8 +409,8 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_set_15_11_40mm_eit32_Orientation6"
-    save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/Even_Orientation_Dataset/{TEST_NAME}"
+    TEST_NAME = "Train_set_15_11_40mm_eit32_Kartoffel"
+    save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
         input("Are you really sure? Press enter to continue...")
@@ -418,7 +418,7 @@ def main():
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
     try:
-        collect_data(gcode_device=ender, number_of_samples=80,
+        collect_data(gcode_device=ender, number_of_samples=4000,
                      eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                      save_path=save_path)
     except FileNotFoundError as e:  # Deleted the folder because eit32 crashed

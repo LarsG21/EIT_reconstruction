@@ -9,11 +9,19 @@ import tikzplotlib
 
 # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
 df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-11-15_16-36-57_152_200.pkl")
+    "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
 # df = pd.read_pickle(
 #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
 remove_outliers = True
+
+
+def pretty(d, indent=0):
+    print("{")
+    for key, value in d.items():
+        print(str(key) + "=" + str(value) + ",")
+    print("}")
+
 
 # remove outliers from df in amplitude_response and position_error > or < N std
 N = 3
@@ -103,9 +111,54 @@ print(f"Results: \n {results_dict}")
 plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], labels=["amplitude_response",
                                                                                         "shape_deformation",
                                                                                         "ringing"])
+# get median of all metrics
+median_ar = df["amplitude_response"].median()
+median_sd = df["shape_deformation"].median()
+median_ringing = df["ringing"].median()
+# get upper and lower quartile
+q1_ar = df["amplitude_response"].quantile(0.25)
+q3_ar = df["amplitude_response"].quantile(0.75)
+q1_sd = df["shape_deformation"].quantile(0.25)
+q3_sd = df["shape_deformation"].quantile(0.75)
+q1_ringing = df["ringing"].quantile(0.25)
+q3_ringing = df["ringing"].quantile(0.75)
+# get whiskers
+whis_ar = [q1_ar - 1.5 * (q3_ar - q1_ar), q3_ar + 1.5 * (q3_ar - q1_ar)]
+whis_sd = [q1_sd - 1.5 * (q3_sd - q1_sd), q3_sd + 1.5 * (q3_sd - q1_sd)]
+whis_ringing = [q1_ringing - 1.5 * (q3_ringing - q1_ringing), q3_ringing + 1.5 * (q3_ringing - q1_ringing)]
+
+# combine all in dict
+boxplot_dict_ar = {
+    "lower whisker": whis_ar[0],
+    "lower quartile": q1_ar,
+    "median": median_ar,
+    "upper quartile": q3_ar,
+    "upper whisker": whis_ar[1]
+}
+boxplot_dict_sd = {
+    "lower whisker": whis_sd[0],
+    "lower quartile": q1_sd,
+    "median": median_sd,
+    "upper quartile": q3_sd,
+    "upper whisker": whis_sd[1]
+}
+boxplot_dict_ringing = {
+    "lower whisker": whis_ringing[0],
+    "lower quartile": q1_ringing,
+    "median": median_ringing,
+    "upper quartile": q3_ringing,
+    "upper whisker": whis_ringing[1]
+}
+
+# print them all out
+
+print(f"Boxplot dict amplitude response: \n {pretty(boxplot_dict_ar)}")
+print(f"Boxplot dict shape deformation: \n {pretty(boxplot_dict_sd)}")
+print(f"Boxplot dict ringing: \n {pretty(boxplot_dict_ringing)}")
+
 plt.title("Evaluation metrics")
 plt.ylabel("Relative Metric")
-tikzplotlib.save("Results/boxplot_all.tikz")
+
 plt.savefig("Results/boxplot_all.png")
 plt.show()
 
@@ -113,7 +166,6 @@ plt.boxplot([df["position_error"]], labels=["position_error"])
 plt.title("Boxplot of position_error")
 plt.ylabel("Error [px]")
 tikzplotlib.save("Results/boxplot_position_error.tikz")
-plt.savefig("Results/boxplot_position_error.png")
 plt.show()
 
 # save results dict in json file

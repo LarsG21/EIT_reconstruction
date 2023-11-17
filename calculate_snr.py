@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
+import tikzplotlib
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
 import seaborn as sns
 
 from utils import find_center_of_mass
 
+RADIUS_TANK = 200  # mm
 
 def calculate_voltage_differences(positive_samples, negative_samples):
     """
@@ -16,8 +18,8 @@ def calculate_voltage_differences(positive_samples, negative_samples):
     :param negative_samples: NumPy array of negative samples
     :return:
     """
-    v_diff_pos = positive_samples - negative_samples.mean(axis=0)
-    v_diff_neg = negative_samples - negative_samples.mean(axis=0)
+    v_diff_pos = (positive_samples - negative_samples.mean(axis=0)) / negative_samples.mean(axis=0).mean()
+    v_diff_neg = (negative_samples - negative_samples.mean(axis=0)) / negative_samples.mean(axis=0).mean()
     return v_diff_pos, v_diff_neg
 
 
@@ -41,12 +43,16 @@ def get_snr_of_sample(index, voltages_pos_np, voltages_neg_np):
     :param voltages_neg_np:
     :return:
     """
-    v_diff_pos = voltages_pos_np[index] - voltages_neg_np.mean(axis=0)
+    # v_diff_pos = voltages_pos_np[index] - voltages_neg_np.mean(axis=0)
+    # v_diff_neg = voltages_neg_np - voltages_neg_np.mean(axis=0)
+
+    v_diff_pos, v_diff_neg = calculate_voltage_differences(voltages_pos_np[index], voltages_neg_np)
+
     amplitude_signal = np.mean(np.abs(v_diff_pos), axis=0)
-    v_diff_neg = voltages_neg_np - voltages_neg_np.mean(axis=0)
     amplitude_noise = np.mean(np.abs(v_diff_neg), axis=0)
-    snr = amplitude_signal.mean() / amplitude_noise.mean()
-    return round(snr, 2)
+    snr = amplitude_signal / amplitude_noise.mean()
+    snr_db = 20 * np.log10(snr)
+    return round(snr_db, 2)
 
 
 def calculate_snr_in_dataset(path_to_positives, path_to_negatives):
@@ -56,6 +62,9 @@ def calculate_snr_in_dataset(path_to_positives, path_to_negatives):
     """
     df_negatives = pd.read_pickle(path_to_negatives)
     df_positives = pd.read_pickle(path_to_positives)
+    # remove offset in both datasets
+    df_negatives["voltages"] = df_negatives["voltages"].apply(lambda x: x - x.mean(axis=0))
+    df_positives["voltages"] = df_positives["voltages"].apply(lambda x: x - x.mean(axis=0))
     print(f"Samples positive: {len(df_positives)}")
     print(f"Samples negative: {len(df_negatives)}")
 
@@ -67,12 +76,12 @@ def calculate_snr_in_dataset(path_to_positives, path_to_negatives):
     # Calculate voltage differences
     v_diff_pos, v_diff_neg = calculate_voltage_differences(voltages_pos_np, voltages_neg_np)
 
-    # Calculate average amplitude
-    amplitude_signal = np.mean(np.abs(v_diff_pos), axis=0)
-    amplitude_noise = np.mean(np.abs(v_diff_neg), axis=0)
+    # calculate rms of voltage differences
+    rms_signal = np.sqrt(np.mean(v_diff_pos ** 2, axis=0))
+    rms_noise = np.sqrt(np.mean(v_diff_neg ** 2, axis=0))
 
     # Calculate SNR
-    snr, snr_db = calculate_snr(amplitude_signal, amplitude_noise)
+    snr, snr_db = calculate_snr(rms_signal, rms_noise)
 
     # Print results
     print(f"SNR: {snr}")
@@ -129,10 +138,12 @@ def evaluate_snr_over_radius(path_to_positives, path_to_negatives):
         snr = get_snr_of_sample(i, voltages_pos_np, voltages_neg_np)
         df = pd.concat([df, pd.DataFrame({"radius": radius, "snr": snr, "index": i}, index=[i])])
 
+    # Convert Pixels to mm
+    df["radius"] = df["radius"].apply(lambda x: x / (img.shape[0]) * RADIUS_TANK)
     # plot snr over radius
     plt.scatter(df["radius"], df["snr"])
     plt.title("SNR over Radius")
-    plt.xlabel("Radius")
+    plt.xlabel("Radius (mm)")
     plt.ylabel("SNR")
     plt.show()
 
@@ -141,19 +152,20 @@ def evaluate_snr_over_radius(path_to_positives, path_to_negatives):
     # plot snr in db over radius
     plt.scatter(df["radius"], df["snr_db"])
     plt.title("SNR (dB) over Radius")
-    plt.xlabel("Radius")
+    plt.xlabel("Radius (mm)")
     plt.ylabel("SNR (dB)")
-    # fit exponential function
-    # popt, pcov = curve_fit(exponential_function, df["radius"], df["snr_db"])
-    # plt.plot(df["radius"], exponential_function(df["radius"], *popt), 'r-', label='fit: a=%5.3f, b=%5.3f' % tuple(popt))
-    # plt.legend()
+    tikzplotlib.save("snr_over_radius.tex")
     plt.show()
 
 
 if __name__ == "__main__":
     path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
     path_to_positives = "Trainings_Data_EIT32/1_Freq/Data_09_11_40mm_eit32_over_night/combined.pkl"
+    # path_to_negatives = "Collected_Data/Combined_dataset/data_244_sampels_negative_set.pkl"
+    # path_to_positives = "Collected_Data/Combined_dataset/data_541_samples_25_08_2023_40mm.pkl"
+    # path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
+    # path_to_positives = "Collected_Data/Train_set_15_11_40mm_eit32_Kartoffel/combined.pkl"
 
-    # evaluate_snr_over_radius(path_to_positives, path_to_negatives)
+    evaluate_snr_over_radius(path_to_positives, path_to_negatives)
 
     calculate_snr_in_dataset(path_to_positives, path_to_negatives)
