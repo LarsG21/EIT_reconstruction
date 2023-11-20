@@ -7,167 +7,187 @@ from matplotlib import pyplot as plt
 from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, plot_amplitude_response, plot_ringing
 import tikzplotlib
 
-# Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
-df = pd.read_pickle(
-    "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
-# df = pd.read_pickle(
-#     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
 
-remove_outliers = True
+def plot_evaluation_results(df):
+    remove_outliers = True
 
-
-def pretty(d, indent=0):
-    print("{")
-    for key, value in d.items():
-        print(str(key) + "=" + str(value) + ",")
-    print("}")
+    def pretty(d, indent=0):
+        print("{")
+        for key, value in d.items():
+            print(str(key) + "=" + str(value) + ",")
+        print("}")
 
 
-# remove outliers from df in amplitude_response and position_error > or < N std
-N = 3
-border_amplitude_response = N * df["amplitude_response"].std()
-border_position_error = N * df["position_error"].std()
-border_shape_deformation = N * df["shape_deformation"].std()
-print(border_amplitude_response)
-print(border_position_error)
-print(border_shape_deformation)
-print("Number of samples", len(df))
-if remove_outliers:
-    df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
-    df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
-    df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
-# replace outliers with mean
-# df["amplitude_response"] = df["amplitude_response"].apply(lambda x: x if np.abs(x - df["amplitude_response"].mean()) <= (1 * df["amplitude_response"].std()) else df["amplitude_response"].mean())
-# df["position_error"] = df["position_error"].apply(lambda x: x if np.abs(x - df["position_error"].mean()) <= (1 * df["position_error"].std()) else df["position_error"].mean())
-# df["shape_deformation"] = df["shape_deformation"].apply(lambda x: x if np.abs(x - df["shape_deformation"].mean()) <= (1 * df["shape_deformation"].std()) else df["shape_deformation"].mean())
+    # remove outliers from df in amplitude_response and position_error > or < N std
+    N = 3
+    border_amplitude_response = N * df["amplitude_response"].std()
+    border_position_error = N * df["position_error"].std()
+    border_shape_deformation = N * df["shape_deformation"].std()
+    print(border_amplitude_response)
+    print(border_position_error)
+    print(border_shape_deformation)
+    print("Number of samples", len(df))
+    # replace outliers with mean
+    # df["amplitude_response"] = df["amplitude_response"].apply(lambda x: x if np.abs(x - df["amplitude_response"].mean()) <= (1 * df["amplitude_response"].std()) else df["amplitude_response"].mean())
+    # df["position_error"] = df["position_error"].apply(lambda x: x if np.abs(x - df["position_error"].mean()) <= (1 * df["position_error"].std()) else df["position_error"].mean())
+    # df["shape_deformation"] = df["shape_deformation"].apply(lambda x: x if np.abs(x - df["shape_deformation"].mean()) <= (1 * df["shape_deformation"].std()) else df["shape_deformation"].mean())
 
-print("Number of samples after outlier removal", len(df))
-# remove constant offset from position_error
+    # remove constant offset from position_error
 
-errors = df["error_vector"].apply(lambda x: np.array(x))
+    errors = df["error_vector"].apply(lambda x: np.array(x))
 
-# find mean error_vector
-mean = errors.mean()
-print(mean)
-# subtract mean from error_vector
-df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
+    # find mean error_vector
+    mean = errors.mean()
+    print(mean)
+    # subtract mean from error_vector
+    df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 
-print("Number of samples", len(df))
+    print("Number of samples", len(df))
+    if remove_outliers:
+        df_ar = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
+        print("Number of samples AR", len(df_ar))
+    else:
+        df_ar = df
+    plot_amplitude_response(df_ar,
+                            save_path="Results/amplitude_response.png"
+                            )
+    if remove_outliers:
+        df_pe = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
+        print("Number of samples PE", len(df_pe))
+    else:
+        df_pe = df
 
-plot_amplitude_response(df,
-                        save_path="Results/amplitude_response.png"
+    plot_position_error(df_pe,
+                        save_path="Results/position_error.png"
                         )
-plot_position_error(df,
-                    save_path="Results/position_error.png"
-                    )
 
-plot_shape_deformation(df,
-                       save_path="Results/shape_deformation.png"
-                       )
+    if remove_outliers:
+        df_sd = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
+        print("Number of samples SD", len(df_sd))
+    else:
+        df_sd = df
+    plot_shape_deformation(df_sd,
+                           save_path="Results/shape_deformation.png"
+                           )
 
-plot_ringing(df,
-             # save_path="Results/ringing.png"
-             )
+    plot_ringing(df,
+                 # save_path="Results/ringing.png"
+                 )
 
-# convert col error_vector to np.array
+    # convert col error_vector to np.array
 
-# scatter plot of error_vector with number at each point represented as a color
-# plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]), c=df["position_error"])
-# plt.colorbar()
-plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]))
+    # scatter plot of error_vector with number at each point represented as a color
+    # plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]), c=df["position_error"])
+    # plt.colorbar()
+    plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]))
 
-plt.xlabel("x error [px]")
-plt.ylabel("y error [px]")
-plt.title("Error vector")
-# save plot
-# plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\error_vector.png")
-plt.show()
+    plt.xlabel("x error [px]")
+    plt.ylabel("y error [px]")
+    plt.title("Error vector")
+    # save plot
+    # plt.savefig("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\error_vector.png")
+    plt.show()
 
-# average amplitude response, position error and shape deformation
-avg_ar = df["amplitude_response"].mean()
-avg_pe = df["position_error"].mean()
-avg_sd = df["shape_deformation"].mean()
-avg_ringing = df["ringing"].mean()
+    if remove_outliers:
+        df = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
+        df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
+        df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
 
-# std of amplitude response, position error and shape deformation
-std_ar = df["amplitude_response"].std()
-std_pe = df["position_error"].std()
-std_sd = df["shape_deformation"].std()
-std_ringing = df["ringing"].std()
+    # average amplitude response, position error and shape deformation
+    avg_ar = df["amplitude_response"].mean()
+    avg_pe = df["position_error"].mean()
+    avg_sd = df["shape_deformation"].mean()
+    avg_ringing = df["ringing"].mean()
 
-results_dict = {"avg_ar": avg_ar,
-                "avg_pe": avg_pe,
-                "avg_sd": avg_sd,
-                "avg_ringing": avg_ringing,
-                "std_ar": std_ar,
-                "std_pe": std_pe,
-                "std_sd": std_sd,
-                "std_ringing": std_ringing
-                }
+    # std of amplitude response, position error and shape deformation
+    std_ar = df["amplitude_response"].std()
+    std_pe = df["position_error"].std()
+    std_sd = df["shape_deformation"].std()
+    std_ringing = df["ringing"].std()
 
-print(f"Results: \n {results_dict}")
+    results_dict = {"avg_ar": avg_ar,
+                    "avg_pe": avg_pe,
+                    "avg_sd": avg_sd,
+                    "avg_ringing": avg_ringing,
+                    "std_ar": std_ar,
+                    "std_pe": std_pe,
+                    "std_sd": std_sd,
+                    "std_ringing": std_ringing
+                    }
 
-# in one plot
-plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], labels=["amplitude_response",
-                                                                                        "shape_deformation",
-                                                                                        "ringing"])
-# get median of all metrics
-median_ar = df["amplitude_response"].median()
-median_sd = df["shape_deformation"].median()
-median_ringing = df["ringing"].median()
-# get upper and lower quartile
-q1_ar = df["amplitude_response"].quantile(0.25)
-q3_ar = df["amplitude_response"].quantile(0.75)
-q1_sd = df["shape_deformation"].quantile(0.25)
-q3_sd = df["shape_deformation"].quantile(0.75)
-q1_ringing = df["ringing"].quantile(0.25)
-q3_ringing = df["ringing"].quantile(0.75)
-# get whiskers
-whis_ar = [q1_ar - 1.5 * (q3_ar - q1_ar), q3_ar + 1.5 * (q3_ar - q1_ar)]
-whis_sd = [q1_sd - 1.5 * (q3_sd - q1_sd), q3_sd + 1.5 * (q3_sd - q1_sd)]
-whis_ringing = [q1_ringing - 1.5 * (q3_ringing - q1_ringing), q3_ringing + 1.5 * (q3_ringing - q1_ringing)]
+    print(f"Results: \n {results_dict}")
 
-# combine all in dict
-boxplot_dict_ar = {
-    "lower whisker": whis_ar[0],
-    "lower quartile": q1_ar,
-    "median": median_ar,
-    "upper quartile": q3_ar,
-    "upper whisker": whis_ar[1]
-}
-boxplot_dict_sd = {
-    "lower whisker": whis_sd[0],
-    "lower quartile": q1_sd,
-    "median": median_sd,
-    "upper quartile": q3_sd,
-    "upper whisker": whis_sd[1]
-}
-boxplot_dict_ringing = {
-    "lower whisker": whis_ringing[0],
-    "lower quartile": q1_ringing,
-    "median": median_ringing,
-    "upper quartile": q3_ringing,
-    "upper whisker": whis_ringing[1]
-}
+    # in one plot
+    plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], labels=["amplitude_response",
+                                                                                            "shape_deformation",
+                                                                                            "ringing"])
+    # get median of all metrics
+    median_ar = df["amplitude_response"].median()
+    median_sd = df["shape_deformation"].median()
+    median_ringing = df["ringing"].median()
+    # get upper and lower quartile
+    q1_ar = df["amplitude_response"].quantile(0.25)
+    q3_ar = df["amplitude_response"].quantile(0.75)
+    q1_sd = df["shape_deformation"].quantile(0.25)
+    q3_sd = df["shape_deformation"].quantile(0.75)
+    q1_ringing = df["ringing"].quantile(0.25)
+    q3_ringing = df["ringing"].quantile(0.75)
+    # get whiskers
+    whis_ar = [q1_ar - 1.5 * (q3_ar - q1_ar), q3_ar + 1.5 * (q3_ar - q1_ar)]
+    whis_sd = [q1_sd - 1.5 * (q3_sd - q1_sd), q3_sd + 1.5 * (q3_sd - q1_sd)]
+    whis_ringing = [q1_ringing - 1.5 * (q3_ringing - q1_ringing), q3_ringing + 1.5 * (q3_ringing - q1_ringing)]
 
-# print them all out
+    # combine all in dict
+    boxplot_dict_ar = {
+        "lower whisker": whis_ar[0],
+        "lower quartile": q1_ar,
+        "median": median_ar,
+        "upper quartile": q3_ar,
+        "upper whisker": whis_ar[1]
+    }
+    boxplot_dict_sd = {
+        "lower whisker": whis_sd[0],
+        "lower quartile": q1_sd,
+        "median": median_sd,
+        "upper quartile": q3_sd,
+        "upper whisker": whis_sd[1]
+    }
+    boxplot_dict_ringing = {
+        "lower whisker": whis_ringing[0],
+        "lower quartile": q1_ringing,
+        "median": median_ringing,
+        "upper quartile": q3_ringing,
+        "upper whisker": whis_ringing[1]
+    }
 
-print(f"Boxplot dict amplitude response: \n {pretty(boxplot_dict_ar)}")
-print(f"Boxplot dict shape deformation: \n {pretty(boxplot_dict_sd)}")
-print(f"Boxplot dict ringing: \n {pretty(boxplot_dict_ringing)}")
+    # print them all out
 
-plt.title("Evaluation metrics")
-plt.ylabel("Relative Metric")
+    print(f"Boxplot dict amplitude response: \n {pretty(boxplot_dict_ar)}")
+    print(f"Boxplot dict shape deformation: \n {pretty(boxplot_dict_sd)}")
+    print(f"Boxplot dict ringing: \n {pretty(boxplot_dict_ringing)}")
 
-plt.savefig("Results/boxplot_all.png")
-plt.show()
+    plt.title("Evaluation metrics")
+    plt.ylabel("Relative Metric")
+    tikzplotlib.save("Results/boxplot_all.tikz")
+    plt.savefig("Results/boxplot_all.png")
+    plt.show()
 
-plt.boxplot([df["position_error"]], labels=["position_error"])
-plt.title("Boxplot of position_error")
-plt.ylabel("Error [px]")
-tikzplotlib.save("Results/boxplot_position_error.tikz")
-plt.show()
+    plt.boxplot([df["position_error"]], labels=["position_error"])
+    plt.title("Boxplot of position_error")
+    plt.ylabel("Error [px]")
+    tikzplotlib.save("Results/boxplot_position_error.tikz")
+    plt.savefig("Results/boxplot_position_error.png")
+    plt.show()
 
-# save results dict in json file
-# with open("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\results_dict.json", "w") as f:
-#     json.dump(results_dict, f)
+    # save results dict in json file
+    # with open("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\results_dict.json", "w") as f:
+    #     json.dump(results_dict, f)
+
+
+if __name__ == '__main__':
+    # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
+    df = pd.read_pickle(
+        "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
+    # df = pd.read_pickle(
+    #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    plot_evaluation_results(df)

@@ -103,7 +103,7 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0, t
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
-        trainX, testX, _, pca = perform_pca_on_input_data(voltage_data_np, trainX,
+        trainX, testX, _, pca = perform_pca_on_input_data(voltage_data_np, image_data_np, trainX,
                                                           testX, testX, f"{path}/Models",
                                                           "CPU",
                                                           debug=False,
@@ -166,9 +166,11 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         plt.subplot(121)
         plt.imshow(testY_sample.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
         plt.title("Target")
+        plt.colorbar()
         plt.subplot(122)
         plt.imshow(picture.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
         plt.title(model_name)
+        plt.colorbar()
         plt.savefig(f"{results_path}/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
         plt.show()
 
@@ -213,16 +215,17 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
+    # path = "Trainings_Data_EIT32/1_Freq"
     pca_components = 128  # 0 means no pca
     noise_level = 0.05
-    number_of_noise_augmentations = 3
+    number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
-    add_augmentations = True
+    number_of_blur_augmentations = 0
+    add_augmentations = False
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        # LinearRegression(),
+        LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
         KNeighborsRegressor(n_neighbors=4),

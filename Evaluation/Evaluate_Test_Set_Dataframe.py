@@ -138,7 +138,7 @@ def main():
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
-    # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
+    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
@@ -146,7 +146,7 @@ def main():
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
-    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModel/Default/model_2023-11-15_12-54-12_99_100.pth"
+    # model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Good_results/model_2023-11-10_13-19-10_93_150.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
@@ -175,9 +175,9 @@ def main():
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
-        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
-        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined"
+        # test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
     if regressor is None:  # Use the nn model
@@ -189,8 +189,8 @@ def main():
         if absolute is not None and absolute != ABSOLUTE_EIT:
             print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
             ABSOLUTE_EIT = absolute
-        # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-        model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
         model.load_state_dict(torch.load(model_path))
         model.eval()
     else:
@@ -205,40 +205,38 @@ def main():
     input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
-    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, model=model, model_path=model_path,
-                                  pca=pca,
-                                  regressor=regressor)
+    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0,
+                                  model=model, model_path=model_path, pca=pca, regressor=regressor)
 
 
-def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None, model_path=None, pca=None,
+def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0,  model=None, model_path=None, pca=None,
                                   regressor=None, debug=False):
     """
 
     :param ABSOLUTE_EIT: Whether to use absolute EIT or not
     :param NORMALIZE: Whether to normalize the input data or not
     :param SHOW: Whether to show the plots or not (for debugging)
-    :param df: A dataframe containing the test dataset
+    :param df_test_set: A dataframe containing the test dataset
     :param model: a pytorch model
     :param model_path: path to the model
     :param pca: Principal Component Analysis object
     :param regressor: a regressor for image reconstruction to use instead of the pytorch model
     :param debug:
-    :return:
+    :return: a dataframe containing the evaluation results
     """
-    global v0
     positions = []  # position of the anomaly
     position_errors = []  # distance between the center of mass of the reconstructed image and the target position
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
-    mean = df["images"].mean().flatten()
+    mean = df_test_set["images"].mean().flatten()
     ringings = []  # ringing of the reconstructed image
-    print(f"Length of dataframe: {len(df)}")
+    print(f"Length of dataframe: {len(df_test_set)}")
     if regressor is not None:
         print(f"USING REGRESSOR: {regressor.__class__.__name__} for reconstruction")
     else:
         print(f"USING MODEL: {model.__class__.__name__} for reconstruction")
-    for i, row in df.iterrows():
+    for i, row in df_test_set.iterrows():
         raw_voltages = row["voltages"]
         target_image = row["images"]
         target_position = find_center_of_mass(target_image)
@@ -313,6 +311,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df, model=None,
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
     print("Use Plot_results_of_evaluation.py to evaluate the results")
+    return df
 
 
 if __name__ == '__main__':

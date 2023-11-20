@@ -19,7 +19,7 @@ df_complete = pd.DataFrame()
 for i in range(1, 10):
     print(f"Run {i}")
     early_stopping_handler = EarlyStoppingHandler(patience=20)
-    df_losses, model = trainings_loop(model_name=f"TESTING_{i}", path_to_training_data=path,
+    df_losses, model, pca = trainings_loop(model_name=f"TESTING_{i}", path_to_training_data=path,
                                       num_epochs=num_epochs, learning_rate=learning_rate,
                                       early_stopping_handler=early_stopping_handler,
                                       pca_components=pca_components, add_augmentation=add_augmentation,

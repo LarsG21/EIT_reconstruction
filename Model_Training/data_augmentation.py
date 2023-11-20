@@ -28,11 +28,10 @@ def add_noise_augmentation(train_voltage: torch.Tensor,
     :param show_examples: Whether to show example plots
     :return: The augmented training voltages and images
     """
-    print("INFO: Adding noise to the training data")
     convert_to_numpy = False
     if number_of_augmentations == 0:
         return train_voltage, train_images
-
+    print("INFO: Adding noise to the training data")
     # Check if the input is a NumPy array and convert it to a PyTorch tensor if needed
     if isinstance(train_voltage, np.ndarray):
         train_voltage = torch.from_numpy(train_voltage).to(device)
@@ -65,7 +64,10 @@ def add_noise_augmentation(train_voltage: torch.Tensor,
         # save the first 10 examples
         for i in range(10):
             plt.figure()
-            plt.title("Example " + str(i))
+            # plt.title("Example " + str(i))
+            plt.title("Input Voltage Vector")
+            plt.xlabel("Measurement Index")
+            plt.ylabel("Voltage")
             plt.plot(train_voltages_combined[i, :].cpu().numpy())
             plt.savefig("Example_noise_augment" + str(i) + ".png")
     if convert_to_numpy:
@@ -259,9 +261,9 @@ if __name__ == '__main__':
 
     # train_voltage = train_voltage[:1]
     # train_images = train_images[:1]
-    # train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-    #                                                      4, 0.04,
-    #                                                      show_examples=True, save_examples=False)
+    train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
+                                                         4, 0.04,
+                                                         show_examples=True, save_examples=False)
 
     train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                             4, show_examples=True, save_examples=False)

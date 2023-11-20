@@ -13,6 +13,8 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from CustomDataset import CustomDataset
+from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
+from Evaluation.Plot_results_of_evaluation import plot_evaluation_results
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
 from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, \
@@ -50,7 +52,7 @@ else:
 
 
 # torch.cuda.set_device(0)
-# device = "cpu"
+device = "cpu"
 
 
 def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dataloader, val_dataloader, save_path):
@@ -109,6 +111,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
+    pca = None
 
     ######################################################################################
     if pca_components > 0:
@@ -250,7 +253,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                                                   val_voltage, test_voltage, model_path,
                                                                                   device,
                                                                                   n_components=pca_components,
-                                                                                  debug=True,
+                                                                                  debug=False,
                                                                                   train_images=train_images)
     else:  # if ther still is a pca object from a previous run, delete it
         if os.path.exists(os.path.join(model_path, "pca.pkl")):
@@ -373,7 +376,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                     save_path=model_path)
     PLOT_EXAMPLES = True
     if PLOT_EXAMPLES:
-        plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=20,
+        plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
 
     # plot_difference_for_some_sample_reconstruction_images(test_images, test_voltage, model, num_images=20)
@@ -381,11 +384,11 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     single_datapoint = voltage_data_np[0]
     voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
     # infer_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
-    return df, model
+    return df, model, pca
 
 
 if __name__ == "__main__":
-    model_name = "Test_16_11"
+    model_name = "TEST"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
@@ -395,12 +398,12 @@ if __name__ == "__main__":
     path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Collected_Data/Even_Orientation_Dataset"
     ABSOLUTE_EIT = False
-    num_epochs = 100
+    num_epochs = 30
     learning_rate = 0.001
-    pca_components = 0  # 0 for no PCA
-    add_augmentation = True
+    pca_components = 128  # 0 for no PCA
+    add_augmentation = False
     noise_level = 0.02
-    number_of_noise_augmentations = 5
+    number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-2  # Adjust this value as needed (L2 regularization)
@@ -408,10 +411,32 @@ if __name__ == "__main__":
 
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
-    trainings_loop(model_name=model_name, path_to_training_data=path,
+    df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
                    num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
                    number_of_noise_augmentations=number_of_noise_augmentations,
                    number_of_rotation_augmentations=number_of_rotation_augmentations,
                    weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
                    )
+
+
+    if ABSOLUTE_EIT:
+        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+    else:
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+
+
+    df_test_set = pd.read_pickle(test_set_path)
+    # load v0 from the same folder as the test set
+    v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+    df_test_set = pd.read_pickle(test_set_path)
+
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False, df_test_set=df_test_set,
+                                                        v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
+
+    plot_evaluation_results(df_evaluate_results)
+

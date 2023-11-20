@@ -77,11 +77,11 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         tikzplotlib.save("cumulative_variance_explained_by_first_n_components.tikz")
         plt.show()
         # More detailed analysis of the first n components
-        # for i in range(0, 127):
-        #     analyze_principal_component(train_images, train_voltage, component_index=i)
+        for i in range(0, 127):
+            analyze_principal_component(train_images, train_voltage, component_index=i)
         # reconstruct_images_from_pca(pca, train_images, train_voltage, voltage_data_tensor,
         #                             image_data_tensor, n_components=80)
-        # reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=20)
+        # reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=40)
     # transform back to tensor
     if transform_back_to_tensor:
         train_voltage = torch.tensor(train_voltage, dtype=torch.float32).to(device)
@@ -107,9 +107,9 @@ def reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=128):
     # reconstruct the voltages
     reconstructed_voltages = []
     for i in range(0, len(voltage_data_tensor_np)):
-        voltage_tensor_rec = np.zeros_like(voltage_data_tensor_np[0])
+        voltage_tensor_rec = np.zeros_like(voltage_data_tensor_np[i])
         for j in range(0, n_components):
-            voltage_tensor_rec += pca_transformation_of_voltage[0, j] * eigen_voltages[j]
+            voltage_tensor_rec += pca_transformation_of_voltage[i, j] * eigen_voltages[j]
             # plt.plot(voltage_tensor_rec)
             # plt.title(f"Reconstructed voltage {i} after {j} components")
             # plt.show()
@@ -120,12 +120,17 @@ def reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=128):
         # plot the original and reconstructed voltages
         plt.plot(voltage_data_tensor_np[i], label="original")
         plt.plot(voltage_tensor_rec, label="reconstructed")
-        plt.legend()
-        plt.title(f"Original and reconstructed voltage {i}")
+        # legend in the upper right corner
+        plt.legend(bbox_to_anchor=(1, 1), loc=1, borderaxespad=0)
+        plt.title(f"Original and reconstructed voltage")
+        # save as tikz
+        tikzplotlib.save(f"original_and_reconstructed_voltage.tikz")
         plt.show()
         # plot the difference
         plt.plot(voltage_data_tensor_np[i] - voltage_tensor_rec)
-        plt.title(f"Difference between original and reconstructed voltage {i}")
+        plt.title(f"Difference between original and reconstructed voltage")
+        # save as tikz
+        tikzplotlib.save(f"difference_between_original_and_reconstructed_voltage.tikz")
         plt.show()
 
         print("ok")
@@ -144,13 +149,13 @@ def plot_first_n_eigenvoltages(pca, n_components=128):
         plt.title(f"Eigen voltage {i}")
         plt.show()
     # combine the fist 9 in one plot with 3 rows and 3 columns
-    fig, axs = plt.subplots(3, 3, figsize=(15, 15))
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     for i in range(0, 3):
-        for j in range(0, 3):
-            axs[i, j].plot(eigen_voltages[i * 3 + j])
-            axs[i, j].set_title(f"Eigen voltage {i * 3 + j}")
+        # for j in range(0, 2):
+            axs[i].plot(eigen_voltages[i * 3 + 0])
+            axs[i].set_title(f"Eigen voltage {i * 3 + 0}")
     # save as tikz
-    tikzplotlib.save("first_9_eigenvoltages.tikz")
+    tikzplotlib.save("first_3_eigenvoltages.tikz")
     plt.show()
 
 
