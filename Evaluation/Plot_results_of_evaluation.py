@@ -8,7 +8,7 @@ from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, p
 import tikzplotlib
 
 
-def plot_evaluation_results(df):
+def plot_evaluation_results(df, open_plots_over_space=True):
     remove_outliers = True
 
     def pretty(d, indent=0):
@@ -43,36 +43,37 @@ def plot_evaluation_results(df):
     df["error_vector"] = df["error_vector"].apply(lambda x: np.array(x) - mean)
 
     print("Number of samples", len(df))
-    if remove_outliers:
-        df_ar = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
-        print("Number of samples AR", len(df_ar))
-    else:
-        df_ar = df
-    plot_amplitude_response(df_ar,
-                            save_path="Results/amplitude_response.png"
+    if open_plots_over_space:
+        if remove_outliers:
+            df_ar = df[np.abs(df["amplitude_response"] - df["amplitude_response"].mean()) <= border_amplitude_response]
+            print("Number of samples AR", len(df_ar))
+        else:
+            df_ar = df
+        plot_amplitude_response(df_ar,
+                                save_path="Results/amplitude_response.png"
+                                )
+        if remove_outliers:
+            df_pe = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
+            print("Number of samples PE", len(df_pe))
+        else:
+            df_pe = df
+
+        plot_position_error(df_pe,
+                            save_path="Results/position_error.png"
                             )
-    if remove_outliers:
-        df_pe = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
-        print("Number of samples PE", len(df_pe))
-    else:
-        df_pe = df
 
-    plot_position_error(df_pe,
-                        save_path="Results/position_error.png"
-                        )
+        if remove_outliers:
+            df_sd = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
+            print("Number of samples SD", len(df_sd))
+        else:
+            df_sd = df
+        plot_shape_deformation(df_sd,
+                               save_path="Results/shape_deformation.png"
+                               )
 
-    if remove_outliers:
-        df_sd = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
-        print("Number of samples SD", len(df_sd))
-    else:
-        df_sd = df
-    plot_shape_deformation(df_sd,
-                           save_path="Results/shape_deformation.png"
-                           )
-
-    plot_ringing(df,
-                 # save_path="Results/ringing.png"
-                 )
+        plot_ringing(df,
+                     save_path="Results/ringing.png"
+                     )
 
     # convert col error_vector to np.array
 
@@ -190,4 +191,4 @@ if __name__ == '__main__':
         "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
     # df = pd.read_pickle(
     #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
-    plot_evaluation_results(df)
+    plot_evaluation_results(df, open_plots_over_space=False)

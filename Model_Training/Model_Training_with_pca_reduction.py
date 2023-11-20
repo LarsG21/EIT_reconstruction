@@ -374,7 +374,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = True
+    PLOT_EXAMPLES = False
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
@@ -398,7 +398,7 @@ if __name__ == "__main__":
     path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Collected_Data/Even_Orientation_Dataset"
     ABSOLUTE_EIT = False
-    num_epochs = 30
+    num_epochs = 70
     learning_rate = 0.001
     pca_components = 128  # 0 for no PCA
     add_augmentation = False
