@@ -50,7 +50,6 @@ else:
     print("Using CPU")
     device = "cpu"
 
-
 # torch.cuda.set_device(0)
 device = "cpu"
 
@@ -172,9 +171,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("Using the Voltage vector length from the data: ", voltage_data_np.shape[1])
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
 
-    # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
@@ -409,16 +408,15 @@ if __name__ == "__main__":
     weight_decay = 1e-2  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
 
-
     early_stopping_handler = EarlyStoppingHandler(patience=30)
     df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
-                   num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
-                   pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
-                   number_of_noise_augmentations=number_of_noise_augmentations,
-                   number_of_rotation_augmentations=number_of_rotation_augmentations,
-                   weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
-                   )
-
+                                    num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
+                                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
+                                    number_of_noise_augmentations=number_of_noise_augmentations,
+                                    number_of_rotation_augmentations=number_of_rotation_augmentations,
+                                    number_of_blur_augmentations=number_of_blur_augmentations,
+                                    weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
+                                    )
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
@@ -429,7 +427,6 @@ if __name__ == "__main__":
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
-
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
@@ -439,4 +436,3 @@ if __name__ == "__main__":
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
 
     plot_evaluation_results(df_evaluate_results)
-
