@@ -106,7 +106,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
                    number_of_blur_augmentations: int = 0, weight_decay: float = 1e-3, normalize=True,
-                   electrode_level_normalization=False,
+                   dropout_prob: float = 0.1,
                    ):
     global VOLTAGE_VECTOR_LENGTH
     SAMPLE_RECONSTRUCTION_INDEX = 2  # Change this to see different sample reconstructions
@@ -166,16 +166,17 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Highlight Step 2: Preprocess the data (independent if it is absolute or difference EIT)
     voltage_data_np = add_normalizations(v1=voltage_data_np, NORMALIZE_MEDIAN=normalize,
-                                         NORMALIZE_PER_ELECTRODE=electrode_level_normalization)
+                                         NORMALIZE_PER_ELECTRODE=False)
 
     print("Overall data shape: ", voltage_data_np.shape)
     if VOLTAGE_VECTOR_LENGTH != voltage_data_np.shape[1] and pca_components == 0:
         print("Using the Voltage vector length from the data: ", voltage_data_np.shape[1])
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
-    # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
+                                    dropout_prob=dropout_prob)
     #
-    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
@@ -204,7 +205,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
         f.write(f"PCA_COMPONENTS: {pca_components}\n")
         f.write(f"normalize: {normalize}\n")
-        f.write(f"electrode_level_normalization: {electrode_level_normalization}\n")
+        f.write(f"electrode_level_normalization: {False}\n")
         f.write("\n")
 
     voltage_data_tensor = torch.tensor(voltage_data_np, dtype=torch.float32).to(device)
@@ -375,7 +376,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = False
+    PLOT_EXAMPLES = True
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
@@ -389,7 +390,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    update_dataset = True
+    update_dataset = False
     model_name = "TESTING"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
@@ -404,15 +405,15 @@ if __name__ == "__main__":
         combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
     # path = "../Collected_Data/Even_Orientation_Dataset"
     ABSOLUTE_EIT = False
-    num_epochs = 100
+    num_epochs = 70
     learning_rate = 0.001
     pca_components = 0  # 0 for no PCA
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.02
     number_of_noise_augmentations = 5
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    weight_decay = 0  # Adjust this value as needed (L2 regularization)
+    weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
@@ -422,7 +423,7 @@ if __name__ == "__main__":
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
-                                    weight_decay=weight_decay, normalize=False, electrode_level_normalization=False,
+                                    weight_decay=weight_decay, normalize=False,
                                     )
 
     if ABSOLUTE_EIT:
@@ -441,5 +442,5 @@ if __name__ == "__main__":
 
     df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False, df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
-
     plot_evaluation_results(df_evaluate_results)
+    print(f"Average cross correlation: {df_evaluate_results['cross_correlation'].mean()}")

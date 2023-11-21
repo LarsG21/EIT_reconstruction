@@ -229,6 +229,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
+    cross_correlations = []  # cross correlation of the reconstructed image
     mean = df_test_set["images"].mean().flatten()
     ringings = []  # ringing of the reconstructed image
     print(f"Length of dataframe: {len(df_test_set)}")
@@ -292,12 +293,15 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         ####################### Shape deformation #######################
         shape_deformation = get_shape_deformation(img_reconstructed, show_plot=SHOW)
         shape_deformations.append(shape_deformation)
+        #######################Cross correlation##########################
+        cross_correlation = np.correlate(img_reconstructed.flatten(), target_image.flatten())[0]
+        cross_correlations.append(cross_correlation)
         if SHOW and USE_OPENCV_FOR_PLOTTING:
             cv2.waitKey(300)
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,
-              "ringing": ringings})
+              "ringing": ringings, "cross_correlation": cross_correlations})
     path = "Results"
     if regressor is None:
         eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"

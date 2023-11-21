@@ -98,6 +98,9 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         ax[0].set_title(f"Original Image")
         im1 = ax[1].imshow(output)
         ax[1].set_title(f"Reconstructed Image")
+        # calculate cross correlation between images
+        cross_correlation = np.correlate(img_numpy.flatten(), output.flatten())
+        print(f"Cross correlation: {cross_correlation}")
         # add colorbar
         plt.colorbar(im0, ax=ax[0])
         plt.colorbar(im1, ax=ax[1])
