@@ -165,7 +165,12 @@ if __name__ == "__main__":
     # path_to_positives = "Collected_Data/Combined_dataset/data_541_samples_25_08_2023_40mm.pkl"
     # path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
     # path_to_positives = "Collected_Data/Train_set_15_11_40mm_eit32_Kartoffel/combined.pkl"
+    # path_to_negatives = "Trainings_Data_EIT32/3_Freq/252_sampels_negative.pkl"
+    # path_to_positives = "Trainings_Data_EIT32/3_Freq/810_samples_40mm.pkl"
 
     evaluate_snr_over_radius(path_to_positives, path_to_negatives)
 
     calculate_snr_in_dataset(path_to_positives, path_to_negatives)
+    # Amplitude_Signal = np.array([400])
+    # Amplitude_Noise = np.array([10])
+    # print(calculate_snr(Amplitude_Signal, Amplitude_Noise))

@@ -52,7 +52,7 @@ SAVE_V0 = True
 # METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
-TANK_ORIENTATION = "Klebeband auf Elektrode 20"
+TANK_ORIENTATION = "Klebeband auf Elektrode 9"
 VOLTAGE_FREQUENCY = 1000
 CURRENT = 0.1
 CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
@@ -409,7 +409,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Train_set_15_11_40mm_eit32_Kartoffel"
+    TEST_NAME = "Test"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")

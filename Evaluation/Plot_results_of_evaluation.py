@@ -1,17 +1,23 @@
 import json
+import os
+import pickle
 
 import pandas as pd
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
+from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, plot_amplitude_response, plot_ringing
 import tikzplotlib
+
+from Model_Training.Models import LinearModel
 
 
 def plot_evaluation_results(df, open_plots_over_space=True):
     remove_outliers = True
 
-    def pretty(d, indent=0):
+    def pretty(d):
         print("{")
         for key, value in d.items():
             print(str(key) + "=" + str(value) + ",")
@@ -180,15 +186,70 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     plt.savefig("Results/boxplot_position_error.png")
     plt.show()
 
+    median_pe = df["position_error"].median()
+    q1_pe = df["position_error"].quantile(0.25)
+    q3_pe = df["position_error"].quantile(0.75)
+    whis_pe = [q1_pe - 1.5 * (q3_pe - q1_pe), q3_pe + 1.5 * (q3_pe - q1_pe)]
+    boxplot_dict_pe = {
+        "lower whisker": whis_pe[0],
+        "lower quartile": q1_pe,
+        "median": median_pe,
+        "upper quartile": q3_pe,
+        "upper whisker": whis_pe[1]
+    }
+    print(f"Boxplot dict position error: \n {pretty(boxplot_dict_pe)}")
+
     # save results dict in json file
     # with open("C:\\Users\\lgudjons\\PycharmProjects\\EIT_reconstruction\\Evaluation\\Results\\results_dict.json", "w") as f:
     #     json.dump(results_dict, f)
 
 
+def main():
+    ABSOLUTE_EIT = False
+    VOLTAGE_VECTOR_LENGTH = 1024
+    OUT_SIZE = 64
+    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModel/TEST_DEFAULT/model_2023-11-21_11-51-35_99_100.pth"
+
+    if ABSOLUTE_EIT:
+        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+    else:
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl.pkl"
+        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl.pkl"
+        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+
+    df_test_set = pd.read_pickle(test_set_path)
+    # load v0 from the same folder as the test set
+    v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+    df_test_set = pd.read_pickle(test_set_path)
+
+    pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+    pca = None
+    # load pca if it exists
+    if os.path.exists(pca_path):
+        print("Loading PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+        VOLTAGE_VECTOR_LENGTH = pca.n_components_
+        input("Press Enter to continue...")
+
+    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False,
+                                                        df_test_set=df_test_set,
+                                                        v0=v0, model=model, model_path=model_path, pca=pca,
+                                                        regressor=None)
+
+    plot_evaluation_results(df_evaluate_results)
+
+
 if __name__ == '__main__':
-    # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
-    df = pd.read_pickle(
-        "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
+    # # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
     # df = pd.read_pickle(
-    #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
-    plot_evaluation_results(df, open_plots_over_space=False)
+    #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
+    # # df = pd.read_pickle(
+    # #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    # plot_evaluation_results(df, open_plots_over_space=False)
+    main()

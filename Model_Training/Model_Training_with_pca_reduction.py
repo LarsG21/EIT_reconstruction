@@ -13,6 +13,8 @@ from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
 from CustomDataset import CustomDataset
+from Data_Generation.combine_datasets_and_convert_to_correct_format_for_training import \
+    combine_multiple_pickles_and_calculate_normalized_voltage_diff
 from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.Plot_results_of_evaluation import plot_evaluation_results
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
@@ -107,7 +109,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    electrode_level_normalization=False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    SAMPLE_RECONSTRUCTION_INDEX = 1  # Change this to see different sample reconstructions
+    SAMPLE_RECONSTRUCTION_INDEX = 2  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     pca = None
@@ -172,7 +174,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
     # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-
+    #
     model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
@@ -387,25 +389,30 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    model_name = "TEST"
+    update_dataset = True
+    model_name = "TESTING"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    if update_dataset:
+        print("Updating dataset")
+        combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
     # path = "../Collected_Data/Even_Orientation_Dataset"
     ABSOLUTE_EIT = False
-    num_epochs = 70
+    num_epochs = 100
     learning_rate = 0.001
-    pca_components = 128  # 0 for no PCA
+    pca_components = 0  # 0 for no PCA
     add_augmentation = False
     noise_level = 0.02
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 5
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    weight_decay = 1e-2  # Adjust this value as needed (L2 regularization)
+    weight_decay = 0  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
@@ -422,8 +429,8 @@ if __name__ == "__main__":
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
-        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
-        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl.pkl"
+        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl.pkl"
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 

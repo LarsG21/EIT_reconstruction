@@ -18,7 +18,7 @@ def wait_for_start_of_measurement(path):
         print("Waiting for files to be written")
         time.sleep(0.5)
     print("EIT capture started")
-    time.sleep(1)
+    time.sleep(0.2)
     # reverse sort the file list
     for file_or_folder in os.listdir(path)[::-1]:
         if os.path.isdir(os.path.join(path, file_or_folder)):
@@ -44,8 +44,10 @@ def find_center_of_mass(img):
     # all pixels > 0 are part of the anomaly and should be set to 1
     img_copy = img.copy()
     img_copy[img_copy > 0] = 1
-    center_of_mass = np.array(np.where(img_copy == np.max(img_copy)))
-    center_of_mass = np.mean(center_of_mass, axis=1)
+    # get x and y coordinates of all pixels that are part of the anomaly
+    thresholded = np.array(np.where(img_copy == np.max(img_copy)))
+    # calculate the mean of the x and y coordinates to get the center of mass
+    center_of_mass = np.mean(thresholded, axis=1)
     center_of_mass = center_of_mass.astype(int)
     center_of_mass = np.array((center_of_mass[1], center_of_mass[0]))
 

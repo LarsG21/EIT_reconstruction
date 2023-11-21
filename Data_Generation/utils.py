@@ -60,7 +60,6 @@ def generate_random_anomaly_parameters(min_radius, max_radius, min_perm, max_per
     perm = np.random.uniform(min_perm, max_perm)
     return center, r, perm
 
-
 def wait_for_start_of_measurement(path):
     """
     Waits for the first file to be written. Searches for the setup folder and returns the path to it.
@@ -69,12 +68,13 @@ def wait_for_start_of_measurement(path):
     :return:
     """
     eit_path = ""
-    while len(os.listdir(path)) == 0:
+    while len(os.listdir(path)) == 0 or not os.path.isdir(os.path.join(path, os.listdir(path)[0])):
         print("Waiting for files to be written")
         time.sleep(0.5)
     print("EIT capture started")
-    time.sleep(1)
-    for file_or_folder in os.listdir(path):
+    time.sleep(0.2)
+    # reverse sort the file list
+    for file_or_folder in os.listdir(path)[::-1]:
         if os.path.isdir(os.path.join(path, file_or_folder)):
             os.chdir(os.path.join(path, file_or_folder))  # Move into folder with the name of the current date
             print(os.getcwd())
@@ -82,6 +82,10 @@ def wait_for_start_of_measurement(path):
                 if os.path.isdir(os.path.join(os.getcwd(), file_or_folder)):
                     os.chdir(os.path.join(os.getcwd(), file_or_folder))
             eit_path = os.getcwd()
+            # TODO: get folder name with regex between eit_data\\ and \\setup
+            # Warning if folder to old
+
+
             print(eit_path)
             break
     return eit_path

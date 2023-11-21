@@ -273,7 +273,7 @@ if __name__ == '__main__':
     # train_voltage = train_voltage.cpu().numpy().tolist()
     # train_images = train_images.cpu().numpy().tolist()
     # # save in one df
-    # df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined")
+    # df2 = pd.read_pickle("..//Collected_Data/Combined_dataset_multi/combined.pkl")
     # df = pd.DataFrame(data={"images": train_images, "voltages": train_voltage},
     #                   index=[0] * len(train_voltage)
     #                   )

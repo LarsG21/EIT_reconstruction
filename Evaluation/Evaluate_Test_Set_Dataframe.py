@@ -177,7 +177,7 @@ def main():
     else:
         test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
-        # test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined"
+        # test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
     if regressor is None:  # Use the nn model
