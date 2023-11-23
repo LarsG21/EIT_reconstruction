@@ -258,17 +258,18 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(1)
-
-    input("Remove the target and press enter to start the measurement...")
-    file_path = wait_1_file_and_get_next(eit_path)
-    print(file_path)
-    df_0 = convert_single_frequency_eit_file_to_df(file_path)
-    v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
-    # save v0
-    np.save(os.path.join(save_path, "v0.npy"), v0)
-    input("Place the target and press enter to start the measurement...")
-
-    # v0 = np.load("../Collected_Data/Test_Set_1_Freq_23_10_circular/v0.npy")
+    if SAVE_V0:
+        input("Remove the target and press enter to start the measurement...")
+        file_path = wait_1_file_and_get_next(eit_path)
+        print(file_path)
+        df_0 = convert_single_frequency_eit_file_to_df(file_path)
+        v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
+        # save v0
+        np.save(os.path.join(save_path, "v0.npy"), v0)
+        input("Place the target and press enter to start the measurement...")
+    else:
+        print("Skipping v0 measurement because it is already measured")
+        v0 = np.load(os.path.join(save_path, "v0.npy"))
     overall_nr_of_samples = len(radii) * len(angles) * number_of_runs
     i = 0
     for a in range(0, number_of_runs):
@@ -409,7 +410,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_Set_circular_23_11_eit32"
+    TEST_NAME = "SNR_EXPERIMENt_circular_23_11_eit32_Kartoffel"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
@@ -426,9 +427,10 @@ def main():
     #     collect_data(gcode_device=ender, number_of_samples=8000,
     #                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #                  save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=2,
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=1,
                                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
+                                debug_plots=True)
 
 if __name__ == '__main__':
     cwd = os.getcwd()
