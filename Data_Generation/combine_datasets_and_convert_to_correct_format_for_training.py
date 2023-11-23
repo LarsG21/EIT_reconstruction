@@ -186,6 +186,7 @@ if __name__ == '__main__':
     # path = "../Trainings_Data_EIT32/1_Freq"
     path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Collected_Data/SNR_EXPERIMENt_circular_23_11_eit32_Kartoffel"
 
     combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
     # combined = combine_multiple_pickles(path=path)

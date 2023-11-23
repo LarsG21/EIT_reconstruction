@@ -153,8 +153,8 @@ def main():
     #                           "v0.npy"))
 
     regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
-    regressor = None
-    # regressor = pickle.load(open(regressor_path, 'rb'))
+    # regressor = None
+    regressor = pickle.load(open(regressor_path, 'rb'))
 
     #### END Settings #######
 
@@ -175,9 +175,9 @@ def main():
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
-        test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
-        # test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
     if regressor is None:  # Use the nn model
@@ -266,8 +266,10 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
             v1 = v1.reshape(1, -1)
             new_flat_picture = regressor.predict(v1) - mean
             img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
-            # img_reconstructed[img_reconstructed > 0.2] = 1
             img_reconstructed[img_reconstructed < 0.25] = 0
+            # set smaller than 0.2 but bigger than 0 to 0
+            # img_reconstructed[np.logical_and(img_reconstructed < 0.2, img_reconstructed > 0)] = 0
+            # img_reconstructed[0 > img_reconstructed] =
         ######################## Ringing #################################
         # Ringing is the sum of all negative values in the image devided by the sum of |all values| in the image
         if regressor is None:

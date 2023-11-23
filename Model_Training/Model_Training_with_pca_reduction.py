@@ -173,10 +173,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("Using the Voltage vector length from the data: ", voltage_data_np.shape[1])
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
-    # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
-    #                                 dropout_prob=dropout_prob)
+    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
+                                    dropout_prob=dropout_prob)
     #
-    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
@@ -391,7 +391,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = False
-    model_name = "TESTING"
+    model_name = "Default_Test_23_11"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
@@ -405,13 +405,13 @@ if __name__ == "__main__":
         combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
     # path = "../Collected_Data/Even_Orientation_Dataset"
     ABSOLUTE_EIT = False
-    num_epochs = 70
+    num_epochs = 120
     learning_rate = 0.001
     pca_components = 0  # 0 for no PCA
-    add_augmentation = True
+    add_augmentation = False
     noise_level = 0.02
-    number_of_noise_augmentations = 5
-    number_of_rotation_augmentations = 0
+    number_of_noise_augmentations = 3
+    number_of_rotation_augmentations = 2
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
