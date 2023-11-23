@@ -173,10 +173,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("Using the Voltage vector length from the data: ", voltage_data_np.shape[1])
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
-    model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
-                                    dropout_prob=dropout_prob)
+    # model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
+    #                                 dropout_prob=dropout_prob)
     #
-    # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
+    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
@@ -376,7 +376,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = True
+    PLOT_EXAMPLES = False
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
@@ -398,8 +398,8 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)

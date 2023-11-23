@@ -99,42 +99,42 @@ def plot_for_different_epochs():
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
 
     num_epochs_list = [100]
-    wheight_decay_list = [0]
-    dropout_pobs = [0.05, 0.1, 0.15]
+    wheight_decay_list = [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1]
+    # dropout_pobs = [0.05, 0.1, 0.15]
     for num in num_epochs_list:
         for wd in wheight_decay_list:
-            for drop in dropout_pobs:
-                print(
-                    f"####################Training with {wd} WD for {num} num epochs dropout prob {drop}###########################")
-                early_stopping_handler = EarlyStoppingHandler(patience=30)
-                df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
-                                                num_epochs=num, learning_rate=learning_rate,
-                                                early_stopping_handler=early_stopping_handler,
-                                                pca_components=pca_components, add_augmentation=add_augmentation,
-                                                noise_level=noise_level,
-                                                number_of_noise_augmentations=number_of_noise_augmentations,
-                                                number_of_rotation_augmentations=number_of_rotation_augmentations,
-                                                number_of_blur_augmentations=number_of_blur_augmentations,
-                                                weight_decay=wd, normalize=False, dropout_prob=drop,
-                                                )
+            # for drop in dropout_pobs:
+            print(
+                f"####################Training with {wd} WD for {num} num epochs ###########################")
+            early_stopping_handler = EarlyStoppingHandler(patience=30)
+            df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
+                                            num_epochs=num, learning_rate=learning_rate,
+                                            early_stopping_handler=early_stopping_handler,
+                                            pca_components=pca_components, add_augmentation=add_augmentation,
+                                            noise_level=noise_level,
+                                            number_of_noise_augmentations=number_of_noise_augmentations,
+                                            number_of_rotation_augmentations=number_of_rotation_augmentations,
+                                            number_of_blur_augmentations=number_of_blur_augmentations,
+                                            weight_decay=wd, normalize=False,
+                                            )
 
-                if ABSOLUTE_EIT:
-                    test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
-                else:
+            if ABSOLUTE_EIT:
+                test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
+            else:
 
-                    test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+                test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
 
-                df_test_set = pd.read_pickle(test_set_path)
-                # load v0 from the same folder as the test set
-                v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+            df_test_set = pd.read_pickle(test_set_path)
+            # load v0 from the same folder as the test set
+            v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
 
-                df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False,
-                                                                    SHOW=False, df_test_set=df_test_set,
-                                                                    v0=v0, model=model, model_path=f"/{model_name}.pkl",
-                                                                    pca=pca, regressor=None)
-                plt.title(f"Training for {num} epochs")
-                plt.show()
-                plot_evaluation_results(df_evaluate_results)
+            df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False,
+                                                                SHOW=False, df_test_set=df_test_set,
+                                                                v0=v0, model=model, model_path=f"/{model_name}.pkl",
+                                                                pca=pca, regressor=None)
+            plt.title(f"Training for {num} epochs")
+            plt.show()
+            plot_evaluation_results(df_evaluate_results)
 
 
 

@@ -409,7 +409,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test"
+    TEST_NAME = "Test_Set_circular_23_11_eit32"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
@@ -417,18 +417,18 @@ def main():
         SAVE_V0 = False
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    try:
-        collect_data(gcode_device=ender, number_of_samples=4000,
-                     eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                     save_path=save_path)
-    except FileNotFoundError as e:  # Deleted the folder because eit32 crashed
-        # Just restart the collection
-        collect_data(gcode_device=ender, number_of_samples=8000,
-                     eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                     save_path=save_path)
-    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=1,
-    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
+    # try:
+    #     collect_data(gcode_device=ender, number_of_samples=4000,
+    #                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                  save_path=save_path)
+    # except FileNotFoundError as e:  # Deleted the folder because eit32 crashed
+    #     # Just restart the collection
+    #     collect_data(gcode_device=ender, number_of_samples=8000,
+    #                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                  save_path=save_path)
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=2,
+                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
 
 if __name__ == '__main__':
     cwd = os.getcwd()

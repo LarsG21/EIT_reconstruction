@@ -1,7 +1,10 @@
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import tikzplotlib
 from matplotlib import pyplot as plt
+from matplotlib.cm import ScalarMappable
 from scipy.optimize import curve_fit
 import seaborn as sns
 
@@ -113,6 +116,10 @@ def evaluate_snr_over_radius(path_to_positives, path_to_negatives):
     """
     df_negatives = pd.read_pickle(path_to_negatives)
     df_positives = pd.read_pickle(path_to_positives)
+    # if df_positives has no col timestamp, add it
+    if "timestamp" not in df_positives.columns:
+        df_positives["timestamp"] = datetime.now()
+
     print(f"Samples positive: {len(df_positives)}")
     print(f"Samples negative: {len(df_negatives)}")
 
@@ -136,31 +143,41 @@ def evaluate_snr_over_radius(path_to_positives, path_to_negatives):
         # plt.show()
         # print(i)
         snr = get_snr_of_sample(i, voltages_pos_np, voltages_neg_np)
-        df = pd.concat([df, pd.DataFrame({"radius": radius, "snr": snr, "index": i}, index=[i])])
+        df = pd.concat([df, pd.DataFrame({"radius": radius, "snr": snr, "index": i,
+                                          "timestamp": df_positives["timestamp"].iat[i]}, index=[i])])
 
     # Convert Pixels to mm
     df["radius"] = df["radius"].apply(lambda x: x / (img.shape[0]) * RADIUS_TANK)
-    # plot snr over radius
-    plt.scatter(df["radius"], df["snr"])
-    plt.title("SNR over Radius")
-    plt.xlabel("Radius (mm)")
-    plt.ylabel("SNR")
-    plt.show()
-
+    # # plot snr over radius
+    # plt.scatter(df["radius"], df["snr"])
+    # plt.title("SNR over Radius")
+    # plt.xlabel("Radius (mm)")
+    # plt.ylabel("SNR")
+    # plt.show()
     # calculate snr in db
     df["snr_db"] = 20 * np.log10(df["snr"])
     # plot snr in db over radius
-    plt.scatter(df["radius"], df["snr_db"])
+    # plt.scatter(df["radius"], df["snr_db"], c=df["timestamp"])
+    # plt.colorbar()
+    # # add color codeded timestamp
+    # plt.title("SNR (dB) over Radius")
+    # plt.xlabel("Radius (mm)")
+    # plt.ylabel("SNR (dB)")
+    # tikzplotlib.save("snr_over_radius.tex")
+    # plt.show()
+    # same with seaborn
+    # convert timestamp to show only every hour
+    df["timestamp"] = df["timestamp"].apply(lambda x: x.replace(hour=0, minute=0, second=0, microsecond=0))
+    sns.scatterplot(data=df, x="radius", y="snr_db", hue="timestamp")
     plt.title("SNR (dB) over Radius")
     plt.xlabel("Radius (mm)")
     plt.ylabel("SNR (dB)")
-    tikzplotlib.save("snr_over_radius.tex")
     plt.show()
 
 
 if __name__ == "__main__":
     path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
-    path_to_positives = "Trainings_Data_EIT32/1_Freq/Data_09_11_40mm_eit32_over_night/combined.pkl"
+    path_to_positives = "Trainings_Data_EIT32/1_Freq_More_Orientations/combined.pkl"
     # path_to_negatives = "Collected_Data/Combined_dataset/data_244_sampels_negative_set.pkl"
     # path_to_positives = "Collected_Data/Combined_dataset/data_541_samples_25_08_2023_40mm.pkl"
     # path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
@@ -170,7 +187,7 @@ if __name__ == "__main__":
 
     evaluate_snr_over_radius(path_to_positives, path_to_negatives)
 
-    calculate_snr_in_dataset(path_to_positives, path_to_negatives)
+    # calculate_snr_in_dataset(path_to_positives, path_to_negatives)
     # Amplitude_Signal = np.array([400])
     # Amplitude_Noise = np.array([10])
     # print(calculate_snr(Amplitude_Signal, Amplitude_Noise))
