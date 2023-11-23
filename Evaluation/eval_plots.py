@@ -1,8 +1,11 @@
 import numpy as np
 import pandas as pd
+import tikzplotlib
+from matplotlib import pyplot as plt
 from plotly import express as px
 from scipy import ndimage
 from scipy.interpolate import griddata
+import seaborn as sns
 
 RESOLUTION_PLOT = 100
 nr_of_blurs = 1
@@ -11,6 +14,38 @@ nr_of_blurs = 1
 def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
     df["x"] = [x[0] for x in df["positions"]]
     df["y"] = [x[1] for x in df["positions"]]
+
+    # create col radius from the center
+    df["radius"] = np.sqrt((df["x"] - 32) ** 2 + (df["y"] - 32) ** 2)
+    # round radius
+    df["radius"] = df["radius"].apply(lambda x: round(x, 2))
+    # get average amplitude response for each radius
+    df_ar_per_radius = df.groupby("radius").mean().reset_index()
+    print(df_ar_per_radius)
+    # plot AR over radius with seaborn
+    # rolling average over 5 points
+    df_ar_per_radius["amplitude_response"] = df_ar_per_radius["amplitude_response"].rolling(20).mean()
+    sns.lineplot(data=df_ar_per_radius, x="radius", y="amplitude_response")
+    plt.xlabel("Radius [px]")
+    plt.ylabel("Amplitude response")
+    plt.title("Amplitude response over radius")
+    plt.show()
+
+    # scatter plot with matplotlib and viridis color coding
+    plt.scatter(df["x"], df["y"], c=df["amplitude_response"], cmap="viridis")
+    plt.xlabel("x (px)")
+    plt.ylabel("y (px)")
+    plt.title("Amplitude response over space")
+    plt.colorbar()
+    # save as tikz
+    tikzplotlib.save("amplitude_response_over_space.tex")
+    plt.show()
+
+
+
+
+
+
 
     # interpolate between points
     x = df["x"].to_numpy()
@@ -51,6 +86,23 @@ def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
 def plot_position_error(df: pd.DataFrame, save_path: str = None):
     df["x"] = [x[0] for x in df["positions"]]
     df["y"] = [x[1] for x in df["positions"]]
+
+    # create col radius from the center
+    df["radius"] = np.sqrt((df["x"] - 32) ** 2 + (df["y"] - 32) ** 2)
+    # round radius
+    df["radius"] = df["radius"].apply(lambda x: round(x, 2))
+    # get average amplitude response for each radius
+    df_ar_per_radius = df.groupby("radius").mean().reset_index()
+    print(df_ar_per_radius)
+    # plot AR over radius with seaborn
+    # rolling average over 5 points
+    df_ar_per_radius["position_error"] = df_ar_per_radius["position_error"].rolling(20).mean()
+    sns.lineplot(data=df_ar_per_radius, x="radius", y="position_error")
+    plt.xlabel("Radius [px]")
+    plt.ylabel("PE")
+    plt.title("Position error over radius")
+    plt.show()
+
     # interpolate between points
     x = df["x"].to_numpy()
     y = df["y"].to_numpy()
