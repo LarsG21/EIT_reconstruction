@@ -211,17 +211,17 @@ if __name__ == "__main__":
     # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    path = "Training_Data/1_Freq_with_individual_v0s"
+    # path = "Training_Data/1_Freq_with_individual_v0s"
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    # path = "Trainings_Data_EIT32/1_Freq"
-    pca_components = 128  # 0 means no pca
+    path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
+    pca_components = 0  # 0 means no pca
     noise_level = 0.05
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 5
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 0
-    add_augmentations = False
+    number_of_blur_augmentations = 5
+    add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         model_name = regressor.__class__.__name__
         print("Training with regressor: ", regressor.__class__.__name__)
         start_time = time.time()
-        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=True,
+        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=False,
                         add_augmentation=add_augmentations, results_folder=results_folder,
                         pca_components=pca_components)
         print("Training took: ", time.time() - start_time)

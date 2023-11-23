@@ -11,7 +11,7 @@ from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, plot_amplitude_response, plot_ringing
 import tikzplotlib
 
-from Model_Training.Models import LinearModel
+from Model_Training.Models import LinearModel, LinearModelWithDropout2
 
 
 def plot_evaluation_results(df, open_plots_over_space=True):
@@ -208,7 +208,7 @@ def main():
     ABSOLUTE_EIT = False
     VOLTAGE_VECTOR_LENGTH = 1024
     OUT_SIZE = 64
-    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModel/TEST_DEFAULT/model_2023-11-21_11-51-35_99_100.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModel/Default_Test_23_11/model_2023-11-23_17-03-21_119_120.pth"
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
@@ -219,7 +219,6 @@ def main():
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
-    df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
     df_test_set = pd.read_pickle(test_set_path)
@@ -249,7 +248,7 @@ if __name__ == '__main__':
     # # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
-    # # df = pd.read_pickle(
-    # #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
-    # plot_evaluation_results(df, open_plots_over_space=False)
-    main()
+    df = pd.read_pickle(
+        "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    plot_evaluation_results(df, open_plots_over_space=True)
+    # main()
