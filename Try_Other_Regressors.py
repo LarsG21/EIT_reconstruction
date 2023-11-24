@@ -207,7 +207,7 @@ def hyperparameter_tuning():
 
 
 if __name__ == "__main__":
-    ABSOLUTE_EIT = False
+    ABSOLUTE_EIT = True
     # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
@@ -215,8 +215,9 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
-    pca_components = 0  # 0 means no pca
+    # path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "Trainings_Data_EIT32/3_Freq"
+    pca_components = 128  # 0 means no pca
     noise_level = 0.05
     number_of_noise_augmentations = 5
     number_of_rotation_augmentations = 0

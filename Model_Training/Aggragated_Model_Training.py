@@ -8,22 +8,24 @@ from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.Plot_results_of_evaluation import plot_evaluation_results
 from Model_Training_with_pca_reduction import trainings_loop
 import matplotlib.pyplot as plt
-import tikzplotlib
+
+from tiktzplot_utils import genterate_linepot_with_std
 
 
 def train_multiple_times_and_plot_losses():
-    path = "../Training_Data/1_Freq_with_individual_v0s"
-    num_epochs = 400
+    path = "../Training_Data/3_Freq"
+    ABSOLUTE_EIT = True
+    num_epochs = 60
     learning_rate = 0.001
-    pca_components = 0
+    pca_components = 256
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 10
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 0
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
     df_complete = pd.DataFrame()
-    for i in range(1, 10):
+    for i in range(1, 6):
         print(f"Run {i}")
         early_stopping_handler = EarlyStoppingHandler(patience=20)
         df_losses, model, pca = trainings_loop(model_name=f"TESTING_{i}", path_to_training_data=path,
@@ -34,7 +36,7 @@ def train_multiple_times_and_plot_losses():
                                           number_of_noise_augmentations=number_of_noise_augmentations,
                                           number_of_rotation_augmentations=number_of_rotation_augmentations,
                                           number_of_blur_augmentations=number_of_blur_augmentations,
-                                          weight_decay=weight_decay, normalize=False,
+                                               weight_decay=weight_decay, normalize=False, absolute_eit=ABSOLUTE_EIT
                                           )
         print(df_losses)
         # rename the columns
@@ -45,8 +47,9 @@ def train_multiple_times_and_plot_losses():
 
     # save the complete dataframe
     df_complete.to_pickle("df_complete_no_normalization.pkl")
+
+    # load instead of training
     # df_complete = pd.read_pickle("df_complete_no_normalization.pkl")
-    average_length_col_without_nan = int(df_complete.count(axis=0).median())
     df_complete = df_complete.iloc[:300, :]
     # get the mean of the complete dataframe
     # select the columns with the loss values
@@ -70,9 +73,15 @@ def train_multiple_times_and_plot_losses():
                      df_complete_val_loss["mean"] + df_complete_val_loss["std"], alpha=0.2)
     plt.legend(["train_loss", "std_train_loss", "val_loss", "std_val_loss"])
     # save as tikz
-    # tikzplotlib.save("losses.tex")
+    plt.title("Loss plot training and validation")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
+    # save points in this format: {(0,0.224)...(103,203.943)}
+    colors = ["blue", "orange"]
+    labels = ["Training Loss", "Std Training Loss", "Validation Loss", "Std Validation Loss"]
+    file_name = "loss_plot.txt"
+    df_list = [df_complete_train_loss, df_complete_val_loss]
+    genterate_linepot_with_std(file_name, df_list, colors, labels)
 
     plt.show()
 
@@ -137,7 +146,6 @@ def plot_for_different_epochs():
             plot_evaluation_results(df_evaluate_results)
 
 
-
 if __name__ == '__main__':
-    plot_for_different_epochs()
-
+    train_multiple_times_and_plot_losses()
+    # plot_for_different_epochs()

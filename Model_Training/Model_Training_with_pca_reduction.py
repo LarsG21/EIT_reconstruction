@@ -105,10 +105,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
                    number_of_blur_augmentations: int = 0, weight_decay: float = 1e-3, normalize=False,
-                   dropout_prob: float = 0.1,
+                   dropout_prob: float = 0.1, absolute_eit: bool = False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    SAMPLE_RECONSTRUCTION_INDEX = 0  # Change this to see different sample reconstructions
+    SAMPLE_RECONSTRUCTION_INDEX = 2  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     pca = None
@@ -119,11 +119,11 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     #################################
     path = path_to_training_data
     #################################
-    if "multi" in path.lower() and not ABSOLUTE_EIT:
+    if "multi" in path.lower() and not absolute_eit:
         raise Exception("Are you trying to train a single frequency model on a multi frequency dataset?")
     # if not any(x in path.lower() for x in ["multi", "abolute"]) and ABSOLUTE_EIT:
     #     raise Exception("Are you trying to train a multi frequency model on a single frequency dataset?")
-    if not ABSOLUTE_EIT and normalize:
+    if not absolute_eit and normalize:
         raise Exception("Relative EIT and Normalization didnt work well")
 
     USE_DIFF_DIRECTLY = False
@@ -152,7 +152,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         voltage_data_np = voltage_data_np[indices]
 
     # Highlight Step 1: In case of time difference EIT, we need to normalize the data with v0
-    if not ABSOLUTE_EIT:
+    if not absolute_eit:
         if not USE_DIFF_DIRECTLY:
             print("INFO: Single frequency EIT data is used. Normalizing the data with v0")
             v0 = np.load(os.path.join(path, "v0.npy"))
@@ -193,7 +193,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # Save settings in txt file
     with open(os.path.join(model_path, "settings.txt"), "w") as f:
         f.write(f"Model: {model_class_name}\n")
-        f.write(f"Absolute EIT: {ABSOLUTE_EIT}\n")
+        f.write(f"Absolute EIT: {absolute_eit}\n")
         f.write(f"NOISE_LEVEL: {noise_level}\n")
         f.write(f"LEARNING_RATE: {learning_rate}\n")
         f.write(f"weight_decay: {weight_decay}\n")
@@ -400,7 +400,7 @@ if __name__ == "__main__":
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
-    path = "../Trainings_Data_EIT32/3_Freq"
+    path = "../Trainings_Data_EIT32/3_Freq_new"
     if update_dataset:
         print("Updating dataset")
         if not ABSOLUTE_EIT:
@@ -408,12 +408,12 @@ if __name__ == "__main__":
         else:
             combine_multiple_pickles(path=path)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 70
+    num_epochs = 200
     learning_rate = 0.001
-    pca_components = 0  # 0 for no PCA
+    pca_components = 512  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 6
+    number_of_noise_augmentations = 10
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
@@ -426,7 +426,7 @@ if __name__ == "__main__":
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
-                                    weight_decay=weight_decay, normalize=True,
+                                    weight_decay=weight_decay, normalize=True, absolute_eit=ABSOLUTE_EIT,
                                     )
 
     if ABSOLUTE_EIT:

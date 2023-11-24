@@ -118,6 +118,7 @@ def combine_multiple_pickles(path):
     print(f"Length of combined df: {len(complete_df)}")
     print(f"Percentage of negative samples: {negative_samples / (negative_samples + positive_samples)}")
     print(f"Percentage of positive samples: {positive_samples / (negative_samples + positive_samples)}")
+    convert_df_to_separate_npy_files(complete_df, save_path=path)
     return complete_df
 
 
@@ -184,12 +185,12 @@ def get_infos_about_eit_dataframe(df, complex_values=True):
 if __name__ == '__main__':
     # path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
-    path = "../Collected_Data/SNR_EXPERIMENt_circular_23_11_eit32_Kartoffel"
+    path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation2"
 
-    combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
-    # combined = combine_multiple_pickles(path=path)
+    # combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+    combined = combine_multiple_pickles(path=path)
 
     # df = combine_multiple_pickles(path=path)
     img_array = combined["images"].to_list()
@@ -201,8 +202,7 @@ if __name__ == '__main__':
     voltage_array = np.array(voltage_array)
     #
     df = combined.sample(frac=1).reset_index(drop=True)
-    # voltage_array, img_array = convert_df_to_separate_npy_files(df,
-    #                                                             save_path=path, )
+
     look_at_dataset(img_array=img_array, v1_array=voltage_array,
                     # v0=v0,
                     )
