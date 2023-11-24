@@ -238,7 +238,7 @@ def solve_eit_using_jac(mesh_new, mesh_obj, protocol_obj, v0, v1):
 def calibration_procedure(gcode_device, RADIUS_TARGET_IN_MM):
     """
     Moves the Target to specific positions for calibration.
-    Moves to positions of electrodes 9, 25, 1, 17
+    Moves to positions of electrodes 9, 25, 17, 1
     :param gcode_device:
     :return:
     """
@@ -251,24 +251,24 @@ def calibration_procedure(gcode_device, RADIUS_TARGET_IN_MM):
     # move to top of the tank
     print("Moving to the top of the tank")
     gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z - RADIUS_TARGET_IN_MM / 2)
-    input("Press Enter to continue...")
+    input("Is at Position 9? Press Enter to continue...")
     # move to the bottom of the tank#
     print("Moving to the bottom of the tank")
     gcode_device.move_to(x=limit_x / 2, y=0, z=0 + RADIUS_TARGET_IN_MM / 2)
-    input("Press Enter to continue...")
+    input("Is at Position 25? Press Enter to continue...")
     # move to the center of the tank
     gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
     # move to the right of the tank
     print("Moving to the right of the tank")
     gcode_device.move_to(x=0 + RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
+    input("Is at Position 17? Press Enter to continue...")
     # move to the left of the tank
     print("Moving to the left of the tank")
     gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
     input("Press Enter to continue...")
     # move to the center of the tank
     gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
+    input("Is at Position 1? Press Enter to continue...")
 
 
 def find_center_of_mass(img):

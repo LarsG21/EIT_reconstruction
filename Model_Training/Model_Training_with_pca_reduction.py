@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from CustomDataset import CustomDataset
 from Data_Generation.combine_datasets_and_convert_to_correct_format_for_training import \
-    combine_multiple_pickles_and_calculate_normalized_voltage_diff
+    combine_multiple_pickles_and_calculate_normalized_voltage_diff, combine_multiple_pickles
 from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.Plot_results_of_evaluation import plot_evaluation_results
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
@@ -31,7 +31,6 @@ LOSS_SCALE_FACTOR = 1000
 # VOLTAGE_VECTOR_LENGTH = 6144
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
-ABSOLUTE_EIT = False
 USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
 
 # How to use Cuda gtx 1070: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu113
@@ -105,11 +104,11 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    early_stopping_handler: EarlyStoppingHandler, loading_path: str = "",
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
-                   number_of_blur_augmentations: int = 0, weight_decay: float = 1e-3, normalize=True,
+                   number_of_blur_augmentations: int = 0, weight_decay: float = 1e-3, normalize=False,
                    dropout_prob: float = 0.1,
                    ):
     global VOLTAGE_VECTOR_LENGTH
-    SAMPLE_RECONSTRUCTION_INDEX = 2  # Change this to see different sample reconstructions
+    SAMPLE_RECONSTRUCTION_INDEX = 0  # Change this to see different sample reconstructions
     SAVE_CHECKPOINTS = False
     LOSS_PLOT_INTERVAL = 10
     pca = None
@@ -390,28 +389,32 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    update_dataset = False
-    model_name = "Default_Test_23_11"
+    update_dataset = True
+    ABSOLUTE_EIT = True
+    model_name = "TESTING"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Trainings_Data_EIT32/3_Freq"
     if update_dataset:
         print("Updating dataset")
-        combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+        if not ABSOLUTE_EIT:
+            combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+        else:
+            combine_multiple_pickles(path=path)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    ABSOLUTE_EIT = False
-    num_epochs = 120
+    num_epochs = 70
     learning_rate = 0.001
     pca_components = 0  # 0 for no PCA
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 3
-    number_of_rotation_augmentations = 2
+    number_of_noise_augmentations = 6
+    number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
@@ -423,7 +426,7 @@ if __name__ == "__main__":
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
-                                    weight_decay=weight_decay, normalize=False,
+                                    weight_decay=weight_decay, normalize=True,
                                     )
 
     if ABSOLUTE_EIT:
@@ -440,7 +443,8 @@ if __name__ == "__main__":
     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
     df_test_set = pd.read_pickle(test_set_path)
 
-    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False, df_test_set=df_test_set,
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=True, SHOW=False,
+                                                        df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
     plot_evaluation_results(df_evaluate_results)
     print(f"Average cross correlation: {df_evaluate_results['cross_correlation'].mean()}")

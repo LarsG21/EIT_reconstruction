@@ -35,6 +35,17 @@ img_size = 64
 
 RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 
+# METADATA
+TARGET = "CYLINDER"
+MATERIAL_TARGET = "PLA"
+TANK_ORIENTATION = "Klebeband auf Elektrode 9"
+VOLTAGE_FREQUENCY = "1KHZ - 1MHZ"
+NUMBER_OF_FREQUENCIES = 3
+CURRENT = 0.1
+CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
+CONDUCTIVITY_TARGET = 0.1  # in S/m
+EIT_32_used = True
+
 
 
 def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray):
@@ -113,7 +124,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
                 "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
                 "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
-                "current": CURRENT, "number_of_freqs": NUMBER_OF_FREQUENCIES,
+                "current": CURRENT, "number_of_freqs": NUMBER_OF_FREQUENCIES, "eit_32_used": EIT_32_used,
+                "tank orientation": TANK_ORIENTATION,
                 }
     with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
         file.write(json.dumps(metadata))
@@ -272,14 +284,6 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
 
 
-# METADATA
-TARGET = "CYLINDER"
-MATERIAL_TARGET = "PLA"
-VOLTAGE_FREQUENCY = "1KHZ - 1MHZ"
-NUMBER_OF_FREQUENCIES = 3
-CURRENT = 0.1
-CONDUCTIVITY_BG = 0.1  # in S/m     # TODO: Measure this
-CONDUCTIVITY_TARGET = 1000  # in S/m
 
 
 def main():
@@ -308,15 +312,15 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Training_set_circular_08_11_3_freq_40mm"
+    TEST_NAME = "Training_set_circular_24_11_3_freq_40mm_eit32"
     # warn if the folder already exists
     if os.path.exists(f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"):
         input("WARNING: The folder already exists. Press enter to continue")
     # warn if folder name has other number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    collect_data(gcode_device=ender, number_of_samples=3000,
-                 eit_data_path="../eit_data",
+    collect_data(gcode_device=ender, number_of_samples=2000,
+                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                  save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}")
     # collect_data_circle_pattern(gcode_device=ender, number_of_runs=8,
     #                             eit_data_path="../eit_data",

@@ -33,10 +33,6 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     print(border_position_error)
     print(border_shape_deformation)
     print("Number of samples", len(df))
-    # replace outliers with mean
-    # df["amplitude_response"] = df["amplitude_response"].apply(lambda x: x if np.abs(x - df["amplitude_response"].mean()) <= (1 * df["amplitude_response"].std()) else df["amplitude_response"].mean())
-    # df["position_error"] = df["position_error"].apply(lambda x: x if np.abs(x - df["position_error"].mean()) <= (1 * df["position_error"].std()) else df["position_error"].mean())
-    # df["shape_deformation"] = df["shape_deformation"].apply(lambda x: x if np.abs(x - df["shape_deformation"].mean()) <= (1 * df["shape_deformation"].std()) else df["shape_deformation"].mean())
 
     # remove constant offset from position_error
 
