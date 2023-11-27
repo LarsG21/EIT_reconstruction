@@ -17,27 +17,27 @@ def train_multiple_times_and_plot_losses():
     ABSOLUTE_EIT = True
     num_epochs = 60
     learning_rate = 0.001
-    pca_components = 256
+    pca_components = 128
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 2
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 0
+    number_of_blur_augmentations = 5
     weight_decay = 1e-3  # Adjust this value as needed (L2 regularization)
     df_complete = pd.DataFrame()
-    for i in range(1, 6):
+    for i in range(1, 10):
         print(f"Run {i}")
         early_stopping_handler = EarlyStoppingHandler(patience=20)
         df_losses, model, pca = trainings_loop(model_name=f"TESTING_{i}", path_to_training_data=path,
-                                          num_epochs=num_epochs, learning_rate=learning_rate,
-                                          early_stopping_handler=early_stopping_handler,
-                                          pca_components=pca_components, add_augmentation=add_augmentation,
-                                          noise_level=noise_level,
-                                          number_of_noise_augmentations=number_of_noise_augmentations,
-                                          number_of_rotation_augmentations=number_of_rotation_augmentations,
-                                          number_of_blur_augmentations=number_of_blur_augmentations,
+                                               num_epochs=num_epochs, learning_rate=learning_rate,
+                                               early_stopping_handler=early_stopping_handler,
+                                               pca_components=pca_components, add_augmentation=add_augmentation,
+                                               noise_level=noise_level,
+                                               number_of_noise_augmentations=number_of_noise_augmentations,
+                                               number_of_rotation_augmentations=number_of_rotation_augmentations,
+                                               number_of_blur_augmentations=number_of_blur_augmentations,
                                                weight_decay=weight_decay, normalize=False, absolute_eit=ABSOLUTE_EIT
-                                          )
+                                               )
         print(df_losses)
         # rename the columns
         df_losses = df_losses.rename(columns={"loss": f"loss_{i}", "val_loss": f"val_loss_{i}"})

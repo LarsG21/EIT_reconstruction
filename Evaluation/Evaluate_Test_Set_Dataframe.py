@@ -6,6 +6,8 @@ import cv2
 import pandas as pd
 import torch
 import numpy as np
+import scipy.stats as stats
+from sklearn.linear_model import LinearRegression
 
 from pyeit import mesh
 from pyeit.eit import protocol
@@ -134,11 +136,11 @@ USE_OPENCV_FOR_PLOTTING = True
 def main():
     global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
-    model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment/model_2023-10-23_13-50-11_122_150.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TESTING/model_2023-11-27_17-24-18_99_100.pth"
     # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
     # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
     # New Path
@@ -152,9 +154,9 @@ def main():
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
-    # regressor = None
-    regressor = pickle.load(open(regressor_path, 'rb'))
+    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
+    regressor = None
+    # regressor = pickle.load(open(regressor_path, 'rb'))
 
     #### END Settings #######
 
@@ -264,8 +266,17 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
                                                                                            model_input=v1)
         else:
             v1 = v1.reshape(1, -1)
-            new_flat_picture = regressor.predict(v1) - mean
+            new_flat_picture = regressor.predict(v1)
+            if type(regressor) == LinearRegression:  # Subtract the mean for linear regression
+                new_flat_picture = new_flat_picture - mean
+            # set mode to 0
+            mode = stats.mode(new_flat_picture)[0][0]
+            new_flat_picture[new_flat_picture == mode] = 0
             img_non_thresh = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
+            plt.imshow(img_non_thresh)
+            plt.title("Reconstructed image")
+            plt.colorbar()
+            plt.show()
             img_reconstructed = img_non_thresh.copy()
             img_reconstructed[img_non_thresh < 0.25] = 0
             # set smaller than 0.2 but bigger than 0 to 0

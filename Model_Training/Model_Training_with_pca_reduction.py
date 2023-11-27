@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from CustomDataset import CustomDataset
 from Data_Generation.combine_datasets_and_convert_to_correct_format_for_training import \
-    combine_multiple_pickles_and_calculate_normalized_voltage_diff, combine_multiple_pickles
+    combine_multiple_datasets_with_individual_v0, combine_multiple_pickles
 from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.Plot_results_of_evaluation import plot_evaluation_results
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
@@ -389,9 +389,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    update_dataset = True
-    ABSOLUTE_EIT = True
-    model_name = "TESTING"
+    update_dataset = False
+    ABSOLUTE_EIT = False
+    model_name = "TESTING_27_11"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
@@ -399,18 +399,19 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
-    path = "../Trainings_Data_EIT32/3_Freq_new"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/3_Freq_new"
+    # path = "../Collected_Data/Even_orientation_3_freq"
     if update_dataset:
         print("Updating dataset")
         if not ABSOLUTE_EIT:
-            combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
+            combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
         else:
             combine_multiple_pickles(path=path)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 200
+    num_epochs = 100
     learning_rate = 0.001
-    pca_components = 512  # 0 for no PCA
+    pca_components = 0  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
     number_of_noise_augmentations = 10
@@ -426,7 +427,7 @@ if __name__ == "__main__":
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
-                                    weight_decay=weight_decay, normalize=True, absolute_eit=ABSOLUTE_EIT,
+                                    weight_decay=weight_decay, normalize=False, absolute_eit=ABSOLUTE_EIT,
                                     )
 
     if ABSOLUTE_EIT:

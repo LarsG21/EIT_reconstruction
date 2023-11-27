@@ -38,7 +38,7 @@ RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 # METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
-TANK_ORIENTATION = "Klebeband auf Elektrode 4"
+TANK_ORIENTATION = "Klebeband auf Elektrode 13"
 VOLTAGE_FREQUENCY = "1KHZ - 1MHZ"
 NUMBER_OF_FREQUENCIES = 3
 CURRENT = 0.1
@@ -163,7 +163,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     df = pd.DataFrame({"images": images, "voltages": voltages})
     save_path_data = os.path.join(save_path, f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
     df.to_pickle(save_path_data)
-
+    print(f"Saved data to {save_path_data}")
 
 def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, eit_data_path: str, save_path: str,
                                 debug_plots: bool = True):
@@ -316,7 +316,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Training_set_circular_24_11_3_freq_40mm_eit32_orientation4"
+    TEST_NAME = "Training_set_circular_24_11_3_freq_40mm_eit32_orientation13"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/Even_orientation_3_freq/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
@@ -324,7 +324,7 @@ def main():
     # warn if folder name has other number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    collect_data(gcode_device=ender, number_of_samples=3000,
+    collect_data(gcode_device=ender, number_of_samples=100,
                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                  save_path=save_path)
     # collect_data_circle_pattern(gcode_device=ender, number_of_runs=8,
