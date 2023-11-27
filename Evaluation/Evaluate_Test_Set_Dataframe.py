@@ -152,7 +152,7 @@ def main():
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
+    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
     # regressor = None
     regressor = pickle.load(open(regressor_path, 'rb'))
 
@@ -265,17 +265,14 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         else:
             v1 = v1.reshape(1, -1)
             new_flat_picture = regressor.predict(v1) - mean
-            img_reconstructed = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
-            img_reconstructed[img_reconstructed < 0.25] = 0
+            img_non_thresh = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
+            img_reconstructed = img_non_thresh.copy()
+            img_reconstructed[img_non_thresh < 0.25] = 0
             # set smaller than 0.2 but bigger than 0 to 0
             # img_reconstructed[np.logical_and(img_reconstructed < 0.2, img_reconstructed > 0)] = 0
-            # img_reconstructed[0 > img_reconstructed] =
         ######################## Ringing #################################
         # Ringing is the sum of all negative values in the image devided by the sum of |all values| in the image
-        if regressor is None:
-            ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
-        else:
-            ringing = - np.sum(img_reconstructed[img_reconstructed < 0]) / np.sum(np.abs(img_reconstructed))
+        ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
         print(f"Ringing: {ringing}")
         ringings.append(ringing)
 
