@@ -316,7 +316,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Training_set_circular_24_11_3_freq_40mm_eit32_orientation13"
+    TEST_NAME = "Training_set_circular_24_11_3_freq_40mm_eit32_orientation15"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/Even_orientation_3_freq/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):

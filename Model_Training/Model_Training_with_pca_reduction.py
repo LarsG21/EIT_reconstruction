@@ -389,9 +389,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 
 if __name__ == "__main__":
-    update_dataset = False
-    ABSOLUTE_EIT = False
-    model_name = "TESTING_27_11"
+    update_dataset = True
+    ABSOLUTE_EIT = True
+    model_name = "TESTING_27_11_2"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
@@ -399,19 +399,16 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
-    # path = "../Collected_Data/Even_orientation_3_freq"
+    path = "../Collected_Data/Even_orientation_3_freq"
     if update_dataset:
         print("Updating dataset")
-        if not ABSOLUTE_EIT:
-            combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
-        else:
-            combine_multiple_pickles(path=path)
+        combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 100
+    num_epochs = 70
     learning_rate = 0.001
-    pca_components = 0  # 0 for no PCA
+    pca_components = 256  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
     number_of_noise_augmentations = 10

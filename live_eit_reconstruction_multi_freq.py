@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
-    model_pca_path = "Trainings_Data_EIT32/3_Freq_new/Models/LinearModelWithDropout2/TESTING/model_2023-11-24_13-13-16_199_200.pth"
+    model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING/model_2023-11-27_14-30-29_169_200.pth"
     norm, absolute = check_settings_of_model(model_pca_path)
     if norm is not None and norm != NORMALIZE:
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")

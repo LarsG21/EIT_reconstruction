@@ -265,10 +265,10 @@ def calibration_procedure(gcode_device, RADIUS_TARGET_IN_MM):
     # move to the left of the tank
     print("Moving to the left of the tank")
     gcode_device.move_to(x=limit_x - RADIUS_TARGET_IN_MM / 2, y=0, z=limit_z / 2)
-    input("Press Enter to continue...")
+    input("Is at Position 1? Press Enter to continue...")
     # move to the center of the tank
     gcode_device.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-    input("Is at Position 1? Press Enter to continue...")
+    input("Press Enter to continue...")
 
 
 def find_center_of_mass(img):

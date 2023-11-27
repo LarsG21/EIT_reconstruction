@@ -124,7 +124,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 ### Setings ###
-ABSOLUTE_EIT = False
+ABSOLUTE_EIT = True
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
 NORMALIZE = False
@@ -136,7 +136,7 @@ USE_OPENCV_FOR_PLOTTING = True
 def main():
     global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
     ####### Settings #######
-    SHOW = True
+    SHOW = False
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
@@ -154,9 +154,9 @@ def main():
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
-    regressor = None
-    # regressor = pickle.load(open(regressor_path, 'rb'))
+    regressor_path = "../Results_Traditional_Models_AbsoluteEIT_2/KNeighborsRegressor/model.pkl"
+    # regressor = None
+    regressor = pickle.load(open(regressor_path, 'rb'))
 
     #### END Settings #######
 
