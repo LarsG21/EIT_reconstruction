@@ -122,42 +122,43 @@ def combine_multiple_pickles(path):
     return complete_df
 
 
-def combine_multiple_pickles_and_calculate_normalized_voltage_diff(path):
+def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
     df_complete = pd.DataFrame()
     for folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, folder)) and folder != "Models" and folder != "Exclude":
             print(folder)
-            # get v0 in folder
-            v0 = np.load(os.path.join(path, folder, "v0.npy"))
-            print(f"v0: {v0}")
             combined = combine_multiple_pickles(os.path.join(path, folder))
-            # calculate normalized voltage difference
-            example_diff = (combined["voltages"].iloc[0] - v0) / v0
-            print(f"example_diff: {example_diff}")
-            # do the same for all voltages and save in col "voltage_diff"
-            combined["voltage_diff"] = combined["voltages"].apply(lambda x: (x - v0) / v0)
-            print(combined["voltage_diff"].iloc[0])
+            # get v0 in folder
+            if not absolute_eit:
+                v0 = np.load(os.path.join(path, folder, "v0.npy"))
+                print(f"v0: {v0}")
+                # calculate normalized voltage difference
+                # do the same for all voltages and save in col "voltage_diff"
+                combined["voltage_diff"] = combined["voltages"].apply(lambda x: (x - v0) / v0)
+                print(combined["voltage_diff"].iloc[0])
             # add to df_complete
             df_complete = pd.concat([df_complete, combined])
         elif folder.endswith(".pkl") and folder != "combined.pkl":  # For Empty image samples (V0s):
             df = pd.read_pickle(os.path.join(path, folder))
             print(f"length of {folder}: {len(df)}")
             # for those use v0 as average of all v0
-            v0_empty_images = np.array(df["voltages"].mean())
-            df["voltage_diff"] = df["voltages"].apply(lambda x: (
-                                                                        x - v0_empty_images) / v0_empty_images)  # Not perfect but just calculate with v0 from last folder
+            if not absolute_eit:
+                v0_empty_images = np.array(df["voltages"].mean())
+                df["voltage_diff"] = df["voltages"].apply(lambda x: (
+                                                                            x - v0_empty_images) / v0_empty_images)  # Not perfect but just calculate with v0 from last folder
             df_complete = pd.concat([df_complete, df])
-
-    df_complete.to_pickle(os.path.join(path, "combined.pkl"))
-    # save images as npy
-    img_array = df_complete["images"].to_list()
-    img_array = np.array(img_array)
-    np.save(os.path.join(path, "img_array.npy"), img_array)
-    # save voltages as npy
-    voltage_array = df_complete["voltage_diff"].to_list()
-    voltage_array = np.array(voltage_array)
-    np.save(os.path.join(path, "voltage_diff_array.npy"), voltage_array)
-
+    if not absolute_eit:
+        df_complete.to_pickle(os.path.join(path, "combined.pkl"))
+        # save images as npy
+        img_array = df_complete["images"].to_list()
+        img_array = np.array(img_array)
+        np.save(os.path.join(path, "img_array.npy"), img_array)
+        # save voltages as npy
+        voltage_array = df_complete["voltage_diff"].to_list()
+        voltage_array = np.array(voltage_array)
+        np.save(os.path.join(path, "voltage_diff_array.npy"), voltage_array)
+    else:
+        convert_df_to_separate_npy_files(df_complete, save_path=path)
     return df_complete
 
 
@@ -187,10 +188,10 @@ if __name__ == '__main__':
     # path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
-    path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation2"
-
-    # combined = combine_multiple_pickles_and_calculate_normalized_voltage_diff(path=path)
-    combined = combine_multiple_pickles(path=path)
+    # path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation1"
+    path = "../Collected_Data/Even_orientation_3_freq"
+    combined = combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=True)
+    # combined = combine_multiple_pickles(path=path)
 
     # df = combine_multiple_pickles(path=path)
     img_array = combined["images"].to_list()
