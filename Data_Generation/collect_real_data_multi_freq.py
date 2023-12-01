@@ -39,7 +39,7 @@ RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 # METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
-TANK_ORIENTATION = "Klebeband auf Elektrode 25"
+TANK_ORIENTATION = "Klebeband auf Elektrode 26"
 VOLTAGE_FREQUENCY = "1KHZ - 1MHZ"
 NUMBER_OF_FREQUENCIES = 3
 CURRENT = 0.1
@@ -240,7 +240,7 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 if i == 0:
                     last_centers = last_centers[1:]
                     # wait for the first movement to finish
-                    time.sleep(4)
+                    time.sleep(1)
                 i += 1
                 """ 4. collect data """
                 # get the newest file in the folder
@@ -327,7 +327,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2"
+    TEST_NAME = "Train_set_circular_01_12_3_freq_40mm_eit32_orientation26"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
@@ -338,7 +338,7 @@ def main():
     # collect_data(gcode_device=ender, number_of_samples=100,
     #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #              save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=12,
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=30,
                                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                                 save_path=save_path)
 
