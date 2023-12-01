@@ -218,15 +218,15 @@ if __name__ == "__main__":
     # path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
     path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
     pca_components = 256  # 0 means no pca
-    noise_level = 0.001
-    number_of_noise_augmentations = 2
+    noise_level = 0.08
+    number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        LinearRegression(),
+        # LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
         KNeighborsRegressor(n_neighbors=2),
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         model_name = regressor.__class__.__name__
         print("Training with regressor: ", regressor.__class__.__name__)
         start_time = time.time()
-        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=False,
+        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=True,
                         add_augmentation=add_augmentations, results_folder=results_folder,
                         pca_components=pca_components)
         print("Training took: ", time.time() - start_time)

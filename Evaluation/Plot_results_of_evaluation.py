@@ -231,6 +231,6 @@ if __name__ == '__main__':
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
     df = pd.read_pickle(
-        "Results/evaluation_regressor_LinearRegression.pkl")
+        "Results/evaluation_regressor_KNeighborsRegressor.pkl")
     plot_evaluation_results(df, open_plots_over_space=True)
     # main()

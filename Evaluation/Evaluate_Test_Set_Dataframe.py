@@ -181,8 +181,8 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         else:
             v1 = v1.reshape(1, -1)
             new_flat_picture = regressor.predict(v1)
-            # if type(regressor) == LinearRegression:  # Subtract the mean for linear regression
-            #     new_flat_picture = new_flat_picture - mean
+            if type(regressor) == LinearRegression:  # Subtract the mean for linear regression
+                new_flat_picture = new_flat_picture - mean
             # set mode to 0
             mode = stats.mode(new_flat_picture)[0][0]
             new_flat_picture[new_flat_picture == mode] = 0
@@ -243,7 +243,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
+ABSOLUTE_EIT = False
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
 NORMALIZE = False
@@ -273,7 +273,7 @@ def main():
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    regressor_path = "../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl"
+    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
     # regressor = None
     regressor = pickle.load(open(regressor_path, 'rb'))
 

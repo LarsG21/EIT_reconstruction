@@ -58,91 +58,18 @@ def genterate_linepot_with_std(file_name, df_list: [pd.DataFrame], colors, label
         f.write("\end{tikzpicture}\n")
 
 
-# generate boxplot like this:
-# \begin{tikzpicture}
-#     \pgfplotstableread[col sep=comma]{data.csv}\csvdata
-#     \begin{axis}[
-#         boxplot/draw direction = y,
-#         axis x line* = bottom,
-#         axis y line* = left,
-#         enlarge y limits,
-#         ymajorgrids,
-#         grid style = {dashed, gray!50}, % Add grid style
-#         xtick = {1, 2, 3, 4},
-#         xticklabel style = {align=center, font=\tiny},
-#         xticklabels = {AR, SD, Ringing},
-#         xtick style = {draw=none},
-#         ylabel = {Relative metric},
-#     ]
-#         \addplot+[
-#             boxplot prepared={
-#                 median=1,
-#                 upper quartile=1.2,
-#                 lower quartile=0.4,
-#                 upper whisker=1.5,
-#                 lower whisker=0.2
-#             },fill = cyan!20
-#         ] coordinates {};
-#         \addplot+[
-#             boxplot prepared={
-#                 median=2,
-#                 upper quartile=2.3,
-#                 lower quartile=1.5,
-#                 upper whisker=2.7,
-#                 lower whisker=1
-#             }, fill = orange!20
-#         ] coordinates {};
-#         \addplot+[
-#             boxplot prepared={
-#                 median=0.7,
-#                 upper quartile=1.4,
-#                 lower quartile=0.5,
-#                 upper whisker=1.9,
-#                 lower whisker=0.1
-#             },fill = green!20,
-#             draw =green,
-#         ] coordinates {};
-#     \end{axis}
-#      % Draw lines on the top and right sides of the coordinate system
-#     \draw (current axis.south east) -- (current axis.north east);
-#     \draw (current axis.south west) -- (current axis.south east);
-# \end{tikzpicture}
-
-# wit parameters in dictionsary like this:
-#     boxplot_dict_ar = {
-#         "lower whisker": whis_ar[0],
-#         "lower quartile": q1_ar,
-#         "median": median_ar,
-#         "upper quartile": q3_ar,
-#         "upper whisker": whis_ar[1]
-#     }
-#     boxplot_dict_sd = {
-#         "lower whisker": whis_sd[0],
-#         "lower quartile": q1_sd,
-#         "median": median_sd,
-#         "upper quartile": q3_sd,
-#         "upper whisker": whis_sd[1]
-#     }
-#     boxplot_dict_ringing = {
-#         "lower whisker": whis_ringing[0],
-#         "lower quartile": q1_ringing,
-#         "median": median_ringing,
-#         "upper quartile": q3_ringing,
-#         "upper whisker": whis_ringing[1]
-#     }
 
 
 def generate_boxplot(file_name, boxplot_dict_list, labels, colors):
     with open(file_name, "w") as f:
         f.write("\\begin{tikzpicture}\n")
-        f.write("\\pgfplotstableread[col sep=comma]{data.csv}\\csvdata\n")
         f.write("\\begin{axis}[\n")
         f.write("boxplot/draw direction = y,\n")
         f.write("enlarge y limits,\n")
         f.write("ymajorgrids,\n")
         f.write("grid style = {dashed, gray!50}, % Add grid style\n")
         f.write("xtick = {1, 2, 3, 4},\n")
-        f.write("xticklabel style = {align=center, font=\\tiny},\n")
+        f.write("xticklabel style = {align=center, font=\\samll},\n")
         f.write("xticklabels = {")
         for i, label in enumerate(labels):
             f.write(f"{label}")
