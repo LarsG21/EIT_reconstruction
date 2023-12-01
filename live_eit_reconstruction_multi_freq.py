@@ -1,18 +1,15 @@
 import logging
 import os
-import pickle
 import time
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
-from Model_Training.Models import LinearModelWithDropout2, LinearModelWithDropout
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
 from plot_utils import solve_and_plot_with_nural_network
 from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame, add_normalizations, \
-    check_settings_of_model
+    load_model_from_path
 
 
 def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
@@ -124,25 +121,8 @@ if __name__ == '__main__':
 
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
-    model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING/model_2023-11-27_14-30-29_169_200.pth"
-    norm, absolute = check_settings_of_model(model_pca_path)
-    if norm is not None and norm != NORMALIZE:
-        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
-        NORMALIZE = norm
-    if absolute is False:
-        print("The model is not ment for absolute EIT.")
-        exit(1)
-    pca_path = os.path.join(os.path.dirname(model_pca_path), "pca.pkl")
-    if os.path.exists(pca_path):
-        print("Loading the PCA")
-        pca = pickle.load(open(pca_path, "rb"))
-        print("PCA loaded")
-        VOLTAGE_VECTOR_LENGTH = pca.n_components_
-    model_pca = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    print("Loading the model")
-
-    model_pca.load_state_dict(torch.load(model_pca_path))
-    model_pca.eval()
+    model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+    model_pca, pca, NORMALIZE = load_model_from_path(path=model_pca_path, normalize=NORMALIZE)
     try:
         plot_eit_video(path)
     except RuntimeError as e:

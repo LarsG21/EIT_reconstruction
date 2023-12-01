@@ -1,12 +1,15 @@
 from __future__ import division, absolute_import, print_function
 
 import os
+import pickle
 import time
 
 import cv2
 import numpy as np
+import torch
 from matplotlib import pyplot as plt
 
+from Model_Training.Models import LinearModelWithDropout2
 from pyeit.eit import jac as jac
 from pyeit.eit.interp2d import sim2pts
 
@@ -124,12 +127,12 @@ def wait_1_file_and_get_next(path):
     len_before = len(files_before)
     while len_before == len(os.listdir(path)):
         print("Waiting for first file to be written")
-        time.sleep(1)
+        time.sleep(0.1)
     print("First file written")
     len_before = len(os.listdir(path))
     while len_before == len(os.listdir(path)):
         print("Waiting for second file to be written")
-        time.sleep(1)
+        time.sleep(0.1)
     print("Second file written")
     files = os.listdir(path)
     paths = [os.path.join(path, basename) for basename in files]
@@ -321,6 +324,62 @@ def add_electrode_normalizations(v1, NORMALIZE_PER_ELECTRODE=False):
         plt.show()
         print("OK")
         return np.array(normalized_samples).flatten()
+
+
+def check_settings_of_model(model_path):
+    """
+    Checks the settings.txt file of the model and returns the value of normalize.
+    :param model_path:
+    :return:
+    """
+    settings_path = os.path.join(os.path.dirname(model_path), "settings.txt")
+    normalize, absolute = None, None
+    if os.path.exists(settings_path):
+        print("Loading settings")
+        # search for line with "normalize: " and see if it is True or False
+        with open(settings_path, "r") as f:
+            for line in f.readlines():
+                if "normalize: " in line:
+                    if "True" in line:
+                        normalize = True
+                    else:
+                        normalize = False
+                    break
+                elif "Absolute EIT" in line:
+                    if "True" in line:
+                        absolute = True
+                    else:
+                        absolute = False
+
+    return normalize, absolute
+
+
+def load_model_from_path(path, normalize=True, voltage_vector_length=1024, out_size=64):
+    """
+    Loads the model from the given path.
+    :param path:
+    :return:
+    """
+    pca = None
+    norm, absolute = check_settings_of_model(path)
+    if norm is not None and norm != normalize:
+        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
+        normalize = norm
+    if absolute is False:
+        print("The model is not ment for absolute EIT.")
+        exit(1)
+    pca_path = os.path.join(os.path.dirname(path), "pca.pkl")
+    if os.path.exists(pca_path):
+        print("Loading the PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+        print("PCA loaded")
+        voltage_vector_length = pca.n_components_
+    model_pca = LinearModelWithDropout2(input_size=voltage_vector_length, output_size=out_size ** 2)
+    print("Loading the model")
+    model_pca.load_state_dict(torch.load(path))
+    model_pca.eval()
+    return model_pca, pca, normalize
+
 
 if __name__ == '__main__':
     for i in range(100):

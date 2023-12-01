@@ -9,9 +9,10 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac, wait_1_file_and_get_next, calibration_procedure
+    solve_eit_using_jac, wait_1_file_and_get_next, calibration_procedure, load_model_from_path
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df, convert_multi_frequency_eit_to_df
+from plot_utils import solve_and_plot_with_nural_network
 from pyeit import mesh
 from pyeit.eit import protocol
 from utils import wait_for_start_of_measurement
@@ -38,7 +39,7 @@ RELATIVE_RADIUS_TARGET = RADIUS_TARGET_IN_MM / RADIUS_TANK_IN_MM
 # METADATA
 TARGET = "CYLINDER"
 MATERIAL_TARGET = "PLA"
-TANK_ORIENTATION = "Klebeband auf Elektrode 13"
+TANK_ORIENTATION = "Klebeband auf Elektrode 25"
 VOLTAGE_FREQUENCY = "1KHZ - 1MHZ"
 NUMBER_OF_FREQUENCIES = 3
 CURRENT = 0.1
@@ -46,6 +47,8 @@ CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
 CONDUCTIVITY_TARGET = 0.1  # in S/m
 EIT_32_used = True
 
+model_pca_path = "../Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+model, pca, normalize = load_model_from_path(path=model_pca_path, normalize=False)
 
 
 def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray):
@@ -142,6 +145,9 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     for i in range(number_of_samples):
         img, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
                                                         last_position=last_centers[-1])
+        v1_plot = pca.transform(v1.reshape(1, -1))
+        solve_and_plot_with_nural_network(model=model, model_input=v1_plot, chow_center_of_mass=False,
+                                          use_opencv_for_plotting=True)
         images.append(img)
         voltages.append(v1)
         timestamps.append(datetime.datetime.now())
@@ -164,6 +170,7 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     save_path_data = os.path.join(save_path, f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
     df.to_pickle(save_path_data)
     print(f"Saved data to {save_path_data}")
+
 
 def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, eit_data_path: str, save_path: str,
                                 debug_plots: bool = True):
@@ -244,6 +251,10 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                     drop=True)
                 df_alternating = df_alternating.to_frame(name="amplitude")
                 v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+                v1_plot = pca.transform(v1.reshape(1, -1))
+                solve_and_plot_with_nural_network(model=model, model_input=v1_plot, chow_center_of_mass=False,
+                                                  use_opencv_for_plotting=True)
+
                 """ 5. create image """
                 img = np.zeros([img_size, img_size])
                 # set to 1 the pixels corresponding to the anomaly unsing cv2.circle
@@ -288,8 +299,6 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
 
 
-
-
 def main():
     devices = list_serial_devices()
     ender = None
@@ -316,20 +325,20 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Training_set_circular_24_11_3_freq_40mm_eit32_orientation15"
-    save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/Even_orientation_3_freq/{TEST_NAME}"
+    TEST_NAME = "Test_set_circular_24_11_3_freq_40mm_eit32_orientation25"
+    save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
         input("WARNING: The folder already exists. Press enter to continue")
     # warn if folder name has other number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    collect_data(gcode_device=ender, number_of_samples=100,
-                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                 save_path=save_path)
-    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=8,
-    #                             eit_data_path="../eit_data",
-    #                             save_path=save_path)
+    # collect_data(gcode_device=ender, number_of_samples=100,
+    #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #              save_path=save_path)
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
+                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                                save_path=save_path)
 
 
 if __name__ == '__main__':

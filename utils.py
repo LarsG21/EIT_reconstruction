@@ -1,9 +1,13 @@
 import os
+import pickle
 import time
 
 import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
+
+from Model_Training.Models import LinearModelWithDropout2
 
 
 def wait_for_start_of_measurement(path):
@@ -179,3 +183,30 @@ def check_settings_of_model(model_path):
                         absolute = False
 
     return normalize, absolute
+
+
+def load_model_from_path(path, normalize=True, voltage_vector_length=1024, out_size=64):
+    """
+    Loads the model from the given path.
+    :param path:
+    :return:
+    """
+    pca = None
+    norm, absolute = check_settings_of_model(path)
+    if norm is not None and norm != normalize:
+        print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
+        normalize = norm
+    if absolute is False:
+        print("The model is not ment for absolute EIT.")
+        exit(1)
+    pca_path = os.path.join(os.path.dirname(path), "pca.pkl")
+    if os.path.exists(pca_path):
+        print("Loading the PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+        print("PCA loaded")
+        voltage_vector_length = pca.n_components_
+    model_pca = LinearModelWithDropout2(input_size=voltage_vector_length, output_size=out_size ** 2)
+    print("Loading the model")
+    model_pca.load_state_dict(torch.load(path))
+    model_pca.eval()
+    return model_pca, pca, normalize
