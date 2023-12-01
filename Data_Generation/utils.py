@@ -156,6 +156,7 @@ def wait_for_n_secs_with_print(n_secs):
     for i in range(n_secs):
         print("Waiting for {} seconds".format(n_secs - i))
         time.sleep(1)
+    time.sleep(0.2)  # for safety
     print("Waiting finished")
     return True
 
