@@ -12,6 +12,8 @@ from Evaluation.eval_plots import plot_shape_deformation, plot_position_error, p
 import tikzplotlib
 
 from Model_Training.Models import LinearModel, LinearModelWithDropout2
+from tiktzplot_utils import generate_boxplot
+from utils import load_model_from_path
 
 
 def plot_evaluation_results(df, open_plots_over_space=True):
@@ -22,7 +24,6 @@ def plot_evaluation_results(df, open_plots_over_space=True):
         for key, value in d.items():
             print(str(key) + "=" + str(value) + ",")
         print("}")
-
 
     # remove outliers from df in amplitude_response and position_error > or < N std
     N = 3
@@ -96,30 +97,6 @@ def plot_evaluation_results(df, open_plots_over_space=True):
         df = df[np.abs(df["position_error"] - df["position_error"].mean()) <= border_position_error]
         df = df[np.abs(df["shape_deformation"] - df["shape_deformation"].mean()) <= border_shape_deformation]
 
-    # average amplitude response, position error and shape deformation
-    avg_ar = df["amplitude_response"].mean()
-    avg_pe = df["position_error"].mean()
-    avg_sd = df["shape_deformation"].mean()
-    avg_ringing = df["ringing"].mean()
-
-    # std of amplitude response, position error and shape deformation
-    std_ar = df["amplitude_response"].std()
-    std_pe = df["position_error"].std()
-    std_sd = df["shape_deformation"].std()
-    std_ringing = df["ringing"].std()
-
-    results_dict = {"avg_ar": avg_ar,
-                    "avg_pe": avg_pe,
-                    "avg_sd": avg_sd,
-                    "avg_ringing": avg_ringing,
-                    "std_ar": std_ar,
-                    "std_pe": std_pe,
-                    "std_sd": std_sd,
-                    "std_ringing": std_ringing
-                    }
-
-    print(f"Results: \n {results_dict}")
-
     # in one plot
     plt.boxplot([df["amplitude_response"], df["shape_deformation"], df["ringing"]], labels=["amplitude_response",
                                                                                             "shape_deformation",
@@ -128,6 +105,7 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     median_ar = df["amplitude_response"].median()
     median_sd = df["shape_deformation"].median()
     median_ringing = df["ringing"].median()
+    median_pe = df["position_error"].median()
     # get upper and lower quartile
     q1_ar = df["amplitude_response"].quantile(0.25)
     q3_ar = df["amplitude_response"].quantile(0.75)
@@ -135,10 +113,13 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     q3_sd = df["shape_deformation"].quantile(0.75)
     q1_ringing = df["ringing"].quantile(0.25)
     q3_ringing = df["ringing"].quantile(0.75)
+    q1_pe = df["position_error"].quantile(0.25)
+    q3_pe = df["position_error"].quantile(0.75)
     # get whiskers
-    whis_ar = [q1_ar - 1.5 * (q3_ar - q1_ar), q3_ar + 1.5 * (q3_ar - q1_ar)]
-    whis_sd = [q1_sd - 1.5 * (q3_sd - q1_sd), q3_sd + 1.5 * (q3_sd - q1_sd)]
-    whis_ringing = [q1_ringing - 1.5 * (q3_ringing - q1_ringing), q3_ringing + 1.5 * (q3_ringing - q1_ringing)]
+    whis_ar = [max(0, q1_ar - 1.5 * (q3_ar - q1_ar)), q3_ar + 1.5 * (q3_ar - q1_ar)]
+    whis_sd = [max(0, q1_sd - 1.5 * (q3_sd - q1_sd)), q3_sd + 1.5 * (q3_sd - q1_sd)]
+    whis_ringing = [max(0, q1_ringing - 1.5 * (q3_ringing - q1_ringing)), q3_ringing + 1.5 * (q3_ringing - q1_ringing)]
+    whis_pe = [max(0, q1_pe - 1.5 * (q3_pe - q1_pe)), q3_pe + 1.5 * (q3_pe - q1_pe)]
 
     # combine all in dict
     boxplot_dict_ar = {
@@ -163,6 +144,24 @@ def plot_evaluation_results(df, open_plots_over_space=True):
         "upper whisker": whis_ringing[1]
     }
 
+    boxplot_dict_pe = {
+        "lower whisker": whis_pe[0],
+        "lower quartile": q1_pe,
+        "median": median_pe,
+        "upper quartile": q3_pe,
+        "upper whisker": whis_pe[1]
+    }
+
+    boxplot_dict_list = [boxplot_dict_ar, boxplot_dict_sd, boxplot_dict_ringing]
+    labels = ["AR", "SD", "Ringing"]
+    colors = ["cyan", "orange", "green"]
+    generate_boxplot("boxplot.tex", boxplot_dict_list, labels, colors)
+
+    boxplot_dict_list = [boxplot_dict_pe]
+    labels = ["PE"]
+    colors = ["cyan"]
+    generate_boxplot("boxplot_pe.tex", boxplot_dict_list, labels, colors)
+
     # print them all out
 
     print(f"Boxplot dict amplitude response: \n {pretty(boxplot_dict_ar)}")
@@ -182,10 +181,7 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     plt.savefig("Results/boxplot_position_error.png")
     plt.show()
 
-    median_pe = df["position_error"].median()
-    q1_pe = df["position_error"].quantile(0.25)
-    q3_pe = df["position_error"].quantile(0.75)
-    whis_pe = [q1_pe - 1.5 * (q3_pe - q1_pe), q3_pe + 1.5 * (q3_pe - q1_pe)]
+
     boxplot_dict_pe = {
         "lower whisker": whis_pe[0],
         "lower quartile": q1_pe,
@@ -201,38 +197,28 @@ def plot_evaluation_results(df, open_plots_over_space=True):
 
 
 def main():
-    ABSOLUTE_EIT = False
-    VOLTAGE_VECTOR_LENGTH = 1024
-    OUT_SIZE = 64
-    model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModel/Default_Test_23_11/model_2023-11-23_17-03-21_119_120.pth"
+    ABSOLUTE_EIT = True
+    normalize = False
+    model_path = "../Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
-        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+        test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
     else:
         # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl.pkl"
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl.pkl"
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
-        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
 
     # load v0 from the same folder as the test set
-    v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+    if not ABSOLUTE_EIT:
+        v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+    else:
+        v0 = None
     df_test_set = pd.read_pickle(test_set_path)
 
-    pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-    pca = None
-    # load pca if it exists
-    if os.path.exists(pca_path):
-        print("Loading PCA")
-        pca = pickle.load(open(pca_path, "rb"))
-        VOLTAGE_VECTOR_LENGTH = pca.n_components_
-        input("Press Enter to continue...")
+    model, pca, NORMALIZE = load_model_from_path(path=model_path, normalize=normalize)
 
-    model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
-
-    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False,
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=model_path, pca=pca,
                                                         regressor=None)
@@ -245,6 +231,6 @@ if __name__ == '__main__':
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
     df = pd.read_pickle(
-        "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+        "Results/evaluation_regressor_LinearRegression.pkl")
     plot_evaluation_results(df, open_plots_over_space=True)
     # main()

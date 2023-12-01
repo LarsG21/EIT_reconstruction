@@ -123,95 +123,8 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
     return shape_deformation
 
 
-### Setings ###
-ABSOLUTE_EIT = True
-OUT_SIZE = 64
-VOLTAGE_VECTOR_LENGTH = 1024
-NORMALIZE = False
-USE_OPENCV_FOR_PLOTTING = True
-
-
-### Setings ###
-
-def main():
-    global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
-    ####### Settings #######
-    SHOW = False
-    print("Loading the model")
-    # Working Examples:
-    # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
-    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TESTING/model_2023-11-27_17-24-18_99_100.pth"
-    # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
-    # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
-    # New Path
-    # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
-    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
-    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
-    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
-    # model_path = "../Trainings_Data_EIT32/1_Freq/Models/LinearModelWithDropout2/Good_results/model_2023-11-10_13-19-10_93_150.pth"
-    # load v0 from the same folder as the model
-    # move up 4 directories up, then go to the v0.npy file
-    # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
-    #                           "v0.npy"))
-
-    regressor_path = "../Results_Traditional_Models_AbsoluteEIT_2/KNeighborsRegressor/model.pkl"
-    # regressor = None
-    regressor = pickle.load(open(regressor_path, 'rb'))
-
-    #### END Settings #######
-
-    if regressor is None:
-        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
-    else:
-        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
-
-    # load pca if it exists
-    if os.path.exists(pca_path):
-        print("Loading PCA")
-        pca = pickle.load(open(pca_path, "rb"))
-        VOLTAGE_VECTOR_LENGTH = pca.n_components_
-        input("Press Enter to continue...")
-
-    # Choose the correct test set and set the voltage vector length
-    if ABSOLUTE_EIT:
-        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
-        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
-    else:
-        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
-        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
-        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
-        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
-
-    if regressor is None:  # Use the nn model
-        # check if the settings.txt file is in the same folder as the model
-        norm, absolute = check_settings_of_model(model_path)
-        if norm is not None and norm != NORMALIZE:
-            print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
-            NORMALIZE = norm
-        if absolute is not None and absolute != ABSOLUTE_EIT:
-            print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
-            ABSOLUTE_EIT = absolute
-        model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-        # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
-        model.load_state_dict(torch.load(model_path))
-        model.eval()
-    else:
-        input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
-              "Press Enter to continue...")
-        model = None
-
-    df_test_set = pd.read_pickle(test_set_path)
-    # load v0 from the same folder as the test set
-    v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
-
-    input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
-          f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
-          f"Press Enter to continue...")
-    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0,
-                                  model=model, model_path=model_path, pca=pca, regressor=regressor)
-
-
-def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0,  model=None, model_path=None, pca=None,
+def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0=None, model=None, model_path=None,
+                                  pca=None,
                                   regressor=None, debug=False):
     """
 
@@ -219,6 +132,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
     :param NORMALIZE: Whether to normalize the input data or not
     :param SHOW: Whether to show the plots or not (for debugging)
     :param df_test_set: A dataframe containing the test dataset
+    :param v0: v0 vector
     :param model: a pytorch model
     :param model_path: path to the model
     :param pca: Principal Component Analysis object
@@ -267,16 +181,16 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         else:
             v1 = v1.reshape(1, -1)
             new_flat_picture = regressor.predict(v1)
-            if type(regressor) == LinearRegression:  # Subtract the mean for linear regression
-                new_flat_picture = new_flat_picture - mean
+            # if type(regressor) == LinearRegression:  # Subtract the mean for linear regression
+            #     new_flat_picture = new_flat_picture - mean
             # set mode to 0
             mode = stats.mode(new_flat_picture)[0][0]
             new_flat_picture[new_flat_picture == mode] = 0
             img_non_thresh = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
-            plt.imshow(img_non_thresh)
-            plt.title("Reconstructed image")
-            plt.colorbar()
-            plt.show()
+            # plt.imshow(img_non_thresh)
+            # plt.title("Reconstructed image")
+            # plt.colorbar()
+            # plt.show()
             img_reconstructed = img_non_thresh.copy()
             img_reconstructed[img_non_thresh < 0.25] = 0
             # set smaller than 0.2 but bigger than 0 to 0
@@ -326,6 +240,99 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
     print(f"saved dataframe to {save_path}")
     print("Use Plot_results_of_evaluation.py to evaluate the results")
     return df
+
+
+### Setings ###
+ABSOLUTE_EIT = True
+OUT_SIZE = 64
+VOLTAGE_VECTOR_LENGTH = 1024
+NORMALIZE = False
+USE_OPENCV_FOR_PLOTTING = True
+
+
+### Setings ###
+
+def main():
+    global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
+    ####### Settings #######
+    SHOW = False
+    print("Loading the model")
+    # Working Examples:
+    # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
+    # model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TESTING/model_2023-11-27_17-24-18_99_100.pth"
+    # model_path = "../Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
+    # model_path = "../Training_Data/3_Freq/Models/LinearModelWithDropout2/Run_16_12/model_2023-10-16_13-23-43_143_300.pth"
+    # New Path
+    # model_path = "../Training_Data/1_Freq_After_16_10/Models/LinearModelWithDropout2/Run_23_10_with_augment_more_negative_set/model_2023-10-23_15-02-47_149_150.pth"
+    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
+    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
+    # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
+    model_path = "../Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+    # load v0 from the same folder as the model
+    # move up 4 directories up, then go to the v0.npy file
+    # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
+    #                           "v0.npy"))
+
+    regressor_path = "../Results_Traditional_Models_AbsoluteEIT/LinearRegression/model.pkl"
+    # regressor = None
+    regressor = pickle.load(open(regressor_path, 'rb'))
+
+    #### END Settings #######
+
+    if regressor is None:
+        pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
+    else:
+        pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+
+    # load pca if it exists
+    if os.path.exists(pca_path):
+        print("Loading PCA")
+        pca = pickle.load(open(pca_path, "rb"))
+        VOLTAGE_VECTOR_LENGTH = pca.n_components_
+        input("Press Enter to continue...")
+
+    # Choose the correct test set and set the voltage vector length
+    if ABSOLUTE_EIT:
+        # test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
+        test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+    else:
+        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"
+        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl"
+        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+
+    if regressor is None:  # Use the nn model
+        # check if the settings.txt file is in the same folder as the model
+        norm, absolute = check_settings_of_model(model_path)
+        if norm is not None and norm != NORMALIZE:
+            print(f"INFO: Setting NORMALIZE to {norm} like in the settings.txt file")
+            NORMALIZE = norm
+        if absolute is not None and absolute != ABSOLUTE_EIT:
+            print(f"INFO: Setting ABSOLUTE_EIT to {absolute} like in the settings.txt file")
+            ABSOLUTE_EIT = absolute
+        model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2)
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
+    else:
+        input(f"Using regressor {regressor.__class__.__name__} for the reconstruction. \n"
+              "Press Enter to continue...")
+        model = None
+
+    df_test_set = pd.read_pickle(test_set_path)
+    if not ABSOLUTE_EIT:
+        # load v0 from the same folder as the test set
+        v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+    else:
+        v0 = None
+
+    input(f"ABSOLUTE_EIT: {ABSOLUTE_EIT} \nVOLTAGE_VECTOR_LENGTH: {VOLTAGE_VECTOR_LENGTH} \n"
+          f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
+          f"Press Enter to continue...")
+    evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0,
+                                  model=model, model_path=model_path, pca=pca, regressor=regressor)
+
 
 
 if __name__ == '__main__':

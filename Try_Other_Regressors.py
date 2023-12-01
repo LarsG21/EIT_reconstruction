@@ -216,20 +216,20 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
     # path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
-    path = "Trainings_Data_EIT32/3_Freq"
-    pca_components = 128  # 0 means no pca
-    noise_level = 0.05
-    number_of_noise_augmentations = 5
+    path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
+    pca_components = 256  # 0 means no pca
+    noise_level = 0.001
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     add_augmentations = True
-    results_folder = "Results_Traditional_Models_AbsoluteEIT_2" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
+    results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        # LinearRegression(),
+        LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=4),
+        KNeighborsRegressor(n_neighbors=2),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),

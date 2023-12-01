@@ -1,0 +1,56 @@
+\documentclass{standalone}
+\usepackage{pgfplots}
+\usepgfplotslibrary{colorbrewer}
+\usetikzlibrary{pgfplots.statistics, pgfplots.colorbrewer}
+\usepackage{pgfplotstable}
+\usepackage{filecontents}
+
+\begin{document}
+    \begin{tikzpicture}
+        \pgfplotstableread[col sep=comma]{data.csv}\csvdata
+        \begin{axis}[
+            boxplot/draw direction = y,
+            x axis line style = {opacity=0},
+            axis x line* = bottom,
+            axis y line = left,
+            enlarge y limits,
+            ymajorgrids,
+            grid style = {dashed, gray!50}, % Add grid style
+            xtick = {1, 2, 3, 4},
+            xticklabel style = {align=center, font=\tiny},
+            xticklabels = {\gls{ar}, \gls{sd}, Ringing},
+            xtick style = {draw=none},
+            ylabel = {Relative metric},
+            ytick = {20, 40}
+        ]
+            \addplot+[
+            boxplot prepared={
+                median=1,
+                upper quartile=1.2,
+                lower quartile=0.4,
+                upper whisker=1.5,
+                lower whisker=0.2
+            },fill = cyan!20
+            ] coordinates {};
+            \addplot+[
+            boxplot prepared={
+                median=2,
+                upper quartile=2.3,
+                lower quartile=1.5,
+                upper whisker=2.7,
+                lower whisker=1
+            }, fill = orange!20
+            ] coordinates {};
+            \addplot+[
+            boxplot prepared={
+                median=0.7,
+                upper quartile=1.4,
+                lower quartile=0.5,
+                upper whisker=1.9,
+                lower whisker=0.1
+            },fill = green!20,
+            draw =green,
+            ] coordinates {};
+        \end{axis}
+    \end{tikzpicture}
+\end{document}

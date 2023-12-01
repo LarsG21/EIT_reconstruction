@@ -147,8 +147,8 @@ def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
                 df["voltage_diff"] = df["voltages"].apply(lambda x: (
                                                                             x - v0_empty_images) / v0_empty_images)  # Not perfect but just calculate with v0 from last folder
             df_complete = pd.concat([df_complete, df])
+    df_complete.to_pickle(os.path.join(path, "combined.pkl"))
     if not absolute_eit:
-        df_complete.to_pickle(os.path.join(path, "combined.pkl"))
         # save images as npy
         img_array = df_complete["images"].to_list()
         img_array = np.array(img_array)
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation1"
-    path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation13"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     combined = combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=True)
     # combined = combine_multiple_pickles(path=path)
 

@@ -327,7 +327,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_set_circular_24_11_3_freq_40mm_eit32_orientation25"
+    TEST_NAME = "Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
@@ -338,7 +338,7 @@ def main():
     # collect_data(gcode_device=ender, number_of_samples=100,
     #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #              save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=6,
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=12,
                                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                                 save_path=save_path)
 

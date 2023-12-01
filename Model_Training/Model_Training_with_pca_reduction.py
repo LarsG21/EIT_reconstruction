@@ -441,7 +441,7 @@ if __name__ == "__main__":
     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
     df_test_set = pd.read_pickle(test_set_path)
 
-    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=True, SHOW=False,
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False,
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
     plot_evaluation_results(df_evaluate_results)
