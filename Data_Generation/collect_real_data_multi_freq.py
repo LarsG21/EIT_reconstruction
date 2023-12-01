@@ -145,7 +145,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     for i in range(number_of_samples):
         img, v1, center_for_moving = collect_one_sample(gcode_device=gcode_device, eit_path=eit_path,
                                                         last_position=last_centers[-1])
-        v1_plot = pca.transform(v1.reshape(1, -1))
+        if pca is not None:
+            v1_plot = pca.transform(v1.reshape(1, -1))
         solve_and_plot_with_nural_network(model=model, model_input=v1_plot, chow_center_of_mass=False,
                                           use_opencv_for_plotting=True)
         images.append(img)
@@ -251,7 +252,8 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                     drop=True)
                 df_alternating = df_alternating.to_frame(name="amplitude")
                 v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
-                v1_plot = pca.transform(v1.reshape(1, -1))
+                if pca is not None:
+                    v1_plot = pca.transform(v1.reshape(1, -1))
                 solve_and_plot_with_nural_network(model=model, model_input=v1_plot, chow_center_of_mass=False,
                                                   use_opencv_for_plotting=True)
 
