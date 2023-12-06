@@ -174,7 +174,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
                                     dropout_prob=dropout_prob)
-    #
+
     # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
     # model = ConvolutionalModelWithDropout(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
@@ -254,7 +254,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                                                   val_voltage, test_voltage, model_path,
                                                                                   device,
                                                                                   n_components=pca_components,
-                                                                                  debug=False,
+                                                                                  debug=True,
                                                                                   train_images=train_images)
     else:  # if ther still is a pca object from a previous run, delete it
         if os.path.exists(os.path.join(model_path, "pca.pkl")):
@@ -390,18 +390,16 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = True
-    ABSOLUTE_EIT = True
-    model_name = "TESTING_01_12_2"
-    # path = "../Training_Data/1_Freq_with_individual_v0s"
+    ABSOLUTE_EIT = False
+    model_name = "Test_06_12_2_no_augment"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
-    # path = "../Collected_Data/Combined_dataset"
-    # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
-    path = "../Collected_Data/Even_orientation_3_freq"
+    # path = "../Collected_Data/Even_orientation_3_freq"
+    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
@@ -409,13 +407,14 @@ if __name__ == "__main__":
     num_epochs = 70
     learning_rate = 0.001
     pca_components = 256  # 0 for no PCA
-    add_augmentation = True
+    add_augmentation = False
     noise_level = 0.02
     number_of_noise_augmentations = 10
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
+    normalize = False
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
     df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
@@ -424,24 +423,28 @@ if __name__ == "__main__":
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
-                                    weight_decay=weight_decay, normalize=False, absolute_eit=ABSOLUTE_EIT,
+                                    weight_decay=weight_decay, normalize=normalize, absolute_eit=ABSOLUTE_EIT,
                                     )
 
     if ABSOLUTE_EIT:
-        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
+        test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+        v0 = None
     else:
         # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl.pkl"
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl.pkl"
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        # # TODO: Remove this again! Only for testing
+        # test_set_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Data_09_11_40mm_eit32_over_night/combined.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
+        v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+
 
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
-    v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
     df_test_set = pd.read_pickle(test_set_path)
 
-    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False, SHOW=False,
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
     plot_evaluation_results(df_evaluate_results)

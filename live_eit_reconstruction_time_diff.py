@@ -145,7 +145,7 @@ OUT_SIZE = 64
 
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
-model_path = "Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TESTING_23_11_pca/model_2023-11-23_15-39-08_69_70.pth"
+model_path = "Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/Test_06_12_2/model_2023-12-06_15-06-56_65_70.pth"
 # model_path = "Collected_Data/Even_Orientation_Dataset/Models/LinearModelWithDropout2/DEBUG/model_2023-11-16_13-44-26_112_200.pth"
 pca = None
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")

@@ -77,8 +77,8 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         tikzplotlib.save("cumulative_variance_explained_by_first_n_components.tikz")
         plt.show()
         # More detailed analysis of the first n components
-        for i in range(0, 127):
-            analyze_principal_component(train_images, train_voltage, component_index=i)
+        # for i in range(0, 127):
+        #     analyze_principal_component(train_images, train_voltage, component_index=i)
         # reconstruct_images_from_pca(pca, train_images, train_voltage, voltage_data_tensor,
         #                             image_data_tensor, n_components=80)
         # reconstruct_voltages_from_pca(pca, voltage_data_tensor, n_components=40)

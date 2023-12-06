@@ -327,7 +327,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Train_set_circular_01_12_3_freq_40mm_eit32_orientation26"
+    TEST_NAME = "Training_set_circular_04_12_3_freq_40mm_eit32_orientation26"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
@@ -335,12 +335,12 @@ def main():
     # warn if folder name has other number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    # collect_data(gcode_device=ender, number_of_samples=100,
-    #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #              save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=30,
-                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                                save_path=save_path)
+    collect_data(gcode_device=ender, number_of_samples=3000,
+                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                 save_path=save_path)
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=30,
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                             save_path=save_path)
 
 
 if __name__ == '__main__':

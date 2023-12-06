@@ -13,8 +13,8 @@ from tiktzplot_utils import genterate_linepot_with_std
 
 
 def train_multiple_times_and_plot_losses():
-    path = "../Training_Data/3_Freq"
-    ABSOLUTE_EIT = True
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    ABSOLUTE_EIT = False
     num_epochs = 60
     learning_rate = 0.001
     pca_components = 128

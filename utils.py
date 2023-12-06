@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 from matplotlib import pyplot as plt
 
-from Model_Training.Models import LinearModelWithDropout2
+from Model_Training.Models import LinearModelWithDropout2, LinearModel
 
 
 def wait_for_start_of_measurement(path):
@@ -185,9 +185,10 @@ def check_settings_of_model(model_path):
     return normalize, absolute
 
 
-def load_model_from_path(path, normalize=True, voltage_vector_length=1024, out_size=64):
+def load_model_from_path(path, normalize=True, absoulte_eit=False, voltage_vector_length=1024, out_size=64):
     """
     Loads the model from the given path.
+    :param absolute_eit:
     :param path:
     :return:
     """
@@ -196,7 +197,7 @@ def load_model_from_path(path, normalize=True, voltage_vector_length=1024, out_s
     if norm is not None and norm != normalize:
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
         normalize = norm
-    if absolute is False:
+    if absolute is False and absoulte_eit is True:
         print("The model is not ment for absolute EIT.")
         exit(1)
     pca_path = os.path.join(os.path.dirname(path), "pca.pkl")

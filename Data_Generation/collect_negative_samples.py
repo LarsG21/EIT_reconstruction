@@ -66,8 +66,8 @@ def collect_samples(eit_path: str, save_path: str):
 
 
 if __name__ == '__main__':
-    eit_path = "C:\\Users\\lgudjons\Desktop\\eit_data\\20231201 11.03.19\setup_1"
-    save_path = "../Collected_Data/negatives_3_freq_orientation25"
+    eit_path = "C:\\Users\\lgudjons\Desktop\\eit_data\\20231204 17.42.23\\setup_1"
+    save_path = "../Collected_Data/negatives_3_freq_orientation26"
     absolute_eit = input("Absolute EIT? (y/n)")
     if absolute_eit == "y":
         ABSOLUTE_EIT = True

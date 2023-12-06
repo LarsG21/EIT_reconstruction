@@ -31,6 +31,7 @@ x, y = pts[:, 0], pts[:, 1]
 """ 1. problem setup """
 # mesh_obj["alpha"] = np.random.rand(tri.shape[0]) * 200 + 100 # NOT USED
 anomaly = PyEITAnomaly_Circle(center=[0.5, 0.5], r=0.2, perm=1000.0)
+# anomaly = []
 
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly)
 
@@ -41,6 +42,7 @@ protocol_obj = protocol.create(n_el, dist_exc=1, step_meas=1, parser_meas="std")
 # calculate simulated data
 fwd = EITForward(mesh_obj, protocol_obj)
 v0 = fwd.solve_eit()
+plt.plot(v0)
 v1 = fwd.solve_eit(perm=mesh_new.perm)
 
 """ 3. JAC solver """

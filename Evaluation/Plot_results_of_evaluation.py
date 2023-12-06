@@ -197,9 +197,9 @@ def plot_evaluation_results(df, open_plots_over_space=True):
 
 
 def main():
-    ABSOLUTE_EIT = True
+    ABSOLUTE_EIT = False
     normalize = False
-    model_path = "../Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModel/TEST_DEFAULT/model_2023-11-21_11-50-12_99_100.pth"
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
@@ -216,7 +216,7 @@ def main():
         v0 = None
     df_test_set = pd.read_pickle(test_set_path)
 
-    model, pca, NORMALIZE = load_model_from_path(path=model_path, normalize=normalize)
+    model, pca, NORMALIZE = load_model_from_path(path=model_path, normalize=normalize, absoulte_eit=ABSOLUTE_EIT)
 
     df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
                                                         df_test_set=df_test_set,
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     # # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
-    df = pd.read_pickle(
-        "Results/evaluation_regressor_KNeighborsRegressor.pkl")
-    plot_evaluation_results(df, open_plots_over_space=True)
-    # main()
+    # df = pd.read_pickle(
+    #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
+    # plot_evaluation_results(df, open_plots_over_space=True)
+    main()

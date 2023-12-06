@@ -69,9 +69,11 @@ def plot_eit_video(path):
     seen_files = []
     centers = []
     eit_path = wait_for_start_of_measurement(path)
+    start_time = time.time()
     while True:
         for current_frame in os.listdir(os.getcwd()):
-            empty_img = np.zeros([64, 64])
+            if time.time() - start_time > 1:
+                print("FPS: ", len(seen_files) / (time.time() - start_time))
             if current_frame.endswith(".eit") and current_frame not in seen_files:
                 time.sleep(0.01)  # wait for file to be written
                 plot_multi_frequency_eit_image(os.path.join(eit_path, current_frame))
@@ -122,6 +124,10 @@ if __name__ == '__main__':
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
     model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+
+    # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_06_12/model_2023-12-06_14-29-28_69_70.pth"
+
+
     model_pca, pca, NORMALIZE = load_model_from_path(path=model_pca_path, normalize=NORMALIZE)
     try:
         plot_eit_video(path)
