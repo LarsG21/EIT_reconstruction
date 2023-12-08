@@ -123,9 +123,9 @@ if __name__ == '__main__':
 
     # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
 
-    model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+    # model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
 
-    # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_06_12/model_2023-12-06_14-29-28_69_70.pth"
+    model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/test_08_12/model_2023-12-08_11-18-00_69_70.pth"
 
 
     model_pca, pca, NORMALIZE = load_model_from_path(path=model_pca_path, normalize=NORMALIZE)

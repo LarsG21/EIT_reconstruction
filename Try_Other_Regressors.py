@@ -215,8 +215,8 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    # path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
-    path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
+    path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
     pca_components = 256  # 0 means no pca
     noise_level = 0.08
     number_of_noise_augmentations = 0

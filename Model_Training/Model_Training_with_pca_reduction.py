@@ -283,6 +283,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Highlight Step 6: Define the loss function and optimizer
     criterion = nn.MSELoss()
+    # criterion = nn.L1Loss()   # Doesnt work
+    # criterion = nn.SmoothL1Loss()
+
 
     # Initialize the optimizer with weight decay
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -375,7 +378,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = False
+    PLOT_EXAMPLES = True
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
@@ -390,16 +393,17 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = True
-    ABSOLUTE_EIT = False
-    model_name = "Test_06_12_2_no_augment"
+    ABSOLUTE_EIT = True
+    model_name = "test_08_12"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
-    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
@@ -407,9 +411,9 @@ if __name__ == "__main__":
     num_epochs = 70
     learning_rate = 0.001
     pca_components = 256  # 0 for no PCA
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 10
+    number_of_noise_augmentations = 8
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
@@ -431,8 +435,6 @@ if __name__ == "__main__":
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
         v0 = None
     else:
-        # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl.pkl"
-        # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl.pkl"
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
         # # TODO: Remove this again! Only for testing
         # test_set_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Data_09_11_40mm_eit32_over_night/combined.pkl"
@@ -443,6 +445,7 @@ if __name__ == "__main__":
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
     df_test_set = pd.read_pickle(test_set_path)
+    print(f"INFO: Loaded test set from {test_set_path} with {len(df_test_set)} samples")
 
     df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
                                                         df_test_set=df_test_set,

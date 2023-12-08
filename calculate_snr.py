@@ -241,15 +241,15 @@ def evaluate_snr_over_radius(path_to_positives, path_to_negatives):
 
 if __name__ == "__main__":
     # path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
-    # path_to_positives = "Trainings_Data_EIT32/1_Freq/Data_09_11_40mm_eit32_over_night/combined.pkl"
+    # path_to_positives = "Trainings_Data_EIT32/1_Freq/Data_09_11_40mm_eit32_over_night/5_runs.pkl"
     path_to_negatives = "Trainings_Data_EIT32/1_Freq/326_sampels_negative.pkl"
-    path_to_positives = "Collected_Data/Train_set_15_11_40mm_eit32_Kartoffel/combined.pkl"
+    path_to_positives = "Collected_Data/Train_set_15_11_40mm_eit32_Kartoffel/5_runs.pkl"
     # path_to_negatives = "Trainings_Data_EIT32/3_Freq/252_sampels_negative.pkl"
     # path_to_positives = "Trainings_Data_EIT32/3_Freq/810_samples_40mm.pkl"
     # path_to_negatives = "Trainings_Data_EIT32/1_Freq_More_Orientations/Exclude/samples_negative_orientation_2.pkl"
-    # path_to_positives = "Trainings_Data_EIT32/1_Freq_More_Orientations/combined.pkl"
+    # path_to_positives = "Trainings_Data_EIT32/1_Freq_More_Orientations/5_runs.pkl"
     # path_to_negatives = "Collected_Data/negatives_23_11/Data_measured2023-11-23 11_35_02.pkl"
-    # path_to_positives = "Collected_Data/SNR_EXPERIMENt_circular_23_11_eit32_Kartoffel/combined.pkl"
+    # path_to_positives = "Collected_Data/SNR_EXPERIMENt_circular_23_11_eit32_Kartoffel/5_runs.pkl"
 
     evaluate_snr_over_radius(path_to_positives, path_to_negatives)
 

@@ -17,6 +17,9 @@ from utils import find_center_of_mass, add_normalizations, check_settings_of_mod
 from Model_Training.Models import LinearModelWithDropout2, LinearModel
 from plot_utils import solve_and_get_center_with_nural_network, preprocess_greit_img
 import matplotlib.pyplot as plt
+from scipy import signal
+from scipy.stats import pearsonr
+
 
 pca = None
 
@@ -145,7 +148,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
     amplitude_responses = []  # amplitude response of the reconstructed image
     shape_deformations = []  # shape deformation of the reconstructed image
-    cross_correlations = []  # cross correlation of the reconstructed image
+    pearson_correlations = []  # cross correlation of the reconstructed image
     mean = df_test_set["images"].mean().flatten()
     ringings = []  # ringing of the reconstructed image
     print(f"Length of dataframe: {len(df_test_set)}")
@@ -217,15 +220,15 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         ####################### Shape deformation #######################
         shape_deformation = get_shape_deformation(img_reconstructed, show_plot=SHOW)
         shape_deformations.append(shape_deformation)
-        #######################Cross correlation##########################
-        cross_correlation = np.correlate(img_reconstructed.flatten(), target_image.flatten())[0]
-        cross_correlations.append(cross_correlation)
+        corr = pearsonr(img_reconstructed.flatten(), target_image.flatten())[0]
+        pearson_correlations.append(corr)
+        print(f"Pearson correlation: {corr}")
         if SHOW and USE_OPENCV_FOR_PLOTTING:
             cv2.waitKey(300)
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,
-              "ringing": ringings, "cross_correlation": cross_correlations})
+              "ringing": ringings, "pearson_correlation": pearson_correlations})
     path = "Results"
     if regressor is None:
         eval_df_name = f"evaluation_model_{model_path.split('/')[-1].split('.')[0]}.pkl"
@@ -239,11 +242,17 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
     df.to_pickle(save_path)
     print(f"saved dataframe to {save_path}")
     print("Use Plot_results_of_evaluation.py to evaluate the results")
+    # print average of all metrics
+    print(f"Average position error: {np.nanmean(position_errors)}")
+    print(f"Average amplitude response: {np.nanmean(amplitude_responses)}")
+    print(f"Average shape deformation: {np.nanmean(shape_deformations)}")
+    print(f"Average ringing: {np.nanmean(ringings)}")
+    print(f"Average pearson correlation: {np.nanmean(pearson_correlations)}")
     return df
 
 
 ### Setings ###
-ABSOLUTE_EIT = False
+ABSOLUTE_EIT = True
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
 NORMALIZE = False
@@ -267,15 +276,15 @@ def main():
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
-    model_path = "../Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
+    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/test_08_12/model_2023-12-08_11-18-00_69_70.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    regressor_path = "../Results_Traditional_Models_TDEIT/KNeighborsRegressor/model.pkl"
-    # regressor = None
-    regressor = pickle.load(open(regressor_path, 'rb'))
+    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
+    regressor = None
+    # regressor = pickle.load(open(regressor_path, 'rb'))
 
     #### END Settings #######
 
@@ -295,6 +304,8 @@ def main():
     if ABSOLUTE_EIT:
         # test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
+        # TODO: Only for testing
+        test_set_path = "../Collected_Data/Test_set_circular_08_12_3_freq_40mm_eit32_orientation26/5_runs.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
         # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"

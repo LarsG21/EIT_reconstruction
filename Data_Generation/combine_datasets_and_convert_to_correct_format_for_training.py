@@ -100,7 +100,10 @@ def combine_multiple_pickles(path):
     positive_samples = 0
     for file in os.listdir(path):
         if file.endswith(".pkl") and file != "combined.pkl" and file != "pca.pkl":
-            df_new = pd.read_pickle(os.path.join(path, file))
+            try:
+                df_new = pd.read_pickle(os.path.join(path, file))
+            except EOFError:
+                raise EOFError(f"File {file} is empty (Wrong Mode Selected (Absolute/TDEIT?)")
             print(f"length of {file}: {len(df_new)}")
             # if length of df_new is > 300, take only 300 samples
             # if len(df_new) > 300:
@@ -189,7 +192,7 @@ if __name__ == '__main__':
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation1"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    path = "../Collected_Data/Test_set_circular_08_12_3_freq_40mm_eit32_orientation26"
     combined = combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=True)
     # combined = combine_multiple_pickles(path=path)
 

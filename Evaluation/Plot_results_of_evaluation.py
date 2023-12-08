@@ -180,6 +180,14 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     tikzplotlib.save("Results/boxplot_position_error.tikz")
     plt.savefig("Results/boxplot_position_error.png")
     plt.show()
+    # if df contains pearson_correlation
+    if "pearson_correlation" in df.columns:
+        plt.boxplot([df["pearson_correlation"]], labels=["pearson_correlation"])
+        plt.title("Boxplot of pearson_correlation")
+        plt.ylabel("Pearson Correlation")
+        tikzplotlib.save("Results/boxplot_pearson_correlation.tikz")
+        plt.savefig("Results/boxplot_pearson_correlation.png")
+        plt.show()
 
 
     boxplot_dict_pe = {
@@ -230,7 +238,7 @@ if __name__ == '__main__':
     # # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
-    # df = pd.read_pickle(
-    #     "Results/evaluation_regressor_KNeighborsRegressor.pkl")
-    # plot_evaluation_results(df, open_plots_over_space=True)
+    df = pd.read_pickle(
+        "Results/evaluation_regressor_LinearRegression.pkl")
+    plot_evaluation_results(df, open_plots_over_space=True)
     main()
