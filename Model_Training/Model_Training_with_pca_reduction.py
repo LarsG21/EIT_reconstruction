@@ -54,6 +54,7 @@ else:
 # torch.cuda.set_device(0)
 device = "cpu"
 
+show_progeress = True
 
 def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dataloader, val_dataloader, save_path):
     """
@@ -188,6 +189,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("Creating model directory")
         os.makedirs(model_path)
     else:
+        # pass
         input("Model directory already exists. Press any key if you want to overwrite...")
 
     # Save settings in txt file
@@ -343,19 +345,20 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
         loss_list.append(loss.item())
         # plot loss and sample reconstruction every N epochs
-        plot_loss_and_sample_reconstruction(
-            epoch,
-            LOSS_PLOT_INTERVAL,
-            model,
-            loss_list,
-            val_loss_list,
-            test_voltage,
-            test_images,
-            model_path,
-            num_epochs,
-            SAMPLE_RECONSTRUCTION_INDEX,
-            SAVE_CHECKPOINTS
-        )
+        if show_progeress:
+            plot_loss_and_sample_reconstruction(
+                epoch,
+                LOSS_PLOT_INTERVAL,
+                model,
+                loss_list,
+                val_loss_list,
+                test_voltage,
+                test_images,
+                model_path,
+                num_epochs,
+                SAMPLE_RECONSTRUCTION_INDEX,
+                SAVE_CHECKPOINTS
+            )
 
         loop.set_postfix(loss=loss.item())
     # save the final model
@@ -372,13 +375,14 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     df = df.round(4)
     df.to_csv(os.path.join(model_path, "losses.csv"))
     # plot the final loss
-    plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
+    if show_progeress:
+        plot_loss(val_loss_list=val_loss_list, loss_list=loss_list, save_name=os.path.join(model_path, "loss_plot.png"))
 
     # Highlight Step 8: Evaluate the model on the test set
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = True
+    PLOT_EXAMPLES = False
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
@@ -416,7 +420,7 @@ if __name__ == "__main__":
     number_of_noise_augmentations = 8
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    weight_decay = 1e-5  # Adjust this value as needed (L2 regularization)
+    weight_decay = 0  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False
 

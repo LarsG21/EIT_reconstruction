@@ -1,7 +1,9 @@
 import pandas as pd
 
 
-def genterate_linepot_with_std(file_name, df_list: [pd.DataFrame], colors, labels):
+def genterate_linepot_with_std(file_name, df_list: [pd.DataFrame], colors, labels,
+                               x_label="Epochs", y_label="Loss", title="Loss plot training and validation",
+                               x_ticks=[1, 10, 100, 1000], log_scale=False):
     """
     Generates a lineplot with the given dataframes and saves it as a tikz file
     :param file_name:
@@ -10,41 +12,85 @@ def genterate_linepot_with_std(file_name, df_list: [pd.DataFrame], colors, label
     :param labels:
     :return:
     """
+    # find maximum y in all dataframes
+    max_y = 0
+    for df in df_list:
+        max_y = max(max_y, df["mean"].max())
+
+    # find minimum y in all dataframes
+    min_y = 100000000
+    for df in df_list:
+        min_y = min(min_y, df["mean"].min())
+
     if isinstance(df_list, pd.DataFrame):
         df_list = [df_list]
     with open(file_name, "w") as f:
         f.write("\\begin{tikzpicture}\n")
         f.write("\\begin{axis}[\n")
-        f.write(f"xmin=-1, xmax={len(df_list[0])},\n")
-        f.write(f"ymin={df_list[1]['mean'].min() - 2}, ymax={df_list[0]['mean'].max() + 5},\n")
+        if log_scale:
+            if x_ticks is not None:
+                f.write(f"xmin=1e-07, xmax={max(x_ticks)},\n")
+            else:
+                f.write(f"xmin=1e-07, xmax={len(df_list[0])},\n")
+        else:
+            f.write(f"xmin=0, xmax={len(df_list[0])},\n")
+        # f.write(f"ymin={df_list[0]['mean'].min()}, ymax={df_list[0]['mean'].max() + 5},\n")
+        f.write(f"ymin={min_y - 0.1}, ymax={max_y + 0.1},\n")
         f.write("ymajorgrids=true,\n")
+        # log scale
+        if log_scale:
+            f.write("xmode=log,\n")
+        # x ticks
+        if x_ticks is not None:
+            f.write("xtick={")
+            for i, tick in enumerate(x_ticks):
+                f.write(f"{tick}")
+                if i != len(x_ticks) - 1:
+                    f.write(",")
+            f.write("},\n")
+            # tick lables
+            f.write("xticklabels={")
+            for i, tick in enumerate(x_ticks):
+                f.write(f"${tick}$")
+                if i != len(x_ticks) - 1:
+                    f.write(",")
+            f.write("},\n")
         f.write("grid style=dashed,\n")
         f.write("legend pos=north east,\n")
         f.write("width=0.7\\textwidth,\n")
         f.write("height=0.5\\textwidth,\n")
         # x label
-        f.write("xlabel={Epochs},\n")
+        f.write("xlabel={" + x_label + "},\n")
         # y label
-        f.write("ylabel={Loss},\n")
+        f.write("ylabel={" + y_label + "},\n")
         # title
-        f.write("title={Loss plot training and validation},\n")
+        f.write("title={" + title + "},\n")
         f.write("]\n")
         for j, dataframe in enumerate(df_list):
             f.write(f"\\addplot[color={colors[j]}] coordinates \n")
             f.write("{\n")
             for i in range(len(dataframe["mean"])):
-                f.write(f"({i},{dataframe['mean'][i]})")
+                if x_ticks is not None:
+                    f.write(f"({x_ticks[i]},{dataframe['mean'][i]})")
+                else:
+                    f.write(f"({i},{dataframe['mean'][i]})")
             f.write("\n};\n")
             f.write(
                 f"\\addplot[name path=us_top,color={colors[j]}!20, forget plot, opacity=0.2] coordinates\n")  # forget plot is needed to not show the fill between in the legend
             f.write("{\n")
             for i in range(len(dataframe["mean"])):
-                f.write(f"({i},{dataframe['mean'][i] + dataframe['std'][i]})")
+                if x_ticks is not None:
+                    f.write(f"({x_ticks[i]},{dataframe['mean'][i] + dataframe['std'][i]})")
+                else:
+                    f.write(f"({i},{dataframe['mean'][i] + dataframe['std'][i]})")
             f.write("\n};\n")
             f.write(f"\\addplot[name path=us_down,color={colors[j]}!20, forget plot, opacity=0.2] coordinates\n")
             f.write("{\n")
             for i in range(len(dataframe["mean"])):
-                f.write(f"({i},{dataframe['mean'][i] - dataframe['std'][i]})")
+                if x_ticks is not None:
+                    f.write(f"({x_ticks[i]},{dataframe['mean'][i] - dataframe['std'][i]})")
+                else:
+                    f.write(f"({i},{dataframe['mean'][i] - dataframe['std'][i]})")
             f.write("\n};\n")
             f.write(f"\\addplot[color={colors[j]}!70, opacity=0.2] fill between[of=us_top and us_down];\n")
         # write legend
