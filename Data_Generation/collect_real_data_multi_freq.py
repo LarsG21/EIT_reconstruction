@@ -120,8 +120,6 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     :param number_of_samples:
     :return:
     """
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
     # create txt file with the metadata
     metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
@@ -184,8 +182,6 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     :param debug_plots:
     :return:
     """
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
     # create txt file with the metadata
     metadata = {"number_of_samples": number_of_runs, "img_size": img_size, "n_el": n_el,
                 "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
@@ -301,6 +297,131 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
 
 
+def collect_data_pattern_in_csv(gcode_device: GCodeDevice, eit_data_path: str, save_path: str,
+                                df_coords_complete: pd.DataFrame):
+    images = []
+    voltages = []
+    timestamps = []
+    overall_nr_of_samples = len(df_coords_complete)
+
+    last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
+    radii = df_coords_complete["radius"].unique()
+    # reverse the order of the radii
+    radii = radii[::-1]
+    # get the newest file in the folder
+    eit_path = wait_for_start_of_measurement(
+        eit_data_path)
+    # collect v0
+    # x_positions = df_coords_complete["x"].to_numpy()
+    #
+    # # bin in x direction by bin sizes of 0.1
+    # bin_size = 0.1
+    # bins = np.arange(0, 1 + bin_size, bin_size)
+    #
+    # # only plot the points with x positions in bin 1
+    # x_positions = x_positions[(x_positions >= bins[1]) & (x_positions < bins[2])]
+    # # get the corresponding y positions
+    # y_positions = df_coords_complete[df_coords_complete["x"].isin(x_positions)]["y"].to_numpy()
+    #
+    # plt.figure()
+    # plt.plot(x_positions, y_positions, 'o')
+    # plt.show()
+
+    # Assuming df is your DataFrame
+    # Create bins and add a new column 'Y_bin' to store the bin labels
+    bin_size = 0.1
+    df_coords_complete['Y_bin'] = pd.cut(df_coords_complete['y'], bins=np.arange(min(df_coords_complete['y']), max(
+        df_coords_complete['y']) + bin_size, bin_size), labels=False)
+
+    # Filter out NaN values (if any)
+    df_filtered = df_coords_complete.dropna(subset=['Y_bin'])
+
+    # Plot each bin separately
+    for bin_label, group in df_filtered.groupby('Y_bin'):
+        plt.scatter(group['x'], group['y'], label=f'Bin {bin_label}')
+
+    # Add labels and legend
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.legend()
+    plt.show()
+
+    i = 0
+    j = 0
+    # for radius in radii:
+    #     angles = df_coords_complete[df_coords_complete["radius"] == radius]["angles"].to_numpy()
+    #     for angle in angles:
+    for bin_label, group in df_filtered.groupby('Y_bin'):
+        # sort the group by x position
+        if j % 2 == 1:
+            group = group.sort_values(by=['x'])
+        else:
+            group = group.sort_values(by=['x'], ascending=False)  # reverse the order, to move in zig zag pattern
+        radii = group["radius"].to_numpy()
+        angles = group["angles"].to_numpy()
+        j += 1
+        for radius, angle in zip(radii, angles):
+            print(f"Measuring at radius: {radius}, angle: {angle}")
+            center = np.array([radius * np.cos(angle), radius * np.sin(angle)])
+            center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
+            # invert x axis
+            center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
+            center_for_moving = center_for_moving.astype(int)
+            gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
+            move_time = gcode_device.calculate_moving_time(last_centers[-1],
+                                                           center_for_moving)
+            wait_for_n_secs_with_print(move_time)
+            last_centers.append(center_for_moving)
+
+            file_path = wait_1_file_and_get_next(eit_path)
+            print(file_path)
+            time.sleep(0.1)
+            df = convert_multi_frequency_eit_to_df(file_path)
+            df_alternating = pd.DataFrame({"real": df["real"], "imaginary": df["imaginary"]}).stack().reset_index(
+                drop=True)
+            df_alternating = df_alternating.to_frame(name="amplitude")
+            v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
+            # Solve with trained model
+            if pca is not None:
+                v1 = pca.transform(v1.reshape(1, -1))
+            solve_and_plot_with_nural_network(model=model, model_input=v1,
+                                              chow_center_of_mass=False,
+                                              use_opencv_for_plotting=True)
+            """create image """
+            img = np.zeros([img_size, img_size])
+            # set to 1 the pixels corresponding to the anomaly unsing cv2.circle
+            # map center from [-1, 1] to [0, img_size]
+            center_for_image = (center + 1) * img_size / 2
+            center_for_image = center_for_image.astype(int)
+            if gcode_device is not None:
+                cv2.circle(img, tuple(center_for_image), int(RELATIVE_RADIUS_TARGET * img_size / 2), 1, -1)
+            # flip the image vertically because the mesh is flipped vertically
+            img = np.flip(img, axis=0)
+            images.append(img)
+            voltages.append(v1)
+            timestamps.append(datetime.datetime.now())
+            i += 1
+            print(f"Sample {i}/{overall_nr_of_samples} collected")
+            if i % 20 == 0:
+                df = pd.DataFrame(
+                    {"timestamp": timestamps, "images": images, "voltages": voltages})
+                save_path_data = os.path.join(save_path,
+                                              f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+                df.to_pickle(save_path_data)
+                print(f"Saved data to {save_path_data}")
+                images = []
+                voltages = []
+                timestamps = []
+            # save the images and voltages in a dataframe
+    df = pd.DataFrame(
+        {"timestamp": timestamps, "images": images, "voltages": voltages})
+    save_path_data = os.path.join(save_path,
+                                  f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+    df.to_pickle(save_path_data)
+    print(f"Saved data to {save_path_data}")
+    # move to the center
+    gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
+
 def main():
     devices = list_serial_devices()
     ender = None
@@ -318,29 +439,38 @@ def main():
             if calibrate == "y":
                 calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             else:
+                pass
                 # move to the center
-                limit_x = ender.maximal_limits[0]
-                limit_z = ender.maximal_limits[2]
-                ender.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-                input("Press enter when the device is in the center...")
+                # limit_x = ender.maximal_limits[0]
+                # limit_z = ender.maximal_limits[2]
+                # ender.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+                # input("Press enter when the device is in the center...")
             break
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "Test_set_circular_08_12_3_freq_40mm_eit32_orientation26"
+    TEST_NAME = "GREIT_TEST_3_freq"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
         input("WARNING: The folder already exists. Press enter to continue")
+    else:
+        os.makedirs(save_path)
     # warn if folder name has other number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
     # collect_data(gcode_device=ender, number_of_samples=3000,
     #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #              save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                             save_path=save_path)
+
+    df_coords_complete = pd.read_csv("../points.csv")
+    collect_data_pattern_in_csv(gcode_device=ender,
                                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                                save_path=save_path)
+                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
+                                df_coords_complete=df_coords_complete)
 
 
 if __name__ == '__main__':

@@ -9,9 +9,11 @@ import numpy as np
 import pandas as pd
 
 from Data_Generation.utils import generate_random_anomaly_list, get_newest_file, wait_for_n_secs_with_print, \
-    solve_eit_using_jac, calibration_procedure, wait_1_file_and_get_next, add_electrode_normalizations
+    solve_eit_using_jac, calibration_procedure, wait_1_file_and_get_next, add_electrode_normalizations, \
+    load_model_from_path
 from G_Code_Device.GCodeDevice import GCodeDevice, list_serial_devices
 from ScioSpec_EIT_Device.data_reader import convert_single_frequency_eit_file_to_df
+from plot_utils import solve_and_plot_with_nural_network
 from pyeit import mesh
 from pyeit.eit import protocol
 from pyeit.eit.fem import EITForward
@@ -39,7 +41,7 @@ protocol_obj = protocol.create(n_el, dist_exc=dist_exc, step_meas=step_meas, par
 keep_mask = protocol_obj.keep_ba
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
-RADIUS_TARGET_IN_MM = 40
+RADIUS_TARGET_IN_MM = 20
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -59,8 +61,8 @@ CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
 CONDUCTIVITY_TARGET = 0.1  # in S/m
 EIT_32_used = True
 
-
-# TODO: Add some kind of metadata to the dataframes like Target used, Tank used, etc. (Like in ScioSpec Repo)
+model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/Test_06_12_2/model_2023-12-06_15-06-56_65_70.pth"
+model, pca, normalize = load_model_from_path(path=model_path, normalize=False)
 
 
 def collect_one_sample(gcode_device: GCodeDevice, eit_path: str, last_position: np.ndarray,
@@ -148,18 +150,8 @@ def collect_data(gcode_device: GCodeDevice, number_of_samples: int, eit_data_pat
     :return:
     """
     global v0
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
     # create txt file with the metadata
-    metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
-                "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
-                "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
-                "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
-                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas, "EIT_32_used": EIT_32_used,
-                "Tank_Orientation": TANK_ORIENTATION,
-                }
-    with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
-        file.write(json.dumps(metadata))
+    write_metadata(number_of_samples, save_path)
     images = []
     voltages = []
     timestamps = []
@@ -222,18 +214,9 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     :param gcode_device:
     :return:
     """
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
     # create txt file with the metadata
-    metadata = {"number_of_samples": number_of_runs, "img_size": img_size, "n_el": n_el,
-                "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
-                "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
-                "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
-                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas, "EIT_32_used": EIT_32_used,
-                "Tank_Orientation": TANK_ORIENTATION
-                }
-    with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
-        file.write(json.dumps(metadata))
+    number_of_samples = number_of_runs
+    write_metadata(number_of_samples, save_path)
     images = []
     voltages = []
     timestamps = []
@@ -258,18 +241,8 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     eit_path = wait_for_start_of_measurement(
         eit_data_path)  # Wait for the start of the measurement and return the path to the data
     time.sleep(1)
-    if SAVE_V0:
-        input("Remove the target and press enter to start the measurement...")
-        file_path = wait_1_file_and_get_next(eit_path)
-        print(file_path)
-        df_0 = convert_single_frequency_eit_file_to_df(file_path)
-        v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
-        # save v0
-        np.save(os.path.join(save_path, "v0.npy"), v0)
-        input("Place the target and press enter to start the measurement...")
-    else:
-        print("Skipping v0 measurement because it is already measured")
-        v0 = np.load(os.path.join(save_path, "v0.npy"))
+    # collect v0
+    v0 = get_v0(eit_path, save_path, SAVE_V0)
     overall_nr_of_samples = len(radii) * len(angles) * number_of_runs
     i = 0
     for a in range(0, number_of_runs):
@@ -328,8 +301,13 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
                 # flip the image vertically because the mesh is flipped vertically
                 img = np.flip(img, axis=0)
                 """6. solve with trained model """
-                # v1 = add_electrode_normalizations(v1=v1, NORMALIZE_PER_ELECTRODE=True) # HIGHLIGHT: DOESNT WORK !!!
-                # v0 = add_electrode_normalizations(v1=v0, NORMALIZE_PER_ELECTRODE=True)
+                difference = (v1 - v0) / v0
+                if pca is not None:
+                    difference = pca.transform(difference.reshape(1, -1))
+                solve_and_plot_with_nural_network(model=model, model_input=difference,
+                                                  chow_center_of_mass=False,
+                                                  use_opencv_for_plotting=True)
+
                 mesh_new = mesh.set_perm(mesh_obj, anomaly=[])
                 # select the relevant voltages
                 v0_solve = v0[keep_mask]
@@ -379,6 +357,120 @@ def collect_data_circle_pattern(gcode_device: GCodeDevice, number_of_runs: int, 
     gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
 
 
+def get_v0(eit_path, save_path, save_v0=True):
+    """
+    Measures v0 and saves it to the save_path or loads it from the save_path if it is already measured.
+    :param eit_path:
+    :param save_path:
+    :return:
+    """
+    if save_v0:
+        input("Remove the target and press enter to start the measurement...")
+        file_path = wait_1_file_and_get_next(eit_path)
+        print(file_path)
+        df_0 = convert_single_frequency_eit_file_to_df(file_path)
+        v0 = df_0["amplitude"].to_numpy(dtype=np.float64)
+        # save v0
+        np.save(os.path.join(save_path, "v0.npy"), v0)
+        input("Place the target and press enter to start the measurement...")
+    else:
+        print("Skipping v0 measurement because it is already measured")
+        v0 = np.load(os.path.join(save_path, "v0.npy"))
+    return v0
+
+
+def write_metadata(number_of_samples, save_path):
+    metadata = {"number_of_samples": number_of_samples, "img_size": img_size, "n_el": n_el,
+                "target": TARGET, "material_target": MATERIAL_TARGET, "voltage_frequency": VOLTAGE_FREQUENCY,
+                "radius_target_in_mm": RADIUS_TARGET_IN_MM, "radius_tank_in_mm": RADIUS_TANK_IN_MM,
+                "conductivity_bg": CONDUCTIVITY_BG, "conductivity_target": CONDUCTIVITY_TARGET,
+                "current": CURRENT, "dist_exc": dist_exc, "step_meas": step_meas, "EIT_32_used": EIT_32_used,
+                "Tank_Orientation": TANK_ORIENTATION
+                }
+    with open(os.path.join(save_path, "metadata.txt"), 'w') as file:
+        file.write(json.dumps(metadata))
+
+
+def collect_data_pattern_in_csv(gcode_device: GCodeDevice, eit_data_path: str, save_path: str,
+                                df_coords_complete: pd.DataFrame):
+    images = []
+    voltages = []
+    timestamps = []
+    overall_nr_of_samples = len(df_coords_complete)
+
+    last_centers = [np.array([gcode_device.maximal_limits[0] / 2, gcode_device.maximal_limits[2] / 2])]
+    radii = df_coords_complete["radius"].unique()
+    # reverse the order of the radii
+    radii = radii[::-1]
+    # get the newest file in the folder
+    eit_path = wait_for_start_of_measurement(
+        eit_data_path)
+
+    # collect v0
+    v0 = get_v0(eit_path, save_path, SAVE_V0)
+    i = 0
+    for radius in radii:
+        angles = df_coords_complete[df_coords_complete["radius"] == radius]["angles"].to_numpy()
+        for angle in angles:
+            print(f"Measuring at radius: {radius}, angle: {angle}")
+            center = np.array([radius * np.cos(angle), radius * np.sin(angle)])
+            center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
+            # invert x axis
+            center_for_moving[0] = gcode_device.maximal_limits[0] - center_for_moving[0]
+            center_for_moving = center_for_moving.astype(int)
+            gcode_device.move_to(x=center_for_moving[0], y=0, z=center_for_moving[1])
+            move_time = gcode_device.calculate_moving_time(last_centers[-1],
+                                                           center_for_moving)
+            wait_for_n_secs_with_print(move_time)
+            last_centers.append(center_for_moving)
+
+            file_path = wait_1_file_and_get_next(eit_path)
+            print(file_path)
+            time.sleep(0.1)
+            df_1 = convert_single_frequency_eit_file_to_df(file_path)
+            v1 = df_1["amplitude"].to_numpy(dtype=np.float64)
+            # Solve with trained model
+            difference = (v1 - v0) / v0
+            if pca is not None:
+                difference = pca.transform(difference.reshape(1, -1))
+            solve_and_plot_with_nural_network(model=model, model_input=difference,
+                                              chow_center_of_mass=False,
+                                              use_opencv_for_plotting=True)
+            """create image """
+            img = np.zeros([img_size, img_size])
+            # set to 1 the pixels corresponding to the anomaly unsing cv2.circle
+            # map center from [-1, 1] to [0, img_size]
+            center_for_image = (center + 1) * img_size / 2
+            center_for_image = center_for_image.astype(int)
+            if gcode_device is not None:
+                cv2.circle(img, tuple(center_for_image), int(RELATIVE_RADIUS_TARGET * img_size / 2), 1, -1)
+            # flip the image vertically because the mesh is flipped vertically
+            img = np.flip(img, axis=0)
+            images.append(img)
+            voltages.append(v1)
+            timestamps.append(datetime.datetime.now())
+            i += 1
+            print(f"Sample {i}/{overall_nr_of_samples} collected")
+            if i % 20 == 0:
+                df = pd.DataFrame(
+                    {"timestamp": timestamps, "images": images, "voltages": voltages})
+                save_path_data = os.path.join(save_path,
+                                              f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+                df.to_pickle(save_path_data)
+                print(f"Saved data to {save_path_data}")
+                images = []
+                voltages = []
+                timestamps = []
+            # save the images and voltages in a dataframe
+        df = pd.DataFrame(
+            {"timestamp": timestamps, "images": images, "voltages": voltages})
+        save_path_data = os.path.join(save_path,
+                                      f"Data_measured{datetime.datetime.now().strftime(TIME_FORMAT)}.pkl")
+        df.to_pickle(save_path_data)
+        print(f"Saved data to {save_path_data}")
+        # move to the center
+        gcode_device.move_to(x=gcode_device.maximal_limits[0] / 2, y=0, z=gcode_device.maximal_limits[2] / 2)
+
 
 
 def main():
@@ -410,12 +502,14 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "SNR_EXPERIMENt_circular_23_11_eit32_Kartoffel"
+    TEST_NAME = "GREIT_DISTRIBUTION_20mm"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
         input("Are you really sure? Press enter to continue...")
         SAVE_V0 = False
+    else:
+        os.makedirs(save_path)
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
     # try:
@@ -427,10 +521,15 @@ def main():
     #     collect_data(gcode_device=ender, number_of_samples=8000,
     #                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #                  save_path=save_path)
-    collect_data_circle_pattern(gcode_device=ender, number_of_runs=1,
+    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=1,
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
+    #                             debug_plots=True)
+    df_coords_complete = pd.read_csv("../points.csv")
+    collect_data_pattern_in_csv(gcode_device=ender,
                                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
                                 save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
-                                debug_plots=True)
+                                df_coords_complete=df_coords_complete)
 
 if __name__ == '__main__':
     cwd = os.getcwd()
