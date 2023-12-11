@@ -72,6 +72,8 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         img_numpy = img.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         volt = voltage_data_tensor[i]
         volt = volt.view(-1, volt.shape[0])
+        if "Convolutional" in model.__class__.__name__:
+            volt = volt.view(-1, 1, volt.shape[1])  # add channel dimension for convolutional models
         output = model(volt)
         output = output.cpu()
         output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
@@ -169,6 +171,8 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     # Removed because of error in live_eit_reconstruction_multi_freq
     # Is needed for models that use batch normalization # TODO:Fix this
     start = time.time()
+    if "Convolutional" in model.__class__.__name__:
+        voltage_data = voltage_data.view(-1, 1, voltage_data.shape[0])  # add channel dimension
     output = model(voltage_data)
     stop = time.time()
     # print(f"Time for reconstruction: {(stop - start) * 1000} ms")

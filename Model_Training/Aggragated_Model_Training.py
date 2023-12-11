@@ -100,16 +100,16 @@ def plot_for_different_hyperparameters():
     ABSOLUTE_EIT = False
     learning_rate = 0.001
     pca_components = 0  # 0 for no PCA
-    add_augmentation = False
+    add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 10
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
     weight_decay = 1e-2  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     df_eval = pd.DataFrame()
 
-    for i in range(15):
+    for i in range(8):
         print(f"###################### Run {i} #########################")
         amplitude_responses = []
         shape_deformations = []
@@ -118,23 +118,24 @@ def plot_for_different_hyperparameters():
         pearson_correlations = []
 
         num_epochs_list = [100]
-        wheight_decay_list = [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01]
+        # wheight_decay_list = [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01]
+        learning_rate_list = [0.00001, 0.0001, 0.001, 0.01]
         # dropout_pobs = [0.05, 0.1, 0.15]
         for num in num_epochs_list:
-            for wd in wheight_decay_list:
-                model_name = f"TESTING_{num}_epochs_{str(wd).replace('.', '_')}_wd"
+            for lr in learning_rate_list:
+                model_name = f"TESTING_{num}_epochs_{str(lr).replace('.', '_')}_wd"
                 print(
-                    f"####################Training with {wd} WD for {num} num epochs ###########################")
+                    f"####################Training with {lr} WD for {num} num epochs ###########################")
                 early_stopping_handler = EarlyStoppingHandler(patience=30)
                 df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
-                                                num_epochs=num, learning_rate=learning_rate,
+                                                num_epochs=num, learning_rate=lr,
                                                 early_stopping_handler=early_stopping_handler,
                                                 pca_components=pca_components, add_augmentation=add_augmentation,
                                                 noise_level=noise_level,
                                                 number_of_noise_augmentations=number_of_noise_augmentations,
                                                 number_of_rotation_augmentations=number_of_rotation_augmentations,
                                                 number_of_blur_augmentations=number_of_blur_augmentations,
-                                                weight_decay=wd, normalize=False,
+                                                weight_decay=0, normalize=False,
                                                 )
 
                 if ABSOLUTE_EIT:
@@ -163,10 +164,10 @@ def plot_for_different_hyperparameters():
                 position_errors.append(pe)
                 pearson_correlations.append(pc)
                 if len(df_eval) == 0:
-                    df_eval = pd.DataFrame(data={"wd": wd, "ar": ar, "sd": sd, "ringing": ringing, "pe": pe, "pc": pc},
+                    df_eval = pd.DataFrame(data={"lr": lr, "ar": ar, "sd": sd, "ringing": ringing, "pe": pe, "pc": pc},
                                            index=[0])
                 else:
-                    df_eval = pd.concat([df_eval, pd.DataFrame(data={"wd": wd, "ar": ar, "sd": sd, "ringing": ringing,
+                    df_eval = pd.concat([df_eval, pd.DataFrame(data={"lr": lr, "ar": ar, "sd": sd, "ringing": ringing,
                                                                      "pe": pe, "pc": pc}, index=[0])])
 
                 plt.title(f"Training for {num} epochs")
@@ -187,21 +188,21 @@ def plot_for_different_hyperparameters():
         metric_names = ['Amplitude response', 'Shape deformation'
                                               'Ringing', 'Position error', 'Pearson correlation']
         try:
-            plot_metrics(wheight_decay_list, [amplitude_responses, shape_deformations,
+            plot_metrics(learning_rate_list, [amplitude_responses, shape_deformations,
                                               ringings, position_errors, pearson_correlations], metric_names)
         except IndexError:
             print("Index error")
         print(df_eval)
     df_eval.to_pickle(f"df_eval_New.pkl")
 
-    # plot lineplot with std over wd for each metric with seaborn
+    # plot lineplot with std over lr for each metric with seaborn
 
     def plot_metrics_with_std(df_eval, metric_names):
         num_metrics = len(metric_names)
         for i in range(num_metrics):
             plt.figure()
-            sns.lineplot(data=df_eval, x="wd", y=metric_names[i])
-            plt.xlabel("Weight decay")
+            sns.lineplot(data=df_eval, x="lr", y=metric_names[i])
+            plt.xlabel("Learning rate")
             plt.xscale('log')
             plt.ylabel(metric_names[i])
             plt.show()

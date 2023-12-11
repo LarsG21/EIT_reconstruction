@@ -127,8 +127,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
 
 
 def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0=None, model=None, model_path=None,
-                                  pca=None,
-                                  regressor=None, debug=False):
+                                  pca=None, regressor=None, debug=False):
     """
 
     :param ABSOLUTE_EIT: Whether to use absolute EIT or not
@@ -252,7 +251,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
 
 
 ### Setings ###
-ABSOLUTE_EIT = True
+ABSOLUTE_EIT = False
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
 NORMALIZE = False
@@ -264,7 +263,7 @@ USE_OPENCV_FOR_PLOTTING = True
 def main():
     global pca, NORMALIZE, ABSOLUTE_EIT, v0, VOLTAGE_VECTOR_LENGTH
     ####### Settings #######
-    SHOW = False
+    SHOW = True
     print("Loading the model")
     # Working Examples:
     # model_path = "../Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/Run_12_10_with_normalization/model_2023-10-12_14-45-50_epoche_263_of_300_best_model.pth"
@@ -276,7 +275,7 @@ def main():
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
-    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/test_08_12/model_2023-12-08_11-18-00_69_70.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/Test_06_12_2/model_2023-12-06_15-06-56_65_70.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
@@ -304,8 +303,6 @@ def main():
     if ABSOLUTE_EIT:
         # test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
-        # TODO: Only for testing
-        test_set_path = "../Collected_Data/Test_set_circular_08_12_3_freq_40mm_eit32_orientation26/5_runs.pkl"
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
     else:
         # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl"

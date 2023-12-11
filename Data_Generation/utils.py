@@ -1,5 +1,6 @@
 from __future__ import division, absolute_import, print_function
 
+import logging
 import os
 import pickle
 import time
@@ -367,8 +368,8 @@ def load_model_from_path(path, normalize=True, voltage_vector_length=1024, out_s
         print(f"Setting NORMALIZE to {norm} like in the settings.txt file")
         normalize = norm
     if absolute is False:
-        print("The model is not ment for absolute EIT.")
-        exit(1)
+        logging.warning("Absolute EIT is False. meight not work")
+
     pca_path = os.path.join(os.path.dirname(path), "pca.pkl")
     if os.path.exists(pca_path):
         print("Loading the PCA")

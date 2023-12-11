@@ -14,7 +14,7 @@ from sklearn.neighbors import KNeighborsRegressor
 
 import matplotlib.pyplot as plt
 
-image = numpy.asarray(Image.open('cat.jpg')).mean(axis=2)
+image = numpy.asarray(Image.open('Experiments/cat.jpg')).mean(axis=2)
 
 plt.figure(figsize=[20, 10])
 plt.imshow(image, cmap='gray')

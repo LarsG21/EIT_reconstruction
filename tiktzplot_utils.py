@@ -160,4 +160,4 @@ if __name__ == '__main__':
     boxplot_dict_list = [boxplot_dict_ar, boxplot_dict_sd, boxplot_dict_ringing]
     labels = ["AR", "SD", "Ringing"]
     colors = ["cyan", "orange", "green"]
-    generate_boxplot("boxplot.tex", boxplot_dict_list, labels, colors)
+    generate_boxplot("Experiments/boxplot.tex", boxplot_dict_list, labels, colors)

@@ -26,45 +26,49 @@ def plot_metrics_with_std(df_eval, metric_names):
 metric_names_df = ["ar", "sd", "ringing", "pe", "pc"]
 
 # plot_metrics_with_std(df_evaluation_results, metric_names_df)
+x_param = "lr"
 
 # seperate in differnt dataframes
-df_ar = df_evaluation_results[["wd", "ar"]]
-df_sd = df_evaluation_results[["wd", "sd"]]
-df_ringing = df_evaluation_results[["wd", "ringing"]]
-df_pe = df_evaluation_results[["wd", "pe"]]
-df_pc = df_evaluation_results[["wd", "pc"]]
+df_ar = df_evaluation_results[[x_param, "ar"]]
+df_sd = df_evaluation_results[[x_param, "sd"]]
+df_ringing = df_evaluation_results[[x_param, "ringing"]]
+df_pe = df_evaluation_results[[x_param, "pe"]]
+df_pc = df_evaluation_results[[x_param, "pc"]]
 
 # create an df with mean and std for each metric for each wd
-df_ar = df_ar.groupby("wd").agg(["mean", "std"]).reset_index()
-df_sd = df_sd.groupby("wd").agg(["mean", "std"]).reset_index()
-df_ringing = df_ringing.groupby("wd").agg(["mean", "std"]).reset_index()
-df_pe = df_pe.groupby("wd").agg(["mean", "std"]).reset_index()
-df_pc = df_pc.groupby("wd").agg(["mean", "std"]).reset_index()
+df_ar = df_ar.groupby(x_param).agg(["mean", "std"]).reset_index()
+df_sd = df_sd.groupby(x_param).agg(["mean", "std"]).reset_index()
+df_ringing = df_ringing.groupby(x_param).agg(["mean", "std"]).reset_index()
+df_pe = df_pe.groupby(x_param).agg(["mean", "std"]).reset_index()
+df_pc = df_pc.groupby(x_param).agg(["mean", "std"]).reset_index()
 
 # rename columns to mean and std
-df_ar.columns = ["wd", "mean", "std"]
-df_sd.columns = ["wd", "mean", "std"]
-df_ringing.columns = ["wd", "mean", "std"]
-df_pe.columns = ["wd", "mean", "std"]
-df_pc.columns = ["wd", "mean", "std"]
+df_ar.columns = [x_param, "mean", "std"]
+df_sd.columns = [x_param, "mean", "std"]
+df_ringing.columns = [x_param, "mean", "std"]
+df_pe.columns = [x_param, "mean", "std"]
+df_pc.columns = [x_param, "mean", "std"]
 
 
 # plot all metrics in one plot
 
 df_list = [df_ar,
-           # df_sd, df_ringing,
+           # df_sd,
+           # df_ringing,
            # df_pe,
            df_pc
            ]
 labels = ["Amplitude response", "Std Amplitude response"
 # "Shape Deformation",  "Std Shape Deformation"
 # "Ringing", "Std Ringing",
-# # "Position Error", "Std Position Error",
+# "Position Error", "Std Position Error",
                                 "Pearson Correlation", "Std Pearson Correlation"
           ]
 
-colors = ["blue", "orange"]
+colors = ["blue", "orange", "green", "red", "purple"]
 
-genterate_linepot_with_std("parameter_over_wd.txt", df_list, colors, labels,
-                           x_label="Weight decay", y_label="Loss", title="Loss plot training and validation",
-                           x_ticks=df_ar["wd"].to_list(), log_scale=True)
+colors = [colors[i] for i in range(len(df_list))]
+
+genterate_linepot_with_std(f"parameter_over_{x_param}.tex", df_list, colors, labels,
+                           x_label="Learning Rate", y_label="A.U.", title="Metrics over Learning Rate",
+                           x_ticks=df_ar[x_param].to_list(), log_scale=True)

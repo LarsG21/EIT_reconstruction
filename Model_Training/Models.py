@@ -174,12 +174,12 @@ class ConvolutionalModelWithDecoder(nn.Module):
 
         # Decoder
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=64, out_channels=32, kernel_size=3, padding=1),
+            nn.ConvTranspose1d(in_channels=64, out_channels=32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(True),
-            nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, padding=1),
+            nn.ConvTranspose1d(in_channels=32, out_channels=16, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(True),
-            nn.ConvTranspose2d(in_channels=16, out_channels=1, kernel_size=3, padding=1),
-            # nn.Sigmoid()  # Using Sigmoid activation to ensure output values are between 0 and 1
+            nn.ConvTranspose1d(in_channels=16, out_channels=1, kernel_size=3, padding=1),
+            nn.ReLU(True),  # You can use ReLU or any other activation based on your task
         )
 
         # Additional layers for reshaping the input into a 2D shape
@@ -196,39 +196,15 @@ class ConvolutionalModelWithDecoder(nn.Module):
 
 
 
+
 if __name__ == '__main__':
-    # # Assuming you have VOLTAGE_VECTOR_LENGTH, OUT_SIZE defined elsewhere
-    # in_channels = 1  # Assuming grayscale images
-    # out_channels = 1  # Assuming grayscale output
-    #
-    # # Example input data for a batch of images
-    # batch_size = 32
-    # height = 64
-    # width = 64
-    # input_data = torch.randn(batch_size, in_channels, height, width)
-    #
-    # # Create the model
-    # model = UNetModel(in_channels, out_channels)
-    #
-    # # Forward pass
-    # output = model(input_data)
-    # print(output.shape)
-
-    # same test for CNNModel
-    # Assuming you have VOLTAGE_VECTOR_LENGTH, OUT_SIZE defined elsewhere
-
-    in_channels = 104  # Assuming grayscale images
-    out_channels = 64  # Assuming grayscale output
-
-    # Example input data for a batch of images
-    batch_size = 32
-    height = 64
-    width = 64
-    input_data = torch.randn(batch_size, in_channels)
-
-    # Create the model
-    model = LinearModel(in_channels, out_channels)
+    # Example usage:
+    # Assuming input has 64 channels and you want the output size to be 4096
+    model = ConvolutionalModelWithDecoder(input_size=1024, output_size=4096)
+    input_data = torch.randn(1, 64, 1024)  # Adjust your_input_length according to your data
 
     # Forward pass
     output = model(input_data)
+
+    # Check the output shape
     print(output.shape)

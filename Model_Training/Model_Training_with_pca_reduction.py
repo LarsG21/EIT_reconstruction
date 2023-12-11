@@ -56,6 +56,7 @@ device = "cpu"
 
 show_progeress = True
 
+
 def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dataloader, val_dataloader, save_path):
     """
     Evaluates the model and saves the results
@@ -70,6 +71,8 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
     with torch.no_grad():
         test_loss = 0.0
         for batch_voltages, batch_images in test_dataloader:
+            if "Convolutional" in model.__class__.__name__:
+                batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)
             outputs = model(batch_voltages)
             test_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
@@ -78,7 +81,8 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
         # do the same for the train and validation set
         train_loss = 0.0
         for batch_voltages, batch_images in train_dataloader:
-            # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
+            if "Convolutional" in model.__class__.__name__:
+                batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)
             outputs = model(batch_voltages)
             train_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
@@ -86,6 +90,8 @@ def evaluate_model_and_save_results(model, criterion, test_dataloader, train_dat
 
         val_loss = 0.0
         for batch_voltages, batch_images in val_dataloader:
+            if "Convolutional" in model.__class__.__name__:
+                batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)
             outputs = model(batch_voltages)
             val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
 
@@ -189,8 +195,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         print("Creating model directory")
         os.makedirs(model_path)
     else:
-        # pass
-        input("Model directory already exists. Press any key if you want to overwrite...")
+        pass
+        # input("Model directory already exists. Press any key if you want to overwrite...")
 
     # Save settings in txt file
     with open(os.path.join(model_path, "settings.txt"), "w") as f:
@@ -288,7 +294,6 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # criterion = nn.L1Loss()   # Doesnt work
     # criterion = nn.SmoothL1Loss()
 
-
     # Initialize the optimizer with weight decay
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
@@ -313,11 +318,16 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         for batch_voltages, batch_images in loop:
             # Forward pass
             # reshape the voltages to be [32, 1, INPUT_SIZE]
-            # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
+            if "Convolutional" in model_class_name:
+                batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)
+                batch_images = batch_images.view(-1, 1, OUT_SIZE ** 2)  # add an extra dimension for the channels
+            else:
+                batch_voltages = batch_voltages.view(-1, VOLTAGE_VECTOR_LENGTH)
+                batch_images = batch_images.view(-1, OUT_SIZE ** 2)
             outputs = model(batch_voltages)
 
             # Compute loss
-            loss = criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)) * LOSS_SCALE_FACTOR
+            loss = criterion(outputs, batch_images) * LOSS_SCALE_FACTOR
 
             # Backpropagation and optimization
             optimizer.zero_grad()
@@ -329,9 +339,15 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         with torch.no_grad():
             val_loss = 0.0
             for batch_voltages, batch_images in val_dataloader:
-                # batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
+                # if it is a CNN, reshape the voltages
+                if "Convolutional" in model_class_name:
+                    batch_voltages = batch_voltages.view(-1, 1, VOLTAGE_VECTOR_LENGTH)  # Reshape the voltages vor CNNs
+                    batch_images = batch_images.view(-1, 1, OUT_SIZE ** 2)  # add an extra dimension for the channels
+                else:
+                    batch_voltages = batch_voltages.view(-1, VOLTAGE_VECTOR_LENGTH)
+                    batch_images = batch_images.view(-1, OUT_SIZE ** 2)
                 outputs = model(batch_voltages)
-                val_loss += criterion(outputs, batch_images.view(-1, OUT_SIZE ** 2)).item() * LOSS_SCALE_FACTOR
+                val_loss += criterion(outputs, batch_images).item() * LOSS_SCALE_FACTOR
 
             val_loss /= len(val_dataloader)
             stop = early_stopping_handler.handle_early_stopping(model, val_loss, epoch, num_epochs, model_path)
@@ -403,31 +419,34 @@ if __name__ == "__main__":
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
+    path = "../Collected_Data/GREIT_DISTRIBUTION_20mm"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
     num_epochs = 70
-    learning_rate = 0.001
+    learning_rate = 0.0001
     pca_components = 256  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 8
+    number_of_noise_augmentations = 20
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    weight_decay = 0  # Adjust this value as needed (L2 regularization)
+    weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
     df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
-                                    num_epochs=num_epochs, learning_rate=learning_rate, early_stopping_handler=early_stopping_handler,
-                                    pca_components=pca_components, add_augmentation=add_augmentation, noise_level=noise_level,
+                                    num_epochs=num_epochs, learning_rate=learning_rate,
+                                    early_stopping_handler=early_stopping_handler,
+                                    pca_components=pca_components, add_augmentation=add_augmentation,
+                                    noise_level=noise_level,
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
@@ -453,6 +472,7 @@ if __name__ == "__main__":
 
     df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
                                                         df_test_set=df_test_set,
-                                                        v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca, regressor=None)
+                                                        v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca,
+                                                        regressor=None)
     plot_evaluation_results(df_evaluate_results)
-    print(f"Average cross correlation: {df_evaluate_results['cross_correlation'].mean()}")
+    print(f"Average pearson correlation: {df_evaluate_results['pearson_correlation'].mean()}")
