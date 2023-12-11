@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from tiktzplot_utils import genterate_linepot_with_std
 import seaborn as sns
 
+
 def train_multiple_times_and_plot_losses():
     path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     ABSOLUTE_EIT = False
@@ -210,11 +211,6 @@ def plot_for_different_hyperparameters():
     metric_names_df = ["ar", "sd", "ringing", "pe", "pc"]
 
     plot_metrics_with_std(df_eval, metric_names_df)
-
-
-
-
-
 
 
 if __name__ == '__main__':

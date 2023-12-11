@@ -398,15 +398,15 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = True
     ABSOLUTE_EIT = True
-    model_name = "test_08_12"
+    model_name = "test_11_12"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
     if update_dataset:
         print("Updating dataset")

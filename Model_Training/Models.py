@@ -179,7 +179,7 @@ class ConvolutionalModelWithDecoder(nn.Module):
             nn.ConvTranspose2d(in_channels=32, out_channels=16, kernel_size=3, padding=1),
             nn.ReLU(True),
             nn.ConvTranspose2d(in_channels=16, out_channels=1, kernel_size=3, padding=1),
-            nn.Sigmoid()  # Using Sigmoid activation to ensure output values are between 0 and 1
+            # nn.Sigmoid()  # Using Sigmoid activation to ensure output values are between 0 and 1
         )
 
         # Additional layers for reshaping the input into a 2D shape
@@ -195,40 +195,6 @@ class ConvolutionalModelWithDecoder(nn.Module):
         return x
 
 
-class UNetModel(nn.Module):
-    def __init__(self, input_size, output_size):
-        super(UNetModel, self).__init__()
-
-        # Encoder
-        self.encoder = nn.Sequential(
-            nn.Conv2d(input_size, 64, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.ReLU(True)
-        )
-
-        # Max-pooling layer
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # Decoder
-        self.decoder = nn.Sequential(
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.ReLU(True),
-            nn.Conv2d(64, output_size, kernel_size=3, padding=1),
-            nn.ReLU(True)
-        )
-
-    def forward(self, x):
-        # Encoder
-        x1 = self.encoder(x)
-        x2 = self.pool(x1)
-
-        # Decoder with skip connection
-        x3 = self.decoder(x2)
-        x4 = nn.functional.interpolate(x3, scale_factor=2, mode='bilinear', align_corners=True)
-        x5 = x4 + x1
-
-        return x5
 
 if __name__ == '__main__':
     # # Assuming you have VOLTAGE_VECTOR_LENGTH, OUT_SIZE defined elsewhere
