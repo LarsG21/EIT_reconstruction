@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from ScioSpec_EIT_Device.data_reader import convert_multi_frequency_eit_to_df
-from plot_utils import solve_and_plot_with_nural_network
+from plot_utils import solve_and_plot_with_nural_network, solve_and_get_center_with_nural_network
 from utils import wait_for_start_of_measurement, preprocess_absolute_eit_frame, add_normalizations, \
     load_model_from_path
 
@@ -37,9 +37,12 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-        img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
-                                                use_opencv_for_plotting=True
-                                                , title=title)
+        solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True)
+        # img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
+        #                                         use_opencv_for_plotting=True
+        #                                         , title=title,
+        #                                         save_path="C:\\Users\\lgudjons\\Desktop")
+    time.sleep(0.04)
 
     # save the video to a folder
     if save_video:
@@ -128,21 +131,26 @@ if __name__ == '__main__':
 
     model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
 
-    model, pca, NORMALIZE = load_model_from_path(path=model_pca_path, normalize=NORMALIZE)
-    model_2, pca_2, NORMALIZE2 = load_model_from_path(path=model_path_2, normalize=NORMALIZE)
+    model_path_3 = "Collected_Data/GREIT_TEST_3_freq_over_night/Models/LinearModelWithDropout2/TESTING/model_2023-12-13_15-49-46_99_100.pth"
 
-    model_list = [model,
-                  model_2
-                  ]
-    pca_list = [pca,
-                pca_2
-                ]
-    NORMALIZE_LIST = [NORMALIZE,
-                      NORMALIZE2
-                      ]
+    model_paths = [
+        # model_pca_path,
+        model_path_2,
+        # model_path_3
+    ]
+    model_list = []
+    pca_list = []
+    NORMALIZE_LIST = []
+    for model_path in model_paths:
+        model, pca, NORMALIZE = load_model_from_path(path=model_path, normalize=NORMALIZE)
+        model_list.append(model)
+        pca_list.append(pca)
+        NORMALIZE_LIST.append(NORMALIZE)
 
-    title_list = ["Model with superposition",
-                  "Model without superposition"
+    title_list = [
+        #           "Model with superposition",
+        "Model without superposition",
+        # "New Model GREIT like"
                   ]
 
     try:

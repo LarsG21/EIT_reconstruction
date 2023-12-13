@@ -1,5 +1,7 @@
 from __future__ import division, absolute_import, print_function
 
+import os
+
 import cv2
 from matplotlib import pyplot as plt
 
@@ -113,7 +115,8 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
     """
     img, img_binary, img_non_thres = infer_single_reconstruction(model, model_input, title=title,
                                                                  original_image=original_image,
-                                      save_path=save_path, detection_threshold=0.25, show=False)
+                                                                 save_path=save_path, detection_threshold=0.25,
+                                                                 show=False, debug=True)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
     SCALE_FACTOR = 8
     # upscale image by 2
@@ -126,10 +129,13 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
     if use_opencv_for_plotting:
         cv2.imshow(title, imshow)
         cv2.waitKey(1)
-    else:
+    if not use_opencv_for_plotting or save_path is not None:
         plt.imshow(imshow)
         plt.title(title)
-        plt.show()
+        # save as pdf
+        if save_path is not None:  # PLOT_THESIS
+            plt.savefig(os.path.join(save_path, title + ".pdf"))
+        # plt.show()
     return img
 
 
@@ -145,7 +151,7 @@ def solve_and_get_center_with_nural_network(model, model_input,
                                                                   show=False)
     center_of_mass = find_center_of_mass(img)
     # show center of mass in image matplotlib
-    if debug:
+    if debug:  # PLOT_THESIS
         SCALE_FACTOR = 1
         imshow = cv2.resize(img, (0, 0), fx=SCALE_FACTOR, fy=SCALE_FACTOR)
         # add an marker with matplotlib
@@ -156,6 +162,7 @@ def solve_and_get_center_with_nural_network(model, model_input,
         plt.title("Detected center of gravity")
         plt.xlabel("x [pixels]")
         plt.ylabel("y [pixels]")
+        plt.savefig(os.path.join("C:\\Users\\lgudjons\\Desktop", "COG" + ".pdf"))
         plt.show()
         # # plot slice row and column of the image at the center of mass
         # plt.plot(img[:, center_of_mass[0]])

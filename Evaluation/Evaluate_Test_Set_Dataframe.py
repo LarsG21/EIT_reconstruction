@@ -254,7 +254,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
 ABSOLUTE_EIT = True
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
-NORMALIZE = False
+NORMALIZE = True
 USE_OPENCV_FOR_PLOTTING = True
 
 
@@ -281,9 +281,10 @@ def main():
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
     #                           "v0.npy"))
 
-    regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
-    regressor = None
-    # regressor = pickle.load(open(regressor_path, 'rb'))
+    # regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
+    regressor_path = "../Collected_Data/GREIT_TEST_3_freq_over_night/Models/LinearRegression/LinearRegression.pkl"
+    # regressor = None
+    regressor = pickle.load(open(regressor_path, 'rb'))
 
     #### END Settings #######
 

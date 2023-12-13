@@ -1,7 +1,10 @@
 import os
+import time
+
 import pandas as pd
 import cv2
 import numpy as np
+import tikzplotlib
 import torch
 from matplotlib import pyplot as plt
 from scipy.ndimage import rotate
@@ -142,7 +145,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
         img_rotated[img_rotated < 0.001] = 0
         # bigger than 0.8 set to 1
         img_rotated[img_rotated > 0.8] = 1
-        if show_examples:
+        if show_examples:  # PLOT_THESIS
             cv2.imshow("Original image", cv2.resize(img, (500, 500)))
             cv2.imshow("Rotated image", cv2.resize(img_rotated, (500, 500)))
             cv2.waitKey(100)
@@ -152,8 +155,11 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
             plt.subplot(1, 2, 2)
             plt.imshow(img_rotated)
             plt.title(f"Rotated by {int(angle)}°")
+            # thigh layout
+            plt.tight_layout()
             if save_examples:
                 plt.savefig(f"rotated_img_{int(angle)}.png")
+                plt.savefig(f"rotated_img_{int(angle)}.pdf")  # PLOT_THESIS
             plt.show()
             plt.plot(voltage)
             # put vertical lines at the electrodes
@@ -164,9 +170,9 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
                 AMPLITUDE_OR_COMPLEX = 2
             else:
                 raise Exception("Voltage length is not correct")
-            for i in range(0, len(voltage),
-                           32 * NUMBER_OF_FREQUENCIES * AMPLITUDE_OR_COMPLEX):  # *2 for real and imaginary part
-                plt.axvline(x=i, color="red", linestyle="--", label='_nolegend_')
+            # for i in range(0, len(voltage),
+            #                32 * NUMBER_OF_FREQUENCIES * AMPLITUDE_OR_COMPLEX):  # *2 for real and imaginary part
+            #     # plt.axvline(x=i, color="red", linestyle="--", label='_nolegend_')
         electrodes_to_rotate = int(angle / 360 * len(voltage))
         voltage_rotated = np.roll(voltage, shift=electrodes_to_rotate)
         if show_examples:
@@ -174,7 +180,9 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
             plt.legend(["Original", "Rotated"])
             plt.title(f"Rotated by {int(angle)}°")
             if save_examples:
+                tikzplotlib.save(f"rotated_voltage_{int(angle)}.tex")  # PLOT_THESIS
                 plt.savefig(f"rotated_voltage_{int(angle)}.png")
+                plt.savefig(f"rotated_voltage_{int(angle)}.pdf")  # PLOT_THESIS
             plt.show()
         img_rotated_list.append(img_rotated)
         voltage_rotated_list.append(voltage_rotated)
@@ -355,10 +363,10 @@ if __name__ == '__main__':
     #                                                      4, 0.04,
     #                                                      show_examples=True, save_examples=False)
     #
-    # train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-    #                                                         4, show_examples=True, save_examples=False)
+    train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+                                                            4, show_examples=True, save_examples=True)
 
-    add_superposition_augmentation(train_voltage, train_images, device=device, nr_of_superpositions=1, debug=True)
+    # add_superposition_augmentation(train_voltage, train_images, device=device, nr_of_superpositions=1, debug=True)
 
 
     # print("OK")

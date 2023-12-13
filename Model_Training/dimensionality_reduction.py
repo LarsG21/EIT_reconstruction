@@ -36,8 +36,9 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
     else:
         raise ValueError("voltage_data_tensor must be a numpy array or torch tensor")
     pca.fit(voltage_data_tensor_np)
-    # if debug:
-    #     plot_first_n_eigenvoltages(pca, 10)
+    if debug:
+        pass
+        # plot_first_n_eigenvoltages(pca, 3)
     # save the pca for later reconstruction
     if not os.path.exists(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
@@ -155,7 +156,9 @@ def plot_first_n_eigenvoltages(pca, n_components=128):
             axs[i].plot(eigen_voltages[i * 3 + 0])
             axs[i].set_title(f"Eigen voltage {i * 3 + 0}")
     # save as tikz
-    tikzplotlib.save("first_3_eigenvoltages.tikz")
+    # tikzplotlib.save("first_3_eigenvoltages.tikz")
+    # save as pdf
+    plt.savefig("first_3_eigenvoltages.pdf")  # PLOT_THESIS: Plot the first 3 eigenimages
     plt.show()
 
 

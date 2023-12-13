@@ -423,7 +423,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "Test_without_superposition"
+    model_name = "TESTING"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -432,24 +432,25 @@ if __name__ == "__main__":
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
     path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
     # path = "../Collected_Data/GREIT_TEST_3_freq"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 70
+    num_epochs = 100
     learning_rate = 0.001
     pca_components = 512  # 0 for no PCA
     add_augmentation = True
-    noise_level = 0.02
-    number_of_noise_augmentations = 4
+    noise_level = 0.08
+    number_of_noise_augmentations = 6
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    number_of_targets_in_superposition_samples = 0
+    number_of_targets_in_superposition_samples = 1
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
-    normalize = False
+    normalize = False  # better not use this
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
     df, model, pca, model_path = trainings_loop(model_name=model_name, path_to_training_data=path,

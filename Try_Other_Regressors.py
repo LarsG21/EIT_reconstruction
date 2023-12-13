@@ -92,10 +92,8 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0, t
     # Highlight Step 4.1: Augment the training data
     if add_augmentation:
         # augment the training data
-        print("INFO: Adding noise augmentation")
         trainX, trainY = add_noise_augmentation(trainX, trainY,
                                                 number_of_noise_augmentations, noise_level, device="cpu")
-        print("INFO: Adding rotation augmentation")
         trainX, trainY = add_rotation_augmentation(trainX, trainY,
                                                    number_of_rotation_augmentations, device="cpu")
 
@@ -142,17 +140,22 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
     results_path = f"{results_folder}/{model_name}"
     if not os.path.exists(results_path):
         os.makedirs(results_path)
-
+    model_path = f"{path}/Models/{model_name}"
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
     # save the model as pickle file
     pickle.dump(regressor, open(f"{results_path}/model.pkl", 'wb'))
+    pickle.dump(regressor, open(f"{model_path}/{model_name}.pkl", 'wb'))
     # save the pca as pickle file
     if pca_components > 0:
         pickle.dump(pca, open(f"{results_path}/pca.pkl", 'wb'))
+        pickle.dump(pca, open(f"{model_path}/pca.pkl", 'wb'))
     else:
         # if an pca dile already exists, delete it
         if os.path.exists(f"{results_path}/pca.pkl"):
             print("INFO: Deleting old pca.pkl file")
             os.remove(f"{results_path}/pca.pkl")
+            os.remove(f"{model_path}/pca.pkl")
 
     new_flat_pictures = regressor.predict(testX) + mean
     # only use the first 10 pictures
@@ -215,9 +218,9 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "Collected_Data/GREIT_TEST_3_freq_over_night"
     # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
-    pca_components = 256  # 0 means no pca
+    pca_components = 512  # 0 means no pca
     noise_level = 0.08
     number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
@@ -226,10 +229,10 @@ if __name__ == "__main__":
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        # LinearRegression(),
+        LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=2),
+        # KNeighborsRegressor(n_neighbors=2),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),

@@ -183,11 +183,12 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     # plt.show()
 
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
-    if debug:
+    if debug:  # PLOT_THESIS
         plt.imshow(output)
         plt.title("Original Reconstruction")
         plt.xlabel("X [pixel]")
         plt.ylabel("Y [pixel]")
+        plt.savefig(os.path.join(save_path, "Original Reconstruction" + ".pdf"))
         plt.colorbar()
         plt.show()
     # pull everything under 0.2 to 0
@@ -196,14 +197,14 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     # pull everything above 0.2 to 1
     output_binary = output.copy()
     output_binary[output_binary >= detection_threshold] = 1
-    if debug:
+    if debug:  # PLOT_THESIS
         plt.imshow(output)
         plt.title("QAS")
         plt.xlabel("X [pixel]")
         plt.ylabel("Y [pixel]")
         plt.colorbar()
+        plt.savefig(os.path.join(save_path, "QAS" + ".pdf"))
         plt.show()
-
     if show:
         if original_image is not None:
             plt.subplot(1, 2, 1)
