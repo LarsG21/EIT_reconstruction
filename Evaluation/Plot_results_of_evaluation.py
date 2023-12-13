@@ -16,7 +16,7 @@ from tiktzplot_utils import generate_boxplot
 from utils import load_model_from_path
 
 
-def plot_evaluation_results(df, open_plots_over_space=True):
+def plot_evaluation_results(df, open_plots_over_space=True, save_path=""):
     remove_outliers = True
 
     def pretty(d):
@@ -178,6 +178,8 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     plt.ylabel("Relative Metric")
     tikzplotlib.save("Results/boxplot_all.tikz")
     plt.savefig("Results/boxplot_all.png")
+    if save_path != "":
+        plt.savefig(os.path.join(save_path, "boxplot_all.png"))
     plt.show()
 
     plt.boxplot([df["position_error"]], labels=["position_error"])
@@ -185,6 +187,8 @@ def plot_evaluation_results(df, open_plots_over_space=True):
     plt.ylabel("Error [px]")
     tikzplotlib.save("Results/boxplot_position_error.tikz")
     plt.savefig("Results/boxplot_position_error.png")
+    if save_path != "":
+        plt.savefig(os.path.join(save_path, "boxplot_position_error.png"))
     plt.show()
     # if df contains pearson_correlation
     if "pearson_correlation" in df.columns:
@@ -193,6 +197,8 @@ def plot_evaluation_results(df, open_plots_over_space=True):
         plt.ylabel("Pearson Correlation")
         tikzplotlib.save("Results/boxplot_pearson_correlation.tikz")
         plt.savefig("Results/boxplot_pearson_correlation.png")
+        if save_path != "":
+            plt.savefig(os.path.join(save_path, "boxplot_pearson_correlation.png"))
         plt.show()
 
 
@@ -211,12 +217,11 @@ def plot_evaluation_results(df, open_plots_over_space=True):
 
 
 def main():
-    ABSOLUTE_EIT = False
+    ABSOLUTE_EIT = True
     normalize = False
-    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModel/TEST_DEFAULT/model_2023-11-21_11-50-12_99_100.pth"
+    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/test_08_12/model_2023-12-08_11-18-00_69_70.pth"
 
     if ABSOLUTE_EIT:
-        test_set_path = "../Test_Data/Test_Set_Circular_16_10_3_freq/combined.pkl"
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
     else:
         # test_set_path = "../Test_Data/Test_Set_1_Freq_23_10_circular/combined.pkl.pkl"
@@ -244,7 +249,7 @@ if __name__ == '__main__':
     # # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
-    df = pd.read_pickle(
-        "Results/evaluation_regressor_LinearRegression.pkl")
-    plot_evaluation_results(df, open_plots_over_space=True)
+    # df = pd.read_pickle(
+    #     "Results/evaluation_regressor_LinearRegression.pkl")
+    # plot_evaluation_results(df, open_plots_over_space=True)
     main()

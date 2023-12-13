@@ -29,7 +29,7 @@ TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 n_el = 32
 
-RADIUS_TARGET_IN_MM = 40
+RADIUS_TARGET_IN_MM = 20
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -361,6 +361,11 @@ def collect_data_pattern_in_csv(gcode_device: GCodeDevice, eit_data_path: str, s
         angles = group["angles"].to_numpy()
         j += 1
         for radius, angle in zip(radii, angles):
+            # # skip the first 560 samples  # TODO: For the case if collection got interrupted
+            # if i < 560:
+            #     i += 1
+            #     print(f"Skipping sample {i}/{overall_nr_of_samples}")
+            #     continue
             print(f"Measuring at radius: {radius}, angle: {angle}")
             center = np.array([radius * np.cos(angle), radius * np.sin(angle)])
             center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
@@ -382,9 +387,8 @@ def collect_data_pattern_in_csv(gcode_device: GCodeDevice, eit_data_path: str, s
             df_alternating = df_alternating.to_frame(name="amplitude")
             v1 = df_alternating["amplitude"].to_numpy(dtype=np.float64)
             # Solve with trained model
-            if pca is not None:
-                v1 = pca.transform(v1.reshape(1, -1))
-            solve_and_plot_with_nural_network(model=model, model_input=v1,
+            v1_view = pca.transform(v1.reshape(1, -1)) if pca is not None else v1
+            solve_and_plot_with_nural_network(model=model, model_input=v1_view,
                                               chow_center_of_mass=False,
                                               use_opencv_for_plotting=True)
             """create image """
@@ -449,7 +453,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "GREIT_TEST_3_freq"
+    TEST_NAME = "GREIT_TEST_3_freq_13_12"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):

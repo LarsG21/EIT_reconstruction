@@ -225,6 +225,96 @@ def add_gaussian_blur(train_images, device="cpu", nr_of_blurs=1):
     return train_images_blurred
 
 
+# add superposition augmentation
+# Combine two images and voltages to one image and voltage by adding them together
+def add_superposition_augmentation(train_voltages, train_images, device="cpu", nr_of_superpositions=1,
+                                   debug=False):
+    """
+    Adds superposition augmentation to the training data
+    :param train_images:
+    :param train_voltages:
+    :param device:
+    :param nr_of_superpositions:
+    :return:
+    """
+    if nr_of_superpositions == 0:
+        return train_voltages, train_images
+    print(f"INFO: Adding {nr_of_superpositions} superpositions to the training data")
+    convert_back_to_tensor = False
+    if type(train_images) == torch.Tensor:
+        train_images_numpy = train_images.cpu().numpy()
+        convert_back_to_tensor = True
+    elif type(train_images) == np.ndarray:
+        train_images_numpy = train_images
+    else:
+        raise Exception("Type of train images not recognized")
+    if type(train_voltages) == torch.Tensor:
+        train_voltages_numpy = train_voltages.cpu().numpy()
+        convert_back_to_tensor = True
+    elif type(train_voltages) == np.ndarray:
+        train_voltages_numpy = train_voltages
+    else:
+        raise Exception("Type of train voltages not recognized")
+    train_images_superposed_numpy = []
+    train_voltages_superposed_numpy = []
+    for img, voltage in zip(train_images_numpy, train_voltages_numpy):
+        img_superposed = img
+        voltage_superposed = voltage
+        for i in range(0, nr_of_superpositions):
+            # select a random image and voltage
+            random_index = np.random.randint(0, len(train_images_numpy))
+            img_to_add = train_images_numpy[random_index]
+            voltage_to_add = train_voltages_numpy[random_index]
+            # add them together
+            img_superposed = img_superposed + img_to_add
+            voltage_superposed = (voltage_superposed + voltage_to_add) / 2
+            # normalize the image
+            # img_superposed = img_superposed / np.max(img_superposed)
+            # # normalize the voltage
+            # voltage_superposed = voltage_superposed / np.max(voltage_superposed) * max(np.max(voltage),
+            #                                                                            np.max(voltage_to_add))
+            if debug:
+                plt.subplot(1, 2, 1)
+                plt.plot(voltage)
+                plt.subplot(1, 2, 2)
+                plt.plot(voltage_to_add)
+                plt.show()
+                # show the image and voltage
+                plt.subplot(1, 2, 1)
+                plt.imshow(img_superposed)
+                plt.subplot(1, 2, 2)
+                plt.plot(voltage_superposed)
+                plt.show()
+        # add to the list
+        train_images_superposed_numpy.append(img_superposed)
+        train_voltages_superposed_numpy.append(voltage_superposed)
+    # show one example
+    plt.subplot(1, 2, 1)
+    plt.imshow(train_images_numpy[0])
+    plt.subplot(1, 2, 2)
+    plt.imshow(train_images_superposed_numpy[0])
+    plt.title("Superposed image")
+    plt.show()
+    # show the voltage
+    plt.subplot(1, 2, 1)
+    plt.plot(train_voltages_numpy[0])
+    plt.subplot(1, 2, 2)
+    plt.plot(train_voltages_superposed_numpy[0])
+    plt.title("Superposed voltage")
+    plt.show()
+    train_images_superposed_numpy = np.array(train_images_superposed_numpy)
+    train_voltages_superposed_numpy = np.array(train_voltages_superposed_numpy)
+    # combine with the original data
+    train_voltages_superposed_numpy = np.concatenate((train_voltages, train_voltages_superposed_numpy), axis=0)
+    train_images_superposed_numpy = np.concatenate((train_images, train_images_superposed_numpy), axis=0)
+    if convert_back_to_tensor:
+        train_images_superposed = torch.tensor(train_images_superposed_numpy).to(device)
+        train_voltages_superposed = torch.tensor(train_voltages_superposed_numpy).to(device)
+    else:
+        train_images_superposed = train_images_superposed_numpy
+        train_voltages_superposed = train_voltages_superposed_numpy
+    return train_voltages_superposed, train_images_superposed
+
 
 if __name__ == '__main__':
     # pass
@@ -261,12 +351,15 @@ if __name__ == '__main__':
 
     # train_voltage = train_voltage[:1]
     # train_images = train_images[:1]
-    train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
-                                                         4, 0.04,
-                                                         show_examples=True, save_examples=False)
+    # train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
+    #                                                      4, 0.04,
+    #                                                      show_examples=True, save_examples=False)
+    #
+    # train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+    #                                                         4, show_examples=True, save_examples=False)
 
-    train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-                                                            4, show_examples=True, save_examples=False)
+    add_superposition_augmentation(train_voltage, train_images, device=device, nr_of_superpositions=1, debug=True)
+
 
     # print("OK")
     # # convert both to numpy

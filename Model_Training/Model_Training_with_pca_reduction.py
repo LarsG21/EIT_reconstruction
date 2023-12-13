@@ -18,7 +18,8 @@ from Data_Generation.combine_datasets_and_convert_to_correct_format_for_training
 from Evaluation.Evaluate_Test_Set_Dataframe import evaluate_reconstruction_model
 from Evaluation.Plot_results_of_evaluation import plot_evaluation_results
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
-from data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
+from data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur, \
+    add_superposition_augmentation
 from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, \
     LinearModelWithDropoutAndBatchNorm, ConvolutionalModelWithDropout, ConvolutionalModelWithDecoder
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, \
@@ -111,7 +112,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    early_stopping_handler: EarlyStoppingHandler, loading_path: str = "",
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
-                   number_of_blur_augmentations: int = 0, weight_decay: float = 1e-3, normalize=False,
+                   number_of_blur_augmentations: int = 0, number_of_targets_in_superposition_samples=0,
+                   weight_decay: float = 1e-3, normalize=False,
                    dropout_prob: float = 0.1, absolute_eit: bool = False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
@@ -210,6 +212,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         f.write(f"Augmentations: {add_augmentation}\n")
         f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
         f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
+        f.write(f"Number of blur augmentations: {number_of_blur_augmentations}\n")
+        f.write(f"Number of targets in superposition samples: {number_of_targets_in_superposition_samples}\n")
+        f.write(f"dropout_prob: {dropout_prob}\n")
         f.write(f"PCA_COMPONENTS: {pca_components}\n")
         f.write(f"normalize: {normalize}\n")
         f.write(f"electrode_level_normalization: {False}\n")
@@ -248,11 +253,15 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                              number_of_noise_augmentations, noise_level, device=device)
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 number_of_rotation_augmentations, device=device)
-        # blurr the images with a gaussian filter
+
+        train_voltage, train_images = add_superposition_augmentation(train_voltages=train_voltage,
+                                                                     train_images=train_images, device=device,
+                                                                     nr_of_superpositions=number_of_targets_in_superposition_samples)
+
         train_images = add_gaussian_blur(train_images, device=device, nr_of_blurs=number_of_blur_augmentations)
 
-    train_voltage_original = train_voltage.clone()
-    test_voltage_original = test_voltage.clone()
+    # train_voltage_original = train_voltage.clone()
+    # test_voltage_original = test_voltage.clone()
     # Highlight Step4.2 Do PCA to reduce the number of input features
     if pca_components > 0:
         print("INFO: Performing PCA on input data")
@@ -408,13 +417,13 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     single_datapoint = voltage_data_np[0]
     voltage_data_tensor = torch.tensor(single_datapoint, dtype=torch.float32)
     # infer_single_reconstruction(model=model, voltage_data=voltage_data_tensor)
-    return df, model, pca
+    return df, model, pca, model_path
 
 
 if __name__ == "__main__":
-    update_dataset = True
+    update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "test_11_12"
+    model_name = "Test_with_superposition"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -422,27 +431,28 @@ if __name__ == "__main__":
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
-    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
-    path = "../Collected_Data/GREIT_DISTRIBUTION_20mm"
+    # path = "../Collected_Data/GREIT_TEST_3_freq"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 70
-    learning_rate = 0.0001
-    pca_components = 256  # 0 for no PCA
+    num_epochs = 10
+    learning_rate = 0.001
+    pca_components = 512  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 20
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
+    number_of_targets_in_superposition_samples = 1
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
-    df, model, pca = trainings_loop(model_name=model_name, path_to_training_data=path,
+    df, model, pca, model_path = trainings_loop(model_name=model_name, path_to_training_data=path,
                                     num_epochs=num_epochs, learning_rate=learning_rate,
                                     early_stopping_handler=early_stopping_handler,
                                     pca_components=pca_components, add_augmentation=add_augmentation,
@@ -450,6 +460,7 @@ if __name__ == "__main__":
                                     number_of_noise_augmentations=number_of_noise_augmentations,
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
+                                                number_of_targets_in_superposition_samples=number_of_targets_in_superposition_samples,
                                     weight_decay=weight_decay, normalize=normalize, absolute_eit=ABSOLUTE_EIT,
                                     )
 
@@ -464,7 +475,6 @@ if __name__ == "__main__":
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
         v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
 
-
     df_test_set = pd.read_pickle(test_set_path)
     # load v0 from the same folder as the test set
     df_test_set = pd.read_pickle(test_set_path)
@@ -474,5 +484,5 @@ if __name__ == "__main__":
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca,
                                                         regressor=None)
-    plot_evaluation_results(df_evaluate_results)
+    plot_evaluation_results(df_evaluate_results, save_path=model_path)
     print(f"Average pearson correlation: {df_evaluate_results['pearson_correlation'].mean()}")

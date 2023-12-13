@@ -37,7 +37,7 @@ df_coords_complete = pd.DataFrame(columns=["x", "y", "radius", "angles"])
 for i in range(1, num_targets_in_radius):
     df_coords = pd.DataFrame(columns=["x", "y"])
     radius = i * radius_target
-    num_targets_in_circumstance = int(radius / radius_target) * 3
+    num_targets_in_circumstance = int(radius / radius_target) * 7
     overall_pints += num_targets_in_circumstance
     x, y, radius, angles = generate_points_in_circle(radius, num_targets_in_circumstance)
     df_coords["x"] = x

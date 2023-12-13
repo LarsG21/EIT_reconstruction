@@ -251,7 +251,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
 
 
 ### Setings ###
-ABSOLUTE_EIT = False
+ABSOLUTE_EIT = True
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
 NORMALIZE = False
@@ -275,7 +275,7 @@ def main():
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_25_10_dataset_individual_v0s/model_2023-10-27_14-25-23_148_150.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModelWithDropout2/Run_06_11_with_blurr/model_2023-11-06_16-45-47_85_200.pth"
     # model_path = "../Training_Data/1_Freq_with_individual_v0s/Models/LinearModel/Few_Data_Test_5x_noise_aug_5x_rot_aug/model_2023-11-15_16-36-57_152_200.pth"
-    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/Test_06_12_2/model_2023-12-06_15-06-56_65_70.pth"
+    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_Superposition_2/model_2023-12-13_13-37-55_69_70.pth"
     # load v0 from the same folder as the model
     # move up 4 directories up, then go to the v0.npy file
     # v0 = np.load(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(model_path)))),
