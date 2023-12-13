@@ -24,20 +24,22 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
     # Convert to an numpy array with alternating real and imag numbers
     v1 = preprocess_absolute_eit_frame(df)
     # Add normalizations
-    v1 = add_normalizations(v1, NORMALIZE_MEDIAN=NORMALIZE, NORMALIZE_PER_ELECTRODE=False)
     # plt.plot(v1)
     # plt.show()
-    PCA = True
-    if PCA:
-        v1 = pca.transform(v1.reshape(1, -1))
+    for i, (title, model_temp, pca_temp, normalize_temp) in enumerate(
+            zip(title_list, model_list, pca_list, NORMALIZE_LIST)):
+        if normalize_temp:
+            v1 = add_normalizations(v1, NORMALIZE_MEDIAN=True, NORMALIZE_PER_ELECTRODE=False)
+        v1_pca = pca_temp.transform(v1.reshape(1, -1))
         if debug_plot:
-            plt.bar(x=range(len(v1.reshape(-1))), height=v1.reshape(-1))
+            plt.bar(x=range(len(v1_pca.reshape(-1))), height=v1_pca.reshape(-1))
             plt.title("PCA transformed voltage vector")
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-    img = solve_and_plot_with_nural_network(model=model_pca, model_input=v1, chow_center_of_mass=False,
-                                            use_opencv_for_plotting=True)
+        img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
+                                                use_opencv_for_plotting=True
+                                                , title=title)
 
     # save the video to a folder
     if save_video:
@@ -121,14 +123,28 @@ if __name__ == '__main__':
 
     ### Settings end ###
 
-    # model_pca_path = "Collected_Data_Experiments/How_many_frequencies_are_needet_for_abolute_EIT/3_Frequencies/Models/LinearModelWithDropout2/run_with_data_after_rebuild_of_setup3/model_2023-09-29_11-22-13_399_400.pth"
-
-    # model_pca_path = "Collected_Data/Even_orientation_3_freq/Models/LinearModelWithDropout2/TESTING_01_12_2/model_2023-12-01_11-11-48_69_70.pth"
 
     model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_Superposition_2/model_2023-12-13_13-37-55_69_70.pth"
 
+    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
 
-    model_pca, pca, NORMALIZE = load_model_from_path(path=model_pca_path, normalize=NORMALIZE)
+    model, pca, NORMALIZE = load_model_from_path(path=model_pca_path, normalize=NORMALIZE)
+    model_2, pca_2, NORMALIZE2 = load_model_from_path(path=model_path_2, normalize=NORMALIZE)
+
+    model_list = [model,
+                  model_2
+                  ]
+    pca_list = [pca,
+                pca_2
+                ]
+    NORMALIZE_LIST = [NORMALIZE,
+                      NORMALIZE2
+                      ]
+
+    title_list = ["Model with superposition",
+                  "Model without superposition"
+                  ]
+
     try:
         plot_eit_video(path)
     except RuntimeError as e:

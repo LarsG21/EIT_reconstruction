@@ -115,7 +115,7 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
                                                                  original_image=original_image,
                                       save_path=save_path, detection_threshold=0.25, show=False)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
-    SCALE_FACTOR = 4
+    SCALE_FACTOR = 8
     # upscale image by 2
     imshow = cv2.resize(img, (0, 0), fx=SCALE_FACTOR, fy=SCALE_FACTOR)
     # add circle to image

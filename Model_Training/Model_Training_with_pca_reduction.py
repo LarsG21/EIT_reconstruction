@@ -423,7 +423,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "Test_with_superposition"
+    model_name = "Test_without_superposition"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -438,15 +438,15 @@ if __name__ == "__main__":
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 10
+    num_epochs = 70
     learning_rate = 0.001
     pca_components = 512  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 2
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    number_of_targets_in_superposition_samples = 1
+    number_of_targets_in_superposition_samples = 0
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False
