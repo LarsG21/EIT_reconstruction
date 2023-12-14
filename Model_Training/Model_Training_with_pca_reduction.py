@@ -213,6 +213,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
         f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
         f.write(f"Number of blur augmentations: {number_of_blur_augmentations}\n")
+        f.write(f"Number of superposition augmentations: {number_of_superpos_augmentations}\n")
         f.write(f"Number of targets in superposition samples: {number_of_targets_in_superposition_samples}\n")
         f.write(f"dropout_prob: {dropout_prob}\n")
         f.write(f"PCA_COMPONENTS: {pca_components}\n")
@@ -251,13 +252,16 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         # augment the training data
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
                                                              number_of_noise_augmentations, noise_level, device=device)
+        print(f"INFO: Length after noise augmentation: {len(train_voltage)}")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 number_of_rotation_augmentations, device=device)
+        print(f"INFO: Length after rotation augmentation: {len(train_voltage)}")
 
         train_voltage, train_images = add_superposition_augmentation(train_voltages=train_voltage,
                                                                      train_images=train_images, device=device,
                                                                      nr_of_superpositions=number_of_targets_in_superposition_samples,
                                                                      nr_of_copies=number_of_superpos_augmentations)
+        print(f"INFO: Length after superposition augmentation: {len(train_voltage)}")
 
         train_images = add_gaussian_blur(train_images, device=device, nr_of_blurs=number_of_blur_augmentations)
 
@@ -424,7 +428,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "More_Superpositions"
+    model_name = "TESTING"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -445,28 +449,29 @@ if __name__ == "__main__":
     pca_components = 512  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 4
+    number_of_noise_augmentations = 10
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
-    number_of_superpos_augmentations = 3
-    number_of_targets_in_superposition_samples = 2
+    number_of_blur_augmentations = 4
+    number_of_superpos_augmentations = 2
+    number_of_targets_in_superposition_samples = 3
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False  # better not use this
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
     df, model, pca, model_path = trainings_loop(model_name=model_name, path_to_training_data=path,
-                                    num_epochs=num_epochs, learning_rate=learning_rate,
-                                    early_stopping_handler=early_stopping_handler,
-                                    pca_components=pca_components, add_augmentation=add_augmentation,
-                                    noise_level=noise_level,
-                                    number_of_noise_augmentations=number_of_noise_augmentations,
-                                    number_of_rotation_augmentations=number_of_rotation_augmentations,
-                                    number_of_blur_augmentations=number_of_blur_augmentations,
+                                                num_epochs=num_epochs, learning_rate=learning_rate,
+                                                early_stopping_handler=early_stopping_handler,
+                                                pca_components=pca_components, add_augmentation=add_augmentation,
+                                                noise_level=noise_level,
+                                                number_of_noise_augmentations=number_of_noise_augmentations,
+                                                number_of_rotation_augmentations=number_of_rotation_augmentations,
+                                                number_of_blur_augmentations=number_of_blur_augmentations,
                                                 number_of_targets_in_superposition_samples=number_of_targets_in_superposition_samples,
                                                 number_of_superpos_augmentations=number_of_superpos_augmentations,
-                                    weight_decay=weight_decay, normalize=normalize, absolute_eit=ABSOLUTE_EIT,
-                                    )
+                                                weight_decay=weight_decay, normalize=normalize,
+                                                absolute_eit=ABSOLUTE_EIT,
+                                                )
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"

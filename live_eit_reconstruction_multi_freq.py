@@ -26,6 +26,7 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
     # Add normalizations
     # plt.plot(v1)
     # plt.show()
+    images = {}
     for i, (title, model_temp, pca_temp, normalize_temp) in enumerate(
             zip(title_list, model_list, pca_list, NORMALIZE_LIST)):
         if normalize_temp:
@@ -42,7 +43,23 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
                                                 use_opencv_for_plotting=True
                                                 , title=title,
                                                 save_path=None)
-    # time.sleep(0.04)
+        # save a screenshot if s is pressed
+        images[title] = img
+    if cv2.waitKey(1) & 0xFF == ord('s'):
+        for title, img in images.items():
+            plt.imshow(img)
+            plt.tight_layout()
+            plt.colorbar()
+            save_path = f"C:\\Users\\lgudjons\\Desktop\\{title}"
+            if not os.path.exists(save_path):
+                os.mkdir(save_path)
+            save_filename = f"{title}.pdf"
+            save_filename = os.path.join(save_path, save_filename)
+            if os.path.exists(save_filename):
+                save_filename = os.path.join(save_path, f"{title}_{time.time()}.pdf")
+            plt.imsave(save_filename, img)
+            plt.show()
+        print("saved")
 
     # save the video to a folder
     if save_video:
@@ -126,17 +143,18 @@ if __name__ == '__main__':
 
     ### Settings end ###
 
+    # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_Superposition_2/model_2023-12-13_13-37-55_69_70.pth"
+    #
+    # model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
+    #
+    # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
 
-    model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_Superposition_2/model_2023-12-13_13-37-55_69_70.pth"
-
-    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
-
-    model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/TESTING/model_2023-12-14_12-01-32_52_100.pth"
-
+    model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
+    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
     model_paths = [
         model_pca_path,
         model_path_2,
-        model_path_3
+        # model_path_3
     ]
     model_list = []
     pca_list = []
@@ -148,9 +166,9 @@ if __name__ == '__main__':
         NORMALIZE_LIST.append(NORMALIZE)
 
     title_list = [
-        "Model with superposition",
         "Model without superposition",
-        "New Model GREIT like"
+        "Model with superposition",
+        # "New Model GREIT like"
                   ]
 
     try:
