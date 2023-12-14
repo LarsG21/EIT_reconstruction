@@ -37,12 +37,12 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-        solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True)
-        # img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
-        #                                         use_opencv_for_plotting=True
-        #                                         , title=title,
-        #                                         save_path="C:\\Users\\lgudjons\\Desktop")
-    time.sleep(0.04)
+        # solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True)
+        img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
+                                                use_opencv_for_plotting=True
+                                                , title=title,
+                                                save_path=None)
+    # time.sleep(0.04)
 
     # save the video to a folder
     if save_video:
@@ -131,12 +131,12 @@ if __name__ == '__main__':
 
     model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
 
-    model_path_3 = "Collected_Data/GREIT_TEST_3_freq_over_night/Models/LinearModelWithDropout2/TESTING/model_2023-12-13_15-49-46_99_100.pth"
+    model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/TESTING/model_2023-12-14_12-01-32_52_100.pth"
 
     model_paths = [
-        # model_pca_path,
+        model_pca_path,
         model_path_2,
-        # model_path_3
+        model_path_3
     ]
     model_list = []
     pca_list = []
@@ -148,9 +148,9 @@ if __name__ == '__main__':
         NORMALIZE_LIST.append(NORMALIZE)
 
     title_list = [
-        #           "Model with superposition",
+        "Model with superposition",
         "Model without superposition",
-        # "New Model GREIT like"
+        "New Model GREIT like"
                   ]
 
     try:

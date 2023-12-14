@@ -116,7 +116,7 @@ def solve_and_plot_with_nural_network(model, model_input, original_image=None, s
     img, img_binary, img_non_thres = infer_single_reconstruction(model, model_input, title=title,
                                                                  original_image=original_image,
                                                                  save_path=save_path, detection_threshold=0.25,
-                                                                 show=False, debug=True)
+                                                                 show=False, debug=False)
     # GREIT EVAL PARAMETERS USE THRESHOLD 0.25
     SCALE_FACTOR = 8
     # upscale image by 2

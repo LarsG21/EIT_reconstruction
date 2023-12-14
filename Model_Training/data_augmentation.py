@@ -236,6 +236,7 @@ def add_gaussian_blur(train_images, device="cpu", nr_of_blurs=1):
 # add superposition augmentation
 # Combine two images and voltages to one image and voltage by adding them together
 def add_superposition_augmentation(train_voltages, train_images, device="cpu", nr_of_superpositions=1,
+                                   nr_of_copies=1,
                                    debug=False):
     """
     Adds superposition augmentation to the training data
@@ -265,37 +266,45 @@ def add_superposition_augmentation(train_voltages, train_images, device="cpu", n
         raise Exception("Type of train voltages not recognized")
     train_images_superposed_numpy = []
     train_voltages_superposed_numpy = []
-    for img, voltage in zip(train_images_numpy, train_voltages_numpy):
-        img_superposed = img
-        voltage_superposed = voltage
-        for i in range(0, nr_of_superpositions):
-            # select a random image and voltage
-            random_index = np.random.randint(0, len(train_images_numpy))
-            img_to_add = train_images_numpy[random_index]
-            voltage_to_add = train_voltages_numpy[random_index]
-            # add them together
-            img_superposed = img_superposed + img_to_add
-            voltage_superposed = (voltage_superposed + voltage_to_add) / 2
-            # normalize the image
-            # img_superposed = img_superposed / np.max(img_superposed)
-            # # normalize the voltage
-            # voltage_superposed = voltage_superposed / np.max(voltage_superposed) * max(np.max(voltage),
-            #                                                                            np.max(voltage_to_add))
-            if debug:
-                plt.subplot(1, 2, 1)
-                plt.plot(voltage)
-                plt.subplot(1, 2, 2)
-                plt.plot(voltage_to_add)
-                plt.show()
-                # show the image and voltage
-                plt.subplot(1, 2, 1)
-                plt.imshow(img_superposed)
-                plt.subplot(1, 2, 2)
-                plt.plot(voltage_superposed)
-                plt.show()
-        # add to the list
-        train_images_superposed_numpy.append(img_superposed)
-        train_voltages_superposed_numpy.append(voltage_superposed)
+    for _ in range(0, nr_of_copies):
+        for img, voltage in zip(train_images_numpy, train_voltages_numpy):
+            img_superposed = img
+            voltage_superposed = voltage
+            nr_of_superpositions_temp = np.random.randint(1, nr_of_superpositions + 1)
+            for i in range(0, nr_of_superpositions_temp):
+                # select a random image and voltage
+                random_index = np.random.randint(0, len(train_images_numpy))
+                img_to_add = train_images_numpy[random_index]
+                voltage_to_add = train_voltages_numpy[random_index]
+                # add them together
+                img_superposed = img_superposed + img_to_add
+                voltage_superposed = (voltage_superposed + voltage_to_add) / 2
+                # normalize the image
+                # img_superposed = img_superposed / np.max(img_superposed)
+                # # normalize the voltage
+                # voltage_superposed = voltage_superposed / np.max(voltage_superposed) * max(np.max(voltage),
+                #                                                                            np.max(voltage_to_add))
+                if debug:
+                    plt.subplot(1, 2, 1)
+                    plt.plot(voltage)
+                    plt.subplot(1, 2, 2)
+                    plt.plot(voltage_to_add)
+                    plt.show()
+                    # show the image and voltage
+                    plt.subplot(1, 2, 1)
+                    plt.imshow(img_superposed)
+                    plt.subplot(1, 2, 2)
+                    plt.plot(voltage_superposed)
+                    plt.show()
+                    THESIS_PLOT = True
+                    if THESIS_PLOT:  # PLOT_THESIS
+                        generate_thesis_plots(img, img_superposed, img_to_add, voltage, voltage_superposed,
+                                              voltage_to_add)
+                    print("OK")
+
+            # add to the list
+            train_images_superposed_numpy.append(img_superposed)
+            train_voltages_superposed_numpy.append(voltage_superposed)
     # show one example
     plt.subplot(1, 2, 1)
     plt.imshow(train_images_numpy[0])
@@ -322,6 +331,39 @@ def add_superposition_augmentation(train_voltages, train_images, device="cpu", n
         train_images_superposed = train_images_superposed_numpy
         train_voltages_superposed = train_voltages_superposed_numpy
     return train_voltages_superposed, train_images_superposed
+
+
+def generate_thesis_plots(img, img_superposed, img_to_add, voltage, voltage_superposed, voltage_to_add):
+    plt.plot(voltage)
+    plt.title("V1")
+    plt.tight_layout()
+    plt.savefig("original_voltage.pdf")
+    plt.show()
+    plt.plot(voltage_to_add)
+    plt.title("V2")
+    plt.tight_layout()
+    plt.savefig("voltage_to_add.pdf")
+    plt.show()
+    plt.imshow(img)
+    plt.title("Image 1")
+    plt.tight_layout()
+    plt.savefig("original_image.pdf")
+    plt.show()
+    plt.imshow(img_to_add)
+    plt.title("Image 2")
+    plt.tight_layout()
+    plt.savefig("image_to_add.pdf")
+    plt.show()
+    plt.imshow(img_superposed)
+    plt.title("Superposed image")
+    plt.tight_layout()
+    plt.savefig("superposed_image.pdf")
+    plt.show()
+    plt.plot(voltage_superposed)
+    plt.title("Superposed voltage")
+    plt.tight_layout()
+    plt.savefig("superposed_voltage.pdf")
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -363,11 +405,15 @@ if __name__ == '__main__':
     #                                                      4, 0.04,
     #                                                      show_examples=True, save_examples=False)
     #
-    train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
-                                                            4, show_examples=True, save_examples=True)
+    # train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
+    #                                                         4, show_examples=True, save_examples=True)
 
-    # add_superposition_augmentation(train_voltage, train_images, device=device, nr_of_superpositions=1, debug=True)
-
+    voltages, images = add_superposition_augmentation(train_voltage, train_images,
+                                                      device=device, nr_of_superpositions=2,
+                                                      nr_of_copies=2,
+                                                      debug=True)
+    print(len(voltages))
+    print(len(images))
 
     # print("OK")
     # # convert both to numpy

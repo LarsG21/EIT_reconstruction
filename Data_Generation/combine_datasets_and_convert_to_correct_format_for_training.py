@@ -104,7 +104,7 @@ def combine_multiple_pickles(path):
                 df_new = pd.read_pickle(os.path.join(path, file))
             except EOFError:
                 raise EOFError(f"File {file} is empty (Wrong Mode Selected (Absolute/TDEIT?)")
-            print(f"length of {file}: {len(df_new)}")
+            # print(f"length of {file}: {len(df_new)}")
             # if length of df_new is > 300, take only 300 samples
             # if len(df_new) > 300:
             #     df_new = df_new.sample(300)
@@ -127,6 +127,8 @@ def combine_multiple_pickles(path):
 
 def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
     df_complete = pd.DataFrame()
+    negative_samples = 0
+    positive_samples = 0
     for folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, folder)) and folder != "Models" and folder != "Exclude":
             print(folder)
@@ -139,11 +141,17 @@ def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
                 # do the same for all voltages and save in col "voltage_diff"
                 combined["voltage_diff"] = combined["voltages"].apply(lambda x: (x - v0) / v0)
                 print(combined["voltage_diff"].iloc[0])
+            positive_samples += len(combined)
             # add to df_complete
             df_complete = pd.concat([df_complete, combined])
         elif folder.endswith(".pkl") and folder != "combined.pkl":  # For Empty image samples (V0s):
             df = pd.read_pickle(os.path.join(path, folder))
-            print(f"length of {folder}: {len(df)}")
+            # print(f"length of {folder}: {len(df)}")
+            length = len(df)
+            if "negative" in folder:
+                negative_samples += length
+            else:
+                positive_samples += length
             # for those use v0 as average of all v0
             if not absolute_eit:
                 v0_empty_images = np.array(df["voltages"].mean())
@@ -162,6 +170,10 @@ def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
         np.save(os.path.join(path, "voltage_diff_array.npy"), voltage_array)
     else:
         convert_df_to_separate_npy_files(df_complete, save_path=path)
+    print("###########################################")
+    print(f"Length of combined df: {len(df_complete)}")
+    print(f"Percentage of negative samples: {negative_samples / (negative_samples + positive_samples)}")
+    print("###########################################")
     return df_complete
 
 
@@ -192,7 +204,7 @@ if __name__ == '__main__':
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation1"
-    path = "../Collected_Data/GREIT_TEST_3_freq_over_night"
+    path = "../Collected_Data/GREIT_TEST_3_freq_13_12_over_night"
     combined = combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=True)
     # combined = combine_multiple_pickles(path=path)
 

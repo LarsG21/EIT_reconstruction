@@ -78,7 +78,7 @@ def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
     else:
         df_v0 = default_frame
     df_v1 = df_v1[df_v1["frequency"] == 1000]
-    df_v0 = df_v0[df_v0["frequency"] == 1000]
+    # df_v0 = df_v0[df_v0["frequency"] == 1000]
     v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
     v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
     # v0 = np.load(os.path.join(path, "v0.npy"))

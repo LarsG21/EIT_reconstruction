@@ -47,7 +47,7 @@ CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
 CONDUCTIVITY_TARGET = 0.1  # in S/m
 EIT_32_used = True
 
-model_pca_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/test_08_12/model_2023-12-08_11-18-00_69_70.pth"
+model_pca_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/TESTING/model_2023-12-13_18-02-49_99_100.pth"
 model, pca, normalize = load_model_from_path(path=model_pca_path, normalize=False)
 
 
@@ -329,7 +329,7 @@ def collect_data_pattern_in_csv(gcode_device: GCodeDevice, eit_data_path: str, s
 
     # Assuming df is your DataFrame
     # Create bins and add a new column 'Y_bin' to store the bin labels
-    bin_size = 0.1
+    bin_size = 0.05
     df_coords_complete['Y_bin'] = pd.cut(df_coords_complete['y'], bins=np.arange(min(df_coords_complete['y']), max(
         df_coords_complete['y']) + bin_size, bin_size), labels=False)
 
@@ -361,11 +361,11 @@ def collect_data_pattern_in_csv(gcode_device: GCodeDevice, eit_data_path: str, s
         angles = group["angles"].to_numpy()
         j += 1
         for radius, angle in zip(radii, angles):
-            # # skip the first 560 samples  # TODO: For the case if collection got interrupted
-            # if i < 560:
-            #     i += 1
-            #     print(f"Skipping sample {i}/{overall_nr_of_samples}")
-            #     continue
+            # skip the first 560 samples  # TODO: For the case if collection got interrupted
+            if i < 400:
+                i += 1
+                print(f"Skipping sample {i}/{overall_nr_of_samples}")
+                continue
             print(f"Measuring at radius: {radius}, angle: {angle}")
             center = np.array([radius * np.cos(angle), radius * np.sin(angle)])
             center_for_moving = (center + 1) * gcode_device.maximal_limits[0] / 2
@@ -453,7 +453,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "GREIT_TEST_3_freq_13_12"
+    TEST_NAME = "GREIT_TEST_3_freq_13_12_over_night"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):

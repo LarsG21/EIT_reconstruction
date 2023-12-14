@@ -113,7 +113,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                    pca_components: int = 0, add_augmentation: bool = False, noise_level: float = 0.05,
                    number_of_noise_augmentations: int = 2, number_of_rotation_augmentations: int = 0,
                    number_of_blur_augmentations: int = 0, number_of_targets_in_superposition_samples=0,
-                   weight_decay: float = 1e-3, normalize=False,
+                   number_of_superpos_augmentations=0, weight_decay: float = 1e-3, normalize=False,
                    dropout_prob: float = 0.1, absolute_eit: bool = False,
                    ):
     global VOLTAGE_VECTOR_LENGTH
@@ -256,7 +256,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
         train_voltage, train_images = add_superposition_augmentation(train_voltages=train_voltage,
                                                                      train_images=train_images, device=device,
-                                                                     nr_of_superpositions=number_of_targets_in_superposition_samples)
+                                                                     nr_of_superpositions=number_of_targets_in_superposition_samples,
+                                                                     nr_of_copies=number_of_superpos_augmentations)
 
         train_images = add_gaussian_blur(train_images, device=device, nr_of_blurs=number_of_blur_augmentations)
 
@@ -423,7 +424,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "TESTING"
+    model_name = "More_Superpositions"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -431,7 +432,7 @@ if __name__ == "__main__":
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
+    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
     # path = "../Collected_Data/GREIT_TEST_3_freq"
@@ -443,11 +444,12 @@ if __name__ == "__main__":
     learning_rate = 0.001
     pca_components = 512  # 0 for no PCA
     add_augmentation = True
-    noise_level = 0.08
-    number_of_noise_augmentations = 6
+    noise_level = 0.02
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 5
-    number_of_targets_in_superposition_samples = 1
+    number_of_superpos_augmentations = 3
+    number_of_targets_in_superposition_samples = 2
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False  # better not use this
@@ -462,6 +464,7 @@ if __name__ == "__main__":
                                     number_of_rotation_augmentations=number_of_rotation_augmentations,
                                     number_of_blur_augmentations=number_of_blur_augmentations,
                                                 number_of_targets_in_superposition_samples=number_of_targets_in_superposition_samples,
+                                                number_of_superpos_augmentations=number_of_superpos_augmentations,
                                     weight_decay=weight_decay, normalize=normalize, absolute_eit=ABSOLUTE_EIT,
                                     )
 
