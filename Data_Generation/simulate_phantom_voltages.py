@@ -49,7 +49,7 @@ def generate_sample_mesh_simulation(mesh_obj, n_el=32):
     if THESIS_SAMPLE:
         # plot the image
         plt.imshow(img)
-        plt.colorbar()
+        plt.colorbar(fraction=0.046, pad=0.04)
         plt.title("Image with anomaly")
         plt.xlabel("x (pixels)")
         plt.ylabel("y (pixels)")

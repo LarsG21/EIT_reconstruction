@@ -88,26 +88,27 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         cv2.waitKey(1)
         print(f"Loss: {loss}")
         # plot comparison with matplotlib
-        # setting different parameters to adjust each grid
-        fig, ax = plt.subplots(nrows=1, ncols=2,
-                               gridspec_kw={
-                                   'width_ratios': [2, 2],
-                                   # 'height_ratios': [1, 1],
-                                   'wspace': 0.4,
-                                   'hspace': 0.4})
-        plt.title(f"Loss: {loss}")
-        im0 = ax[0].imshow(img_numpy)
-        ax[0].set_title(f"Original Image")
-        im1 = ax[1].imshow(output)
-        ax[1].set_title(f"Reconstructed Image")
+        # increase font size
+        plt.rcParams.update({'font.size': 22})
+
+        plt.figure(figsize=[20, 10])
+        plt.subplot(121)
+        plt.imshow(img_numpy)
+        plt.title(f"Target Image")
+        plt.colorbar(fraction=0.046, pad=0.04)
+        plt.subplot(122)
+        plt.imshow(output)
+        plt.title(f"Reconstructed Image")
+        plt.colorbar(fraction=0.046, pad=0.04)
+
         # calculate cross correlation between images
         cross_correlation = np.correlate(img_numpy.flatten(), output.flatten())
         print(f"Cross correlation: {cross_correlation}")
-        # add colorbar
-        plt.colorbar(im0, ax=ax[0])
-        plt.colorbar(im1, ax=ax[1])
+        plt.tight_layout()
         if save_path != "" and save_path is not None:
             plt.savefig(os.path.join(save_path, f"reconstruction_{i}.png"))
+            # save as pdf
+            plt.savefig(os.path.join(save_path, f"reconstruction_{i}.pdf"))  # PLOT_THESIS
         plt.show()
         time.sleep(0.1)
     return average_loss / num_images
@@ -135,13 +136,13 @@ def plot_difference_for_some_sample_reconstruction_images(image_data_tensor, vol
         output = model(volt)
         output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
         cv2.imshow("Reconstructed Image", cv2.resize(output, (256, 256)))
-        cv2.imshow("Original Image", cv2.resize(img_numpy, (256, 256)))
+        cv2.imshow("Target Image", cv2.resize(img_numpy, (256, 256)))
         difference = img_numpy - output
         # plot comparison with matplotlib
         plt.imshow(difference)
         plt.title(f"Difference")
         # add colorbar
-        plt.colorbar()
+        plt.colorbar(fraction=0.046, pad=0.04)
         plt.show()
         time.sleep(0.1)
 
@@ -189,7 +190,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
         plt.xlabel("X [pixel]")
         plt.ylabel("Y [pixel]")
         plt.savefig(os.path.join(save_path, "Original Reconstruction" + ".pdf"))
-        plt.colorbar()
+        plt.colorbar(fraction=0.046, pad=0.04)
         plt.show()
     # pull everything under 0.2 to 0
     output_non_threshold = output.copy()
@@ -202,7 +203,7 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
         plt.title("QAS")
         plt.xlabel("X [pixel]")
         plt.ylabel("Y [pixel]")
-        plt.colorbar()
+        plt.colorbar(fraction=0.046, pad=0.04)
         plt.savefig(os.path.join(save_path, "QAS" + ".pdf"))
         plt.show()
     if show:
@@ -214,12 +215,12 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
             plt.imshow(original_image)
             plt.title("Original")
             # add colorbar
-            plt.colorbar()
+            plt.colorbar(fraction=0.046, pad=0.04)
         else:
             plt.imshow(output)
             plt.title(title)
             # add colorbar
-            plt.colorbar()
+            plt.colorbar(fraction=0.046, pad=0.04)
         if save_path is not None:
             plt.savefig(save_path)
         plt.show()

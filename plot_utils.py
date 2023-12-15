@@ -158,7 +158,7 @@ def solve_and_get_center_with_nural_network(model, model_input,
         plt.plot(center_of_mass[0], center_of_mass[1], "ro")
         plt.legend(["center of gravity"])
         plt.imshow(imshow)
-        plt.colorbar()
+        plt.colorbar(fraction=0.046, pad=0.04)
         plt.title("Detected center of gravity")
         plt.xlabel("x [pixels]")
         plt.ylabel("y [pixels]")

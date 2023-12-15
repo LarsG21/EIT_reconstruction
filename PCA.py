@@ -79,7 +79,7 @@ def get_main_parts_of_principal_components(pca):
     plt.imshow(components, cmap="viridis")
     plt.ylabel("Principal Component")
     plt.xlabel("Raw Index")
-    plt.colorbar()
+    plt.colorbar(fraction=0.046, pad=0.04)
     plt.savefig('PCA.png', dpi=500)
     plt.show()
     for i in range(10):

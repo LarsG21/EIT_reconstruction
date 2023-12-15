@@ -167,14 +167,23 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
     for picture, testY_sample in zip(new_flat_pictures, testY_selection):
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
-        plt.imshow(testY_sample.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
+        plt.imshow(testY_sample.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis', aspect='equal')
         plt.title("Target")
-        plt.colorbar()
+        # colorbar with same height as the image
+        plt.colorbar(fraction=0.046, pad=0.04)
         plt.subplot(122)
-        plt.imshow(picture.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis')
+        plt.imshow(picture.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis', aspect='equal')
         plt.title(model_name)
-        plt.colorbar()
+        # colorbar with same height as the image
+        plt.colorbar(fraction=0.046, pad=0.04)
+        plt.tight_layout()
         plt.savefig(f"{results_path}/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
+        # save as pdf
+        file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pdf"  # PLOT_THESIS
+        save_path = f"C:\\Users\\lgudjons\\Desktop\\{model_name}"
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        plt.savefig(os.path.join(save_path, file_name))
         plt.show()
 
 
@@ -218,21 +227,22 @@ if __name__ == "__main__":
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    path = "Collected_Data/GREIT_TEST_3_freq_over_night"
+    path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "Collected_Data/GREIT_TEST_3_freq_over_night"
     # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
-    pca_components = 512  # 0 means no pca
-    noise_level = 0.08
+    pca_components = 128  # 0 means no pca
+    noise_level = 0.02
     number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
+    number_of_blur_augmentations = 10
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        LinearRegression(),
+        # LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        # KNeighborsRegressor(n_neighbors=2),
+        KNeighborsRegressor(n_neighbors=4),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),

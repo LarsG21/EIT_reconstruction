@@ -129,6 +129,10 @@ def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
     df_complete = pd.DataFrame()
     negative_samples = 0
     positive_samples = 0
+    sample_sizes = {"20mm": 0,
+                    "40mm": 0,
+                    "60mm": 0,
+                    }
     for folder in os.listdir(path):
         if os.path.isdir(os.path.join(path, folder)) and folder != "Models" and folder != "Exclude":
             print(folder)
@@ -142,6 +146,8 @@ def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
                 combined["voltage_diff"] = combined["voltages"].apply(lambda x: (x - v0) / v0)
                 print(combined["voltage_diff"].iloc[0])
             positive_samples += len(combined)
+            size = "20mm" if "20mm" in folder else "40mm" if "40mm" in folder else "60mm"
+            sample_sizes[size] += len(combined)
             # add to df_complete
             df_complete = pd.concat([df_complete, combined])
         elif folder.endswith(".pkl") and folder != "combined.pkl":  # For Empty image samples (V0s):
@@ -173,6 +179,11 @@ def combine_multiple_datasets_with_individual_v0(path, absolute_eit=False):
     print("###########################################")
     print(f"Length of combined df: {len(df_complete)}")
     print(f"Percentage of negative samples: {negative_samples / (negative_samples + positive_samples)}")
+    print(f"Percentage of positive samples: {positive_samples / (negative_samples + positive_samples)}")
+    print(f"Sample sizes: {sample_sizes}")
+    # plot distribution sample sizes
+    plt.bar(sample_sizes.keys(), sample_sizes.values())
+    plt.show()
     print("###########################################")
     return df_complete
 

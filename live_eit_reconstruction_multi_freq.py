@@ -49,7 +49,7 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
         for title, img in images.items():
             plt.imshow(img)
             plt.tight_layout()
-            plt.colorbar()
+            plt.colorbar(fraction=0.046, pad=0.04)
             save_path = f"C:\\Users\\lgudjons\\Desktop\\{title}"
             if not os.path.exists(save_path):
                 os.mkdir(save_path)
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
     model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
     model_paths = [
-        model_pca_path,
+        # model_pca_path,
         model_path_2,
         # model_path_3
     ]
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         NORMALIZE_LIST.append(NORMALIZE)
 
     title_list = [
-        "Model without superposition",
+        # "Model without superposition",
         "Model with superposition",
         # "New Model GREIT like"
                   ]

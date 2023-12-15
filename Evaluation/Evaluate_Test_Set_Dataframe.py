@@ -119,7 +119,7 @@ def get_shape_deformation(img_reconstructed, show_plot=True):
             cv2.imshow("Shape Deformation", cv2.resize(img_reconstructed_masked, (512, 512)))
         else:
             plt.imshow(img_reconstructed_masked)
-            plt.colorbar()
+            plt.colorbar(fraction=0.046, pad=0.04)
             plt.title(f"Shape deformation: {np.sum(img_reconstructed_masked) / np.sum(img_reconstructed)}")
             plt.show()
 
@@ -191,7 +191,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
             img_non_thresh = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
             # plt.imshow(img_non_thresh)
             # plt.title("Reconstructed image")
-            # plt.colorbar()
+            # plt.colorbar(fraction=0.046, pad=0.04)
             # plt.show()
             img_reconstructed = img_non_thresh.copy()
             img_reconstructed[img_non_thresh < 0.25] = 0

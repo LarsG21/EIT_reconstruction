@@ -36,7 +36,7 @@ def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
     plt.xlabel("x (px)")
     plt.ylabel("y (px)")
     plt.title("Amplitude response over space")
-    plt.colorbar()
+    plt.colorbar(fraction=0.046, pad=0.04)
     # save as tikz
     tikzplotlib.save("amplitude_response_over_space.tex")
     plt.show()

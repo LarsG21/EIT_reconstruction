@@ -443,38 +443,38 @@ def main():
             if calibrate == "y":
                 calibration_procedure(ender, RADIUS_TARGET_IN_MM)
             else:
-                pass
                 # move to the center
-                # limit_x = ender.maximal_limits[0]
-                # limit_z = ender.maximal_limits[2]
-                # ender.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
-                # input("Press enter when the device is in the center...")
+                limit_x = ender.maximal_limits[0]
+                limit_z = ender.maximal_limits[2]
+                ender.move_to(x=limit_x / 2, y=0, z=limit_z / 2)
+                input("Press enter when the device is in the center...")
             break
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "GREIT_TEST_3_freq_13_12_over_night"
+    TEST_NAME = "GREIT_TEST_3_freq_14_12_over_night_20mm"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
         input("WARNING: The folder already exists. Press enter to continue")
     else:
         os.makedirs(save_path)
-    # warn if folder name has other number before mm than the actual radius
+    # warn if folder name has other
+    # number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    # collect_data(gcode_device=ender, number_of_samples=3000,
-    #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #              save_path=save_path)
+    collect_data(gcode_device=ender, number_of_samples=3000,
+                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                 save_path=save_path)
     # collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
     #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #                             save_path=save_path)
 
-    df_coords_complete = pd.read_csv("../points.csv")
-    collect_data_pattern_in_csv(gcode_device=ender,
-                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
-                                df_coords_complete=df_coords_complete)
+    # df_coords_complete = pd.read_csv("../points.csv")
+    # collect_data_pattern_in_csv(gcode_device=ender,
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
+    #                             df_coords_complete=df_coords_complete)
 
 
 if __name__ == '__main__':

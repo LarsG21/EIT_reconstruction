@@ -88,7 +88,7 @@ def plot_evaluation_results(df, open_plots_over_space=True, save_path=""):
 
     # scatter plot of error_vector with number at each point represented as a color
     # plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]), c=df["position_error"])
-    # plt.colorbar()
+    # plt.colorbar(fraction=0.046, pad=0.04)
     plt.scatter(df["error_vector"].apply(lambda x: x[0]), df["error_vector"].apply(lambda x: x[1]))
 
     plt.xlabel("x error [px]")
