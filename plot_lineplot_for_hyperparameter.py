@@ -10,13 +10,14 @@ df_evaluation_results = pd.read_pickle(test_set_path)
 # load v0 from the same folder as the test set
 print(f"INFO: Loaded test set from {test_set_path} with {len(df_evaluation_results)} samples")
 
+
 def plot_metrics_with_std(df_eval, metric_names):
     num_metrics = len(metric_names)
     for i in range(num_metrics):
         plt.figure()
-        sns.lineplot(data=df_eval, x="wd", y=metric_names[i])
+        sns.lineplot(data=df_eval, x=x_param, y=metric_names[i])
         plt.xlabel("Weight decay")
-        plt.xscale('log')
+        # plt.xscale('log')
         plt.ylabel(metric_names[i])
         plt.show()
         # delete figure
@@ -25,8 +26,8 @@ def plot_metrics_with_std(df_eval, metric_names):
 
 metric_names_df = ["ar", "sd", "ringing", "pe", "pc"]
 
-# plot_metrics_with_std(df_evaluation_results, metric_names_df)
-x_param = "lr"
+x_param = "blurr"
+plot_metrics_with_std(df_evaluation_results, metric_names_df)
 
 # seperate in differnt dataframes
 df_ar = df_evaluation_results[[x_param, "ar"]]
@@ -49,26 +50,34 @@ df_ringing.columns = [x_param, "mean", "std"]
 df_pe.columns = [x_param, "mean", "std"]
 df_pc.columns = [x_param, "mean", "std"]
 
-
 # plot all metrics in one plot
 
-df_list = [df_ar,
-           # df_sd,
-           # df_ringing,
-           # df_pe,
-           df_pc
-           ]
-labels = ["Amplitude response", "Std Amplitude response"
-# "Shape Deformation",  "Std Shape Deformation"
-# "Ringing", "Std Ringing",
-# "Position Error", "Std Position Error",
-                                "Pearson Correlation", "Std Pearson Correlation"
-          ]
+df_list = [
+    # df_ar,
+    # df_sd,
+    df_ringing,
+    # df_pe,
+    # df_pc
+]
+
+# # normalize all metrics between 0 and 1
+# for df in df_list:
+#     df["mean"] = (df["mean"] - df["mean"].min()) / (df["mean"].max() - df["mean"].min())
+#     df["std"] = (df["std"] - df["std"].min()) / (df["std"].max() - df["std"].min())
+
+
+labels = [
+    # "Amplitude response", "Std Amplitude response"
+    # "Shape Deformation",  "Std Shape Deformation"
+    "Ringing", "Std Ringing",
+    # "Position Error", "Std Position Error",
+    # "Pearson Correlation", "Std Pearson Correlation"
+]
 
 colors = ["blue", "orange", "green", "red", "purple"]
 
 colors = [colors[i] for i in range(len(df_list))]
 
 genterate_linepot_with_std(f"parameter_over_{x_param}.tex", df_list, colors, labels,
-                           x_label="Learning Rate", y_label="A.U.", title="Metrics over Learning Rate",
-                           x_ticks=df_ar[x_param].to_list(), log_scale=True)
+                           x_label="Number of Blurrs", y_label="A.U.", title="Metrics over Learning Rate",
+                           x_ticks=df_ar[x_param].to_list(), log_scale=False)
