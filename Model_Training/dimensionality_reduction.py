@@ -26,6 +26,12 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
     :param n_components: number of principal components to keep
     :return:
     """
+     # if len of data > 1000000, use sample of 1000000
+    if len(voltage_data_tensor) > 1000000:
+        print("INFO: Using a sample of 1000000 voltages for PCA")
+        indices = np.random.choice(len(voltage_data_tensor), 1000000, replace=False)
+        voltage_data_tensor = voltage_data_tensor[indices]
+
     transform_back_to_tensor = False
     pca = PCA(n_components=n_components)
     if type(voltage_data_tensor) == torch.Tensor:

@@ -53,7 +53,7 @@ else:
     device = "cpu"
 
 # torch.cuda.set_device(0)
-device = "cpu"
+# device = "cpu"
 
 show_progeress = True
 
@@ -182,7 +182,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         VOLTAGE_VECTOR_LENGTH = voltage_data_np.shape[1]
 
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
-                                    dropout_prob=dropout_prob)
+                                    dropout_prob=dropout_prob).to(device)
 
     # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
@@ -249,19 +249,18 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Highlight Step 4.1: Augment the training data
     if add_augmentation:
-        # augment the training data
+        train_voltage, train_images = add_superposition_augmentation(train_voltages=train_voltage,
+                                                                     train_images=train_images, device=device,
+                                                                     nr_of_superpositions=number_of_targets_in_superposition_samples,
+                                                                     nr_of_copies=number_of_superpos_augmentations)
+        print(f"INFO: Length after superposition augmentation: {len(train_voltage)}")
+
         train_voltage, train_images = add_noise_augmentation(train_voltage, train_images,
                                                              number_of_noise_augmentations, noise_level, device=device)
         print(f"INFO: Length after noise augmentation: {len(train_voltage)}")
         train_voltage, train_images = add_rotation_augmentation(train_voltage, train_images,
                                                                 number_of_rotation_augmentations, device=device)
         print(f"INFO: Length after rotation augmentation: {len(train_voltage)}")
-
-        train_voltage, train_images = add_superposition_augmentation(train_voltages=train_voltage,
-                                                                     train_images=train_images, device=device,
-                                                                     nr_of_superpositions=number_of_targets_in_superposition_samples,
-                                                                     nr_of_copies=number_of_superpos_augmentations)
-        print(f"INFO: Length after superposition augmentation: {len(train_voltage)}")
 
         train_images = add_gaussian_blur(train_images, device=device, nr_of_blurs=number_of_blur_augmentations)
 
@@ -428,34 +427,35 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "Few_Samples"
+    model_name = "Model_16_12_many_augmentations_GPU"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
-    path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq"
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_only_40mm"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/GREIT_TEST_3_freq_20mm"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 100
+    num_epochs = 200
     learning_rate = 0.001
-    pca_components = 0  # 0 for no PCA
-    add_augmentation = False
+    pca_components = 512  # 0 for no PCA
+    add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 5
-    number_of_rotation_augmentations = 5
+    number_of_noise_augmentations = 4
+    number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 0
-    number_of_superpos_augmentations = 0
-    number_of_targets_in_superposition_samples = 0
+    number_of_superpos_augmentations = 4
+    number_of_targets_in_superposition_samples = 2      # 2 equals 3 targets in total
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
-    USE_N_SAMPLES_FOR_TRAIN = 120  # 0 for all data
+    USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False  # better not use this
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
@@ -484,8 +484,6 @@ if __name__ == "__main__":
         print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
         v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
 
-    df_test_set = pd.read_pickle(test_set_path)
-    # load v0 from the same folder as the test set
     df_test_set = pd.read_pickle(test_set_path)
     print(f"INFO: Loaded test set from {test_set_path} with {len(df_test_set)} samples")
 
