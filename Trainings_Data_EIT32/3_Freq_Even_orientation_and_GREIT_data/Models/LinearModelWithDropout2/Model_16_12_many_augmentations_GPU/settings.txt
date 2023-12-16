@@ -1,0 +1,18 @@
+Model: LinearModelWithDropout2
+Absolute EIT: True
+NOISE_LEVEL: 0.02
+LEARNING_RATE: 0.001
+weight_decay: 1e-06
+patience: 30
+num_epochs: 200
+Augmentations: True
+Number of augmentations: 4
+Number of rotation augmentations: 0
+Number of blur augmentations: 5
+Number of superposition augmentations: 4
+Number of targets in superposition samples: 2
+dropout_prob: 0.1
+PCA_COMPONENTS: 512
+normalize: False
+electrode_level_normalization: False
+

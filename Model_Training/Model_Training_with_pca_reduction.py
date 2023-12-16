@@ -388,6 +388,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                 SAMPLE_RECONSTRUCTION_INDEX,
                 SAVE_CHECKPOINTS
             )
+        # print the time
+        print(datetime.now().strftime("%H:%M:%S"))
 
         loop.set_postfix(loss=loss.item())
     # save the final model
@@ -451,7 +453,7 @@ if __name__ == "__main__":
     noise_level = 0.02
     number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 0
+    number_of_blur_augmentations = 5
     number_of_superpos_augmentations = 4
     number_of_targets_in_superposition_samples = 2      # 2 equals 3 targets in total
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
