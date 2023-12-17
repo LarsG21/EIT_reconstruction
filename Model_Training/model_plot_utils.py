@@ -209,10 +209,10 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     if show:
         if original_image is not None:
             plt.subplot(1, 2, 1)
-            plt.imshow(output)
+            plt.imshow(original_image)
             plt.title(title)
             plt.subplot(1, 2, 2)
-            plt.imshow(original_image)
+            plt.imshow(output)
             plt.title("Original")
             # add colorbar
             plt.colorbar(fraction=0.046, pad=0.04)
