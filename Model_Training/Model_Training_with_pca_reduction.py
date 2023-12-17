@@ -430,7 +430,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "Model_16_12_many_augmentations_GPU_2"
+    model_name = "Model_16_12_many_augmentations_GPU_3"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
