@@ -27,18 +27,20 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
     :return:
     """
      # if len of data > 1000000, use sample of 1000000
-    if len(voltage_data_tensor) > 1000000:
-        print("INFO: Using a sample of 1000000 voltages for PCA")
-        indices = np.random.choice(len(voltage_data_tensor), 1000000, replace=False)
-        voltage_data_tensor = voltage_data_tensor[indices]
+    if len(train_voltage) > 10000:
+        print("INFO: Using a sample of 100000 voltages for PCA")
+        indices = np.random.choice(len(train_voltage), 10000, replace=False)
+        train_voltage_for_pca = train_voltage[indices]
+    else:
+        train_voltage_for_pca = train_voltage
 
     transform_back_to_tensor = False
     pca = PCA(n_components=n_components)
     if type(voltage_data_tensor) == torch.Tensor:
-        voltage_data_tensor_np = voltage_data_tensor.cpu().numpy()
+        voltage_data_tensor_np = train_voltage_for_pca.cpu().numpy()
         transform_back_to_tensor = True
     elif type(voltage_data_tensor) == np.ndarray:
-        voltage_data_tensor_np = voltage_data_tensor
+        voltage_data_tensor_np = train_voltage_for_pca
     else:
         raise ValueError("voltage_data_tensor must be a numpy array or torch tensor")
     pca.fit(voltage_data_tensor_np)

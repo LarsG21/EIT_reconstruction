@@ -321,10 +321,10 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     # Highlight Step 7: Define the training loop
     if loading_path != "":
-        model.load_state_dict(torch.load(
-            os.path.join(model_path, "model_2023-09-28_16-06-34_299_300.pth")))
+        model.load_state_dict(torch.load(loading_path))
     loss_list = []
     val_loss_list = []
+    epoch = 0
     for epoch in range(num_epochs):
         model.train()  # Set the model to training mode
         loop = tqdm(train_dataloader)
@@ -415,8 +415,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                     save_path=model_path)
     PLOT_EXAMPLES = True
     if PLOT_EXAMPLES:
-        plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
-                                    save_path=model_path)
+        # plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
+        #                             save_path=model_path)
+        plot_sample_reconstructions(train_images, train_voltage, model, criterion, num_images=10)
 
     # plot_difference_for_some_sample_reconstruction_images(test_images, test_voltage, model, num_images=20)
 
@@ -429,7 +430,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "Model_16_12_many_augmentations_GPU"
+    model_name = "Model_16_12_many_augmentations_GPU_2"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -446,7 +447,7 @@ if __name__ == "__main__":
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 200
+    num_epochs = 60
     learning_rate = 0.001
     pca_components = 512  # 0 for no PCA
     add_augmentation = True
@@ -473,6 +474,7 @@ if __name__ == "__main__":
                                                 number_of_superpos_augmentations=number_of_superpos_augmentations,
                                                 weight_decay=weight_decay, normalize=normalize,
                                                 absolute_eit=ABSOLUTE_EIT,
+                                                # loading_path="../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU/model_2023-12-16_19-42-10_199_200.pth"
                                                 )
 
     if ABSOLUTE_EIT:
