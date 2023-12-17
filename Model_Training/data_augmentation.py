@@ -248,7 +248,7 @@ def add_superposition_augmentation(train_voltages, train_images, device="cpu", n
     """
     if nr_of_superpositions == 0:
         return train_voltages, train_images
-    print(f"INFO: Adding {nr_of_copies} superpositions with {nr_of_superpositions} superpositions to the training data")
+    print(f"INFO: Adding {nr_of_copies} copies with {nr_of_superpositions} superpositions to the training data")
     convert_back_to_tensor = False
     if type(train_images) == torch.Tensor:
         train_images_numpy = train_images.cpu().numpy()

@@ -108,7 +108,7 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         if save_path != "" and save_path is not None:
             plt.savefig(os.path.join(save_path, f"reconstruction_{i}.png"))
             # save as pdf
-            plt.savefig(os.path.join(save_path, f"reconstruction_{i}.pdf"))  # PLOT_THESIS
+            # plt.savefig(os.path.join(save_path, f"reconstruction_{i}.pdf"))  # PLOT_THESIS
         plt.show()
         time.sleep(0.1)
     return average_loss / num_images
