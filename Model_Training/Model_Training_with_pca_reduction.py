@@ -415,9 +415,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                     save_path=model_path)
     PLOT_EXAMPLES = True
     if PLOT_EXAMPLES:
-        # plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
-        #                             save_path=model_path)
-        plot_sample_reconstructions(train_images, train_voltage, model, criterion, num_images=10)
+        plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
+                                    save_path=model_path)
+        # plot_sample_reconstructions(train_images, train_voltage, model, criterion, num_images=10)
 
     # plot_difference_for_some_sample_reconstruction_images(test_images, test_voltage, model, num_images=20)
 
@@ -474,7 +474,7 @@ if __name__ == "__main__":
                                                 number_of_superpos_augmentations=number_of_superpos_augmentations,
                                                 weight_decay=weight_decay, normalize=normalize,
                                                 absolute_eit=ABSOLUTE_EIT,
-                                                # loading_path="../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU/model_2023-12-16_19-42-10_199_200.pth"
+                                                loading_path="../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU/model_2023-12-16_19-42-10_199_200.pth"
                                                 )
 
     if ABSOLUTE_EIT:
