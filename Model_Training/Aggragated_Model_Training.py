@@ -95,21 +95,22 @@ def plot_for_different_hyperparameters():
     # # path = "../Collected_Data/Combined_dataset"
     # # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # # path = "../Own_Simulation_Dataset"
-    # path = "../Trainings_Data_EIT32/1_Freq"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # # path = "../Collected_Data/Even_Orientation_Dataset"
     # ABSOLUTE_EIT = False
     # learning_rate = 0.0001
     # pca_components = 0  # 0 for no PCA
     # add_augmentation = True
     # noise_level = 0.02
-    # number_of_noise_augmentations = 4
+    # number_of_noise_augmentations = 2
     # number_of_rotation_augmentations = 0
-    # number_of_blur_augmentations = 5
+    # number_of_blur_augmentations = 4
     # weight_decay = 1e-2  # Adjust this value as needed (L2 regularization)
     # USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     # df_eval = pd.DataFrame()
+    experiment_name = "Differnt_PCAS"
     #
-    # for i in range(10):
+    # for i in range(5):
     #     print(f"###################### Run {i} #########################")
     #     amplitude_responses = []
     #     shape_deformations = []
@@ -117,27 +118,28 @@ def plot_for_different_hyperparameters():
     #     position_errors = []
     #     pearson_correlations = []
     #
-    #     num_epochs_list = [60]
+    #     num_epochs_list = [70]
     #     # wheight_decay_list = [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01]
     #     # learning_rate_list = [0.00001, 0.0001, 0.001, 0.01]
     #     # dropout_pobs = [0.05, 0.1, 0.15]
-    #     number_of_blur_augmentations_list = [0, 2, 4, 6, 8]
+    #     # number_of_blur_augmentations_list = [0, 2, 4, 6, 8]
+    #     number_of_pca_components_list = [0, 512, 256, 128, 64, 32, 16]
     #     for num in num_epochs_list:
-    #         for blurr in number_of_blur_augmentations_list:
-    #             model_name = f"TESTING_{num}_epochs_{str(blurr).replace('.', '_')}_wd"
+    #         for nr_pca in number_of_pca_components_list:
+    #             model_name = f"TESTING_{num}_epochs_{str(nr_pca).replace('.', '_')}_wd"
     #             print(
-    #                 f"####################Training with {blurr} WD for {num} num epochs ###########################")
+    #                 f"####################Training with {nr_pca} WD for {num} num epochs ###########################")
     #             early_stopping_handler = EarlyStoppingHandler(patience=30)
     #             df, model, pca, model_path = trainings_loop(model_name=model_name, path_to_training_data=path,
-    #                                             num_epochs=num, learning_rate=learning_rate,
-    #                                             early_stopping_handler=early_stopping_handler,
-    #                                             pca_components=pca_components, add_augmentation=add_augmentation,
-    #                                             noise_level=noise_level,
-    #                                             number_of_noise_augmentations=number_of_noise_augmentations,
-    #                                             number_of_rotation_augmentations=number_of_rotation_augmentations,
-    #                                             number_of_blur_augmentations=blurr,
-    #                                             weight_decay=0, normalize=False,
-    #                                             )
+    #                                                         num_epochs=num, learning_rate=learning_rate,
+    #                                                         early_stopping_handler=early_stopping_handler,
+    #                                                         pca_components=nr_pca, add_augmentation=add_augmentation,
+    #                                                         noise_level=noise_level,
+    #                                                         number_of_noise_augmentations=number_of_noise_augmentations,
+    #                                                         number_of_rotation_augmentations=number_of_rotation_augmentations,
+    #                                                         number_of_blur_augmentations=number_of_blur_augmentations,
+    #                                                         weight_decay=0, normalize=False,
+    #                                                         )
     #
     #             if ABSOLUTE_EIT:
     #                 test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
@@ -165,10 +167,10 @@ def plot_for_different_hyperparameters():
     #             position_errors.append(pe)
     #             pearson_correlations.append(pc)
     #             if len(df_eval) == 0:
-    #                 df_eval = pd.DataFrame(data={"blurr": blurr, "ar": ar, "sd": sd, "ringing": ringing, "pe": pe, "pc": pc},
+    #                 df_eval = pd.DataFrame(data={"x": nr_pca, "ar": ar, "sd": sd, "ringing": ringing, "pe": pe, "pc": pc},
     #                                        index=[0])
     #             else:
-    #                 df_eval = pd.concat([df_eval, pd.DataFrame(data={"blurr": blurr, "ar": ar, "sd": sd, "ringing": ringing,
+    #                 df_eval = pd.concat([df_eval, pd.DataFrame(data={"x": nr_pca, "ar": ar, "sd": sd, "ringing": ringing,
     #                                                                  "pe": pe, "pc": pc}, index=[0])])
     #
     #             plt.title(f"Training for {num} epochs")
@@ -189,15 +191,18 @@ def plot_for_different_hyperparameters():
     #     metric_names = ['Amplitude response', 'Shape deformation'
     #                                           'Ringing', 'Position error', 'Pearson correlation']
     #     try:
-    #         plot_metrics(number_of_blur_augmentations_list, [amplitude_responses, shape_deformations,
+    #         plot_metrics(number_of_pca_components_list, [amplitude_responses, shape_deformations,
     #                                           ringings, position_errors, pearson_correlations], metric_names)
     #     except IndexError:
     #         print("Index error")
     #     print(df_eval)
-    # df_eval.to_pickle(f"df_eval_New.pkl")
+    # df_eval.to_pickle(f"df_eval_New_{experiment_name}.pkl")
 
     # load instead of training
-    df_eval = pd.read_pickle("df_eval_New.pkl")
+    df_eval = pd.read_pickle(f"df_eval_New_{experiment_name}.pkl")
+    # replace 0 with 1024 where col "x" == 0
+    df_eval.loc[df_eval["x"] == 0, "x"] = 1024
+
 
     # plot lineplot with std over lr for each metric with seaborn
 
@@ -205,8 +210,8 @@ def plot_for_different_hyperparameters():
         num_metrics = len(metric_names)
         for i in range(num_metrics):
             plt.figure()
-            sns.lineplot(data=df_eval, x="blurr", y=metric_names[i])
-            plt.xlabel("Nr Blurr Augments")
+            sns.lineplot(data=df_eval, x="x", y=metric_names[i])
+            plt.xlabel("Nr PCA components")
             # plt.xscale('log')
             plt.ylabel(metric_names[i])
             plt.show()

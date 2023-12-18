@@ -149,8 +149,9 @@ if __name__ == '__main__':
     #
     # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
 
-    model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
+    # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
     model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
+    # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU_3/continued_model_2023-12-17_12-24-19_42_60.pth"
     model_paths = [
         # model_pca_path,
         model_path_2,
@@ -168,7 +169,7 @@ if __name__ == '__main__':
     title_list = [
         # "Model without superposition",
         "Model with superposition",
-        # "New Model GREIT like"
+        # "New Model GPU"
                   ]
 
     try:

@@ -208,6 +208,6 @@ def load_model_from_path(path, normalize=True, absoulte_eit=False, voltage_vecto
         voltage_vector_length = pca.n_components_
     model_pca = LinearModelWithDropout2(input_size=voltage_vector_length, output_size=out_size ** 2)
     print("Loading the model")
-    model_pca.load_state_dict(torch.load(path))
+    model_pca.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
     model_pca.eval()
     return model_pca, pca, normalize

@@ -217,9 +217,9 @@ def plot_evaluation_results(df, open_plots_over_space=True, save_path=""):
 
 
 def main():
-    ABSOLUTE_EIT = True
+    ABSOLUTE_EIT = False
     normalize = False
-    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/THESIS_BES_MODEL/model_2023-12-18_12-41-06_59_60.pth"
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
@@ -237,10 +237,11 @@ def main():
 
     model, pca, NORMALIZE = load_model_from_path(path=model_path, normalize=normalize, absoulte_eit=ABSOLUTE_EIT)
 
-    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=True,
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=model_path, pca=pca,
-                                                        regressor=None)
+                                                        regressor=None,
+                                                        )
 
     plot_evaluation_results(df_evaluate_results)
 

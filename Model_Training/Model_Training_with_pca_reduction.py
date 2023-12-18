@@ -413,7 +413,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     evaluate_model_and_save_results(model=model, criterion=criterion, test_dataloader=test_dataloader,
                                     train_dataloader=train_dataloader, val_dataloader=val_dataloader,
                                     save_path=model_path)
-    PLOT_EXAMPLES = True
+    PLOT_EXAMPLES = False
     if PLOT_EXAMPLES:
         plot_sample_reconstructions(test_images, test_voltage, model, criterion, num_images=10,
                                     save_path=model_path)
@@ -429,19 +429,19 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = False
-    ABSOLUTE_EIT = True
-    model_name = "Model_16_12_many_augmentations_GPU_3"
+    ABSOLUTE_EIT = False
+    model_name = "Testing_superpos"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_only_40mm"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/GREIT_TEST_3_freq_20mm"
     if update_dataset:
         print("Updating dataset")
@@ -449,16 +449,16 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Even_Orientation_Dataset"
     num_epochs = 60
     learning_rate = 0.001
-    pca_components = 512  # 0 for no PCA
+    pca_components = 0  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 4
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 5
-    number_of_superpos_augmentations = 4
+    number_of_blur_augmentations = 4
+    number_of_superpos_augmentations = 2
     number_of_targets_in_superposition_samples = 2      # 2 equals 3 targets in total
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
-    USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
+    USE_N_SAMPLES_FOR_TRAIN = 3000  # 0 for all data
     normalize = False  # better not use this
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
@@ -474,7 +474,7 @@ if __name__ == "__main__":
                                                 number_of_superpos_augmentations=number_of_superpos_augmentations,
                                                 weight_decay=weight_decay, normalize=normalize,
                                                 absolute_eit=ABSOLUTE_EIT,
-                                                loading_path="../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU/model_2023-12-16_19-42-10_199_200.pth"
+                                                # loading_path="../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU/model_2023-12-16_19-42-10_199_200.pth"
                                                 )
 
     if ABSOLUTE_EIT:
@@ -494,6 +494,6 @@ if __name__ == "__main__":
     df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca,
-                                                        regressor=None)
+                                                        regressor=None, )
     plot_evaluation_results(df_evaluate_results, save_path=model_path)
     print(f"Average pearson correlation: {df_evaluate_results['pearson_correlation'].mean()}")

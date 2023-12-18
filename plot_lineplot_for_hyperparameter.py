@@ -54,8 +54,8 @@ df_pc.columns = [x_param, "mean", "std"]
 
 df_list = [
     # df_ar,
-    # df_sd,
-    df_ringing,
+    df_sd,
+    # df_ringing,
     # df_pe,
     # df_pc
 ]
@@ -68,8 +68,8 @@ df_list = [
 
 labels = [
     # "Amplitude response", "Std Amplitude response"
-    # "Shape Deformation",  "Std Shape Deformation"
-    "Ringing", "Std Ringing",
+    "Shape Deformation", "Std Shape Deformation"
+    # "Ringing", "Std Ringing",
     # "Position Error", "Std Position Error",
     # "Pearson Correlation", "Std Pearson Correlation"
 ]
@@ -78,6 +78,6 @@ colors = ["blue", "orange", "green", "red", "purple"]
 
 colors = [colors[i] for i in range(len(df_list))]
 
-genterate_linepot_with_std(f"parameter_over_{x_param}.tex", df_list, colors, labels,
+genterate_linepot_with_std(f"sd_over_{x_param}.tex", df_list, colors, labels,
                            x_label="Number of Blurrs", y_label="A.U.", title="Metrics over Learning Rate",
                            x_ticks=df_ar[x_param].to_list(), log_scale=False)

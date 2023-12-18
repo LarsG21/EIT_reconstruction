@@ -41,7 +41,7 @@ protocol_obj = protocol.create(n_el, dist_exc=dist_exc, step_meas=step_meas, par
 keep_mask = protocol_obj.keep_ba
 df_keep_mask = pd.DataFrame(keep_mask, columns=["keep"])
 
-RADIUS_TARGET_IN_MM = 20
+RADIUS_TARGET_IN_MM = 40
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -502,7 +502,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "GREIT_DISTRIBUTION_20mm"
+    TEST_NAME = "Data_collection_18_12"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     if os.path.exists(save_path):
         input("The save path already exists. Press enter to continue...")
@@ -512,24 +512,25 @@ def main():
         os.makedirs(save_path)
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    # try:
-    #     collect_data(gcode_device=ender, number_of_samples=4000,
-    #                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #                  save_path=save_path)
-    # except FileNotFoundError as e:  # Deleted the folder because eit32 crashed
-    #     # Just restart the collection
-    #     collect_data(gcode_device=ender, number_of_samples=8000,
-    #                  eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #                  save_path=save_path)
+    try:
+        collect_data(gcode_device=ender, number_of_samples=4000,
+                     eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                     save_path=save_path)
+    except FileNotFoundError as e:  # Deleted the folder because eit32 crashed
+        # Just restart the collection
+        # collect_data(gcode_device=ender, number_of_samples=8000,
+        #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+        #              save_path=save_path)
+        pass
     # collect_data_circle_pattern(gcode_device=ender, number_of_runs=1,
     #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
     #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
     #                             debug_plots=True)
-    df_coords_complete = pd.read_csv("../points.csv")
-    collect_data_pattern_in_csv(gcode_device=ender,
-                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                                save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
-                                df_coords_complete=df_coords_complete)
+    # df_coords_complete = pd.read_csv("../points.csv")
+    # collect_data_pattern_in_csv(gcode_device=ender,
+    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #                             save_path=f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}",
+    #                             df_coords_complete=df_coords_complete)
 
 if __name__ == '__main__':
     cwd = os.getcwd()
