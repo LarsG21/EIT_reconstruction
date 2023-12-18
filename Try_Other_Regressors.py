@@ -39,7 +39,7 @@ LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
-plt.rcParams.update({'font.size': 22})
+plt.rcParams.update({'font.size': 32})
 
 
 def prepare_training_data(path, add_augmentation, normalize, pca_components=0, test_size=0.2):
@@ -223,14 +223,14 @@ if __name__ == "__main__":
     # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    # path = "Training_Data/1_Freq_with_individual_v0s"
+    path = "Training_Data/1_Freq_with_individual_v0s"
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
-    path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "Collected_Data/GREIT_TEST_3_freq_over_night"
     # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
-    pca_components = 128  # 0 means no pca
+    pca_components = 512  # 0 means no pca
     noise_level = 0.02
     number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
