@@ -270,7 +270,7 @@ if __name__ == "__main__":
         model_name = regressor.__class__.__name__
         print("Training with regressor: ", regressor.__class__.__name__)
         start_time = time.time()
-        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=True,
+        train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=False,
                         add_augmentation=add_augmentations, results_folder=results_folder,
                         pca_components=pca_components,
                         number_of_superpos_augmentations=number_of_superpos_augmentations,

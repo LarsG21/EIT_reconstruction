@@ -430,18 +430,18 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 if __name__ == "__main__":
     update_dataset = False
     ABSOLUTE_EIT = True
-    model_name = "DEBUG_TEST_PERFORMANCE"
+    model_name = "TESTING_19_12"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_only_40mm"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/GREIT_TEST_3_freq_20mm"
     if update_dataset:
         print("Updating dataset")
@@ -452,10 +452,10 @@ if __name__ == "__main__":
     pca_components = 512  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 5
+    number_of_noise_augmentations = 3
     number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 4
-    number_of_superpos_augmentations = 1
+    number_of_superpos_augmentations = 3
     number_of_targets_in_superposition_samples = 2  # 2 equals 3 targets in total
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data

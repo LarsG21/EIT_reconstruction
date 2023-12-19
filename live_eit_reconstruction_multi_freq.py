@@ -29,24 +29,24 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
     # plt.plot(v1)
     # plt.show()
     images = {}
-    # for i, (title, model_temp, pca_temp, normalize_temp) in enumerate(
-    #         zip(title_list, model_list, pca_list, NORMALIZE_LIST)):
-    #     if normalize_temp:
-    #         v1 = add_normalizations(v1, NORMALIZE_MEDIAN=True, NORMALIZE_PER_ELECTRODE=False)
-    #     v1_pca = pca_temp.transform(v1.reshape(1, -1))
-    #     if debug_plot:
-    #         plt.bar(x=range(len(v1_pca.reshape(-1))), height=v1_pca.reshape(-1))
-    #         plt.title("PCA transformed voltage vector")
-    #         plt.xlabel("PCA component")
-    #         plt.ylabel("Intensity")
-    #         plt.show()
-    #     solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True)
-    #     img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
-    #                                             use_opencv_for_plotting=True
-    #                                             , title=title,
-    #                                             save_path=None)
+    for i, (title, model_temp, pca_temp, normalize_temp) in enumerate(
+            zip(title_list, model_list, pca_list, NORMALIZE_LIST)):
+        if normalize_temp:
+            v1 = add_normalizations(v1, NORMALIZE_MEDIAN=True, NORMALIZE_PER_ELECTRODE=False)
+        v1_pca = pca_temp.transform(v1.reshape(1, -1))
+        if debug_plot:
+            plt.bar(x=range(len(v1_pca.reshape(-1))), height=v1_pca.reshape(-1))
+            plt.title("PCA transformed voltage vector")
+            plt.xlabel("PCA component")
+            plt.ylabel("Intensity")
+            plt.show()
+        # solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True)
+        img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
+                                                use_opencv_for_plotting=True
+                                                , title=title,
+                                                save_path=None)
 
-    img = plot_with_regressor(v1)
+    # img = plot_with_regressor(v1)
     # images[title] = img
     if cv2.waitKey(1) & 0xFF == ord('s'):
         for title, img in images.items():
@@ -94,7 +94,7 @@ def plot_with_regressor(v1, debug=False):
         plt.plot(v1)
         plt.title("Voltage vector")
         plt.show()
-    v1 = add_normalizations(v1, NORMALIZE_MEDIAN=True, NORMALIZE_PER_ELECTRODE=False)
+    v1 = add_normalizations(v1, NORMALIZE_MEDIAN=False, NORMALIZE_PER_ELECTRODE=False)
     v1 = v1 * 2
     if debug:
         plt.plot(v1)
@@ -111,7 +111,8 @@ def plot_with_regressor(v1, debug=False):
     # save a screenshot if s is pressed
     img = img_reconstructed
     img = cv2.resize(img, (512, 512))
-    cv2.imshow("img", img)
+    # plot with title regressor name
+    cv2.imshow(f"{regressor}", img)
     return img
 
 
@@ -207,18 +208,18 @@ if __name__ == '__main__':
         # "New Model GPU"
                   ]
 
-    regressor_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/KNeighborsRegressor/KNeighborsRegressor.pkl"
-    # regressor = None
-    regressor = pickle.load(open(regressor_path, 'rb'))
-
-    pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
-
-    # load pca if it exists
-    if os.path.exists(pca_path):
-        print("Loading PCA")
-        pca = pickle.load(open(pca_path, "rb"))
-        VOLTAGE_VECTOR_LENGTH = pca.n_components_
-        input("Press Enter to continue...")
+    # regressor_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/KNeighborsRegressor/KNeighborsRegressor.pkl"
+    regressor = None
+    # regressor = pickle.load(open(regressor_path, 'rb'))
+    #
+    # pca_path = os.path.join(os.path.dirname(regressor_path), "pca.pkl")
+    #
+    # # load pca if it exists
+    # if os.path.exists(pca_path):
+    #     print("Loading PCA")
+    #     pca = pickle.load(open(pca_path, "rb"))
+    #     VOLTAGE_VECTOR_LENGTH = pca.n_components_
+    #     input("Press Enter to continue...")
 
     try:
         plot_eit_video(path)
