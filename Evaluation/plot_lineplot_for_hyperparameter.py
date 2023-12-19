@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from tiktzplot_utils import genterate_linepot_with_std
 import seaborn as sns
 
-test_set_path = "Model_Training/df_eval_New_Differnt_PCAS2.pkl"
+test_set_path = "../Model_Training/df_eval_New_Differnt_PCAS4.pkl"
 
 df_evaluation_results = pd.read_pickle(test_set_path)
 df_evaluation_results = df_evaluation_results.reset_index(drop=True)
@@ -55,11 +55,11 @@ df_pc.columns = [x_param, "mean", "std"]
 # plot all metrics in one plot
 
 df_list = [
-    df_ar,
+    # df_ar,
     # df_sd,
     # df_ringing,
-    # df_pe,
-    df_pc
+    df_pe,
+    # df_pc
 ]
 
 # # normalize all metrics between 0 and 1
@@ -69,18 +69,18 @@ df_list = [
 
 
 labels = [
-    "Amplitude response", "Std Amplitude response"
+    # "Amplitude response", "Std Amplitude response"
     # "Shape Deformation", "Std Shape Deformation"
     # "Ringing", "Std Ringing",
-    # "Position Error", "Std Position Error",
-                          "Pearson Correlation", "Std Pearson Correlation"
+    "Position Error", "Std Position Error",
+    # "Pearson Correlation", "Std Pearson Correlation"
 ]
 
 colors = ["blue", "orange", "green", "red", "purple"]
 
 colors = [colors[i] for i in range(len(df_list))]
-metric = "ar_pc"
+metric = "pe"
 
-genterate_linepot_with_std(f"{metric}_over_{x_param}.tex", df_list, colors, labels,
+genterate_linepot_with_std(f"{metric}_over_{x_param}_multifreq.tex", df_list, colors, labels,
                            x_label="Number of Blurrs", y_label="A.U.", title="Metrics over Learning Rate",
                            x_ticks=df_ar[x_param].to_list(), log_scale=False)
