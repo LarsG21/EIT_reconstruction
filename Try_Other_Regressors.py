@@ -25,7 +25,8 @@ from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 
 from Model_Training.EarlyStoppingHandler import EarlyStoppingHandler
-from Model_Training.data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur
+from Model_Training.data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur, \
+    add_superposition_augmentation
 from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from plot_utils import GridSearch_table_plot
 from utils import add_normalizations
@@ -42,7 +43,9 @@ OUT_SIZE = 64
 plt.rcParams.update({'font.size': 32})
 
 
-def prepare_training_data(path, add_augmentation, normalize, pca_components=0, test_size=0.2):
+def prepare_training_data(path, add_augmentation, normalize, pca_components=0, test_size=0.2,
+                          number_of_superpos_augmentations=0,
+                          number_of_targets_in_superposition_samples=0):
     """
     Loads the training data from the given path and returns it as a tuple of numpy arrays
     :param path: path to the training data
@@ -92,6 +95,10 @@ def prepare_training_data(path, add_augmentation, normalize, pca_components=0, t
     # Highlight Step 4.1: Augment the training data
     if add_augmentation:
         # augment the training data
+        trainX, trainY = add_superposition_augmentation(train_voltages=trainX,
+                                                        train_images=trainY, device="cpu",
+                                                        nr_of_superpositions=number_of_targets_in_superposition_samples,
+                                                        nr_of_copies=number_of_superpos_augmentations)
         trainX, trainY = add_noise_augmentation(trainX, trainY,
                                                 number_of_noise_augmentations, noise_level, device="cpu")
         trainX, trainY = add_rotation_augmentation(trainX, trainY,
@@ -122,13 +129,18 @@ testX, testY, trainX, trainY, pca = None, None, None, None, None
 
 def train_regressor(model_name: str, regressor, path_to_training_data: str,
                     normalize=True, add_augmentation=False, results_folder="Results",
-                    pca_components=0, ):
+                    pca_components=0, number_of_superpos_augmentations=0,
+                    number_of_targets_in_superposition_samples=2):
     global VOLTAGE_VECTOR_LENGTH, OUT_SIZE, testX, testY, trainX, trainY, pca
 
     if testX is None:
         print("INFO: Preparing training data")
         testX, testY, trainX, trainY, pca, _ = prepare_training_data(path_to_training_data, add_augmentation, normalize,
-                                                                     pca_components=pca_components)
+                                                                     pca_components=pca_components,
+                                                                     number_of_superpos_augmentations=
+                                                                     number_of_superpos_augmentations,
+                                                                     number_of_targets_in_superposition_samples=
+                                                                     number_of_targets_in_superposition_samples)
     else:
         print("INFO: Using cached training data")
     mean = trainY.mean()
@@ -223,18 +235,22 @@ if __name__ == "__main__":
     # path = "Own_Simulation_Dataset"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
-    path = "Training_Data/1_Freq_with_individual_v0s"
+    # path = "Training_Data/1_Freq_with_individual_v0s"
     # path = "Training_Data/1_Freq"
     # path = "Training_Data/1_Freq_After_16_10"
     # path = "Training_Data/3_Freq"
     # path = "Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "Collected_Data/GREIT_TEST_3_freq_over_night"
     # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
-    pca_components = 512  # 0 means no pca
+    path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+
+    pca_components = 1024  # 0 means no pca
     noise_level = 0.02
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 4
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 10
+    number_of_superpos_augmentations = 0
+    number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
+    number_of_blur_augmentations = 4
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
@@ -242,7 +258,7 @@ if __name__ == "__main__":
         # LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=4),
+        KNeighborsRegressor(n_neighbors=2),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
@@ -256,6 +272,9 @@ if __name__ == "__main__":
         start_time = time.time()
         train_regressor(model_name=model_name, regressor=regressor, path_to_training_data=path, normalize=True,
                         add_augmentation=add_augmentations, results_folder=results_folder,
-                        pca_components=pca_components)
+                        pca_components=pca_components,
+                        number_of_superpos_augmentations=number_of_superpos_augmentations,
+                        number_of_targets_in_superposition_samples=number_of_targets_in_superposition_samples
+                        )
         print("Training took: ", time.time() - start_time)
         time.sleep(5)
