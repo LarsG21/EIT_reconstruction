@@ -275,7 +275,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
                                                                                   val_voltage, test_voltage, model_path,
                                                                                   device,
                                                                                   n_components=pca_components,
-                                                                                  debug=True,
+                                                                                  debug=False,
                                                                                   train_images=train_images)
     else:  # if ther still is a pca object from a previous run, delete it
         if os.path.exists(os.path.join(model_path, "pca.pkl")):
@@ -429,36 +429,36 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = False
-    ABSOLUTE_EIT = False
-    model_name = "DEBUG"
+    ABSOLUTE_EIT = True
+    model_name = "DEBUG_TEST_PERFORMANCE"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
     # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Trainings_Data_EIT32/3_Freq_new"
     # path = "../Collected_Data/Even_orientation_3_freq"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_only_40mm"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
-    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/GREIT_TEST_3_freq_20mm"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 100
+    num_epochs = 80
     learning_rate = 0.001
-    pca_components = 0  # 0 for no PCA
-    add_augmentation = False
+    pca_components = 512  # 0 for no PCA
+    add_augmentation = True
     noise_level = 0.02
     number_of_noise_augmentations = 5
-    number_of_rotation_augmentations = 5
+    number_of_rotation_augmentations = 0
     number_of_blur_augmentations = 4
-    number_of_superpos_augmentations = 0
-    number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
+    number_of_superpos_augmentations = 1
+    number_of_targets_in_superposition_samples = 2  # 2 equals 3 targets in total
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
-    USE_N_SAMPLES_FOR_TRAIN = 150  # 0 for all data
+    USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False  # better not use this
 
     early_stopping_handler = EarlyStoppingHandler(patience=30)
@@ -477,23 +477,21 @@ if __name__ == "__main__":
                                                 # loading_path="../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU/model_2023-12-16_19-42-10_199_200.pth"
                                                 )
 
-    # if ABSOLUTE_EIT:
-    #     test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
-    #     print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
-    #     v0 = None
-    # else:
-    #     test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
-    #     # # TODO: Remove this again! Only for testing
-    #     # test_set_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Data_09_11_40mm_eit32_over_night/combined.pkl"
-    #     print(f"INFO: Setting Voltage_vector_length to {VOLTAGE_VECTOR_LENGTH}")
-    #     v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
-    #
-    # df_test_set = pd.read_pickle(test_set_path)
-    # print(f"INFO: Loaded test set from {test_set_path} with {len(df_test_set)} samples")
-    #
-    # df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
-    #                                                     df_test_set=df_test_set,
-    #                                                     v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca,
-    #                                                     regressor=None, )
-    # plot_evaluation_results(df_evaluate_results, save_path=model_path)
-    # print(f"Average pearson correlation: {df_evaluate_results['pearson_correlation'].mean()}")
+    if ABSOLUTE_EIT:
+        test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
+        v0 = None
+    else:
+        test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
+        # # TODO: Remove this again! Only for testing
+        # test_set_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Data_09_11_40mm_eit32_over_night/combined.pkl"
+        v0 = np.load(os.path.join(os.path.dirname(test_set_path), "v0.npy"))
+
+    df_test_set = pd.read_pickle(test_set_path)
+    print(f"INFO: Loaded test set from {test_set_path} with {len(df_test_set)} samples")
+
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
+                                                        df_test_set=df_test_set,
+                                                        v0=v0, model=model, model_path=f"/{model_name}.pkl", pca=pca,
+                                                        regressor=None, )
+    plot_evaluation_results(df_evaluate_results, save_path=model_path)
+    print(f"Average pearson correlation: {df_evaluate_results['pearson_correlation'].mean()}")

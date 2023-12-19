@@ -81,6 +81,8 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         plt.title("Cumulative variance explained by the first n components")
         plt.xlabel("Number of components")
         plt.ylabel("Cumulative explained variance")
+        # log scale
+        plt.xscale("log")
         tikzplotlib.save("cumulative_variance_explained_by_first_n_components.tikz")
         plt.show()
         # More detailed analysis of the first n components
@@ -273,7 +275,7 @@ def get_pos_and_neg_pc_image(component_index, train_images, train_voltage):
 
 
 if __name__ == '__main__':
-    path = "../Own_Simulation_Dataset"
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     model_path = os.path.join(path, "Models")
 
     if os.path.exists(os.path.join(path, "v1_array.npy")):
@@ -305,7 +307,7 @@ if __name__ == '__main__':
                                                                               image_data_tensor,
                                                                               train_voltage,
                                                                               val_voltage, test_voltage, model_path,
-                                                                              "CPU",
-                                                                              n_components=128,
+                                                                              "cpu",
+                                                                              n_components=512,
                                                                               debug=True,
                                                                               train_images=train_images)

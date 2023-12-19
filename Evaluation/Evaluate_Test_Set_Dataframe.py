@@ -282,7 +282,7 @@ def main():
     #                           "v0.npy"))
 
     # regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
-    regressor_path = "../Collected_Data/GREIT_TEST_3_freq_over_night/Models/LinearRegression/LinearRegression.pkl"
+    regressor_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/KNeighborsRegressor/KNeighborsRegressor.pkl"
     # regressor = None
     regressor = pickle.load(open(regressor_path, 'rb'))
 
@@ -340,7 +340,8 @@ def main():
           f"OUT_SIZE: {OUT_SIZE} \nNORMALIZE: {NORMALIZE} \nUSE_OPENCV_FOR_PLOTTING: {USE_OPENCV_FOR_PLOTTING} \n"
           f"Press Enter to continue...")
     evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0,
-                                  model=model, model_path=model_path, pca=pca, regressor=regressor)
+                                  model=model, model_path=model_path, pca=pca, regressor=regressor,
+                                  debug=False)
 
 
 
