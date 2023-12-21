@@ -136,7 +136,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         raise Exception("Relative EIT and Normalization didnt work well")
 
     USE_DIFF_DIRECTLY = False
-    if os.path.exists(os.path.join(path, "v1_array.npy")):
+    if os.path.exists(os.path.join(path, "v1_array.npy")) and not os.path.exists(
+            os.path.join(path, "voltage_diff_array.npy")):
         voltage_data_np = np.load(os.path.join(path, "v1_array.npy"))
         print("INFO: Using v1 voltages and calculating voltage differences with one v0 as reference")
     else:
@@ -429,8 +430,8 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = False
-    ABSOLUTE_EIT = True
-    model_name = "TESTING_19_12"
+    ABSOLUTE_EIT = False
+    model_name = "TEST_GOOD_SETTINGS"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Own_Simulation_Dataset"
@@ -449,7 +450,7 @@ if __name__ == "__main__":
     # path = "../Collected_Data/Even_Orientation_Dataset"
     num_epochs = 80
     learning_rate = 0.001
-    pca_components = 512  # 0 for no PCA
+    pca_components = 0  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
     number_of_noise_augmentations = 3

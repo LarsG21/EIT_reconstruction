@@ -40,7 +40,6 @@ LOSS_SCALE_FACTOR = 1000
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
-plt.rcParams.update({'font.size': 32})
 
 
 def prepare_training_data(path, add_augmentation, normalize, pca_components=0, test_size=0.2,
@@ -173,6 +172,10 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
     # only use the first 10 pictures
     new_flat_pictures = new_flat_pictures[:12]
     testY_selection = testY[:12]
+    plt.rcParams.update({'font.size': 32})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     plt.plot(testX[0])
     plt.title("Input data example")
     plt.show()
@@ -244,13 +247,13 @@ if __name__ == "__main__":
     # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
     path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
 
-    pca_components = 1024  # 0 means no pca
+    pca_components = 256  # 0 means no pca
     noise_level = 0.02
-    number_of_noise_augmentations = 4
+    number_of_noise_augmentations = 0
     number_of_rotation_augmentations = 0
     number_of_superpos_augmentations = 0
     number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
-    number_of_blur_augmentations = 4
+    number_of_blur_augmentations = 5
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
@@ -258,7 +261,7 @@ if __name__ == "__main__":
         # LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=2),
+        KNeighborsRegressor(n_neighbors=4),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),

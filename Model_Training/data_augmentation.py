@@ -135,6 +135,10 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
     img_rotated_list = []
     voltage_rotated_list = []
     DEGREES_PER_ELECTRODE = 11.25
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     for img, voltage in zip(train_images_numpy, train_voltage_numpy):
         # use 11.25° steps for the rotation
         angle = np.random.randint(0, 32) * DEGREES_PER_ELECTRODE
@@ -152,6 +156,7 @@ def generate_rotation_augmentation(train_images_numpy, train_voltage_numpy, devi
             # plot both images next to each other with matplotlib
             plt.subplot(1, 2, 1)
             plt.imshow(img)
+            plt.title("Original")
             plt.subplot(1, 2, 2)
             plt.imshow(img_rotated)
             plt.title(f"Rotated by {int(angle)}°")
@@ -335,6 +340,10 @@ def add_superposition_augmentation(train_voltages, train_images, device="cpu", n
 
 
 def generate_thesis_plots(img, img_superposed, img_to_add, voltage, voltage_superposed, voltage_to_add):
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     plt.plot(voltage)
     plt.title("V1")
     plt.tight_layout()
@@ -413,9 +422,6 @@ if __name__ == '__main__':
                                                       device=device, nr_of_superpositions=2,
                                                       nr_of_copies=2,
                                                       debug=True)
-    print(len(voltages))
-    print(len(images))
-
     # print("OK")
     # # convert both to numpy
     # train_voltage = train_voltage.cpu().numpy().tolist()

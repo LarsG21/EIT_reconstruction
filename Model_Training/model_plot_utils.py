@@ -90,7 +90,9 @@ def plot_sample_reconstructions(image_data_tensor, voltage_data_tensor, model, c
         # plot comparison with matplotlib
         # increase font size
         plt.rcParams.update({'font.size': 32})
-
+        # set font to charter
+        plt.rcParams['font.family'] = 'serif'
+        plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
         plt.imshow(img_numpy)
@@ -182,15 +184,20 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     # plt.plot(output.detach().numpy())
     # plt.title("Output")
     # plt.show()
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
 
     output = output.view(OUT_SIZE, OUT_SIZE).detach().numpy()
     if debug:  # PLOT_THESIS
         plt.imshow(output)
         plt.title("Original Reconstruction")
-        plt.xlabel("X [pixel]")
-        plt.ylabel("Y [pixel]")
-        plt.savefig(os.path.join(save_path, "Original Reconstruction" + ".pdf"))
+        plt.xlabel("X (pixel)")
+        plt.ylabel("Y (pixel)")
         plt.colorbar(fraction=0.046, pad=0.04)
+        # plt.tight_layout()
+        plt.savefig(os.path.join(save_path, "Original Reconstruction" + ".pdf"))
         plt.show()
     # pull everything under 0.2 to 0
     output_non_threshold = output.copy()
@@ -201,9 +208,10 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     if debug:  # PLOT_THESIS
         plt.imshow(output)
         plt.title("QAS")
-        plt.xlabel("X [pixel]")
-        plt.ylabel("Y [pixel]")
+        plt.xlabel("X (pixel)")
+        plt.ylabel("Y (pixel)")
         plt.colorbar(fraction=0.046, pad=0.04)
+        # plt.tight_layout()
         plt.savefig(os.path.join(save_path, "QAS" + ".pdf"))
         plt.show()
     if show:
@@ -277,7 +285,9 @@ def plot_loss_and_sample_reconstruction(epoch,
 
         infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
                                     title=f"Reconstruction after {epoch} epochs",
-                                    original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu())
+                                    original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu(),
+                                    save_path="C:\\Users\\lgudjons\\Desktop"
+                                    )
         # train_voltage_data = train_voltage[SAMPLE_RECONSTRUCTION_INDEX]
         # # plot the voltage data
         # train_voltage_data = train_voltage_data.cpu().numpy()

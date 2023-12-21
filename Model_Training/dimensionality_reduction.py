@@ -43,8 +43,8 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         raise ValueError("voltage_data_tensor must be a numpy array or torch tensor")
     pca.fit(voltage_data_tensor_np)
     if debug:
-        pass
-        # plot_first_n_eigenvoltages(pca, 3)
+        # pass
+        plot_first_n_eigenvoltages(pca, 3)
     # save the pca for later reconstruction
     if not os.path.exists(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
@@ -152,17 +152,21 @@ def plot_first_n_eigenvoltages(pca, n_components=128):
     :param n_components: number of principal components to use for reconstruction
     :return:
     """
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     eigen_voltages = pca.components_
     for i in range(0, n_components):
         plt.plot(eigen_voltages[i])
-        plt.title(f"Eigen voltage {i}")
+        plt.title(f"Principal Component {i}")
         plt.show()
     # combine the fist 9 in one plot with 3 rows and 3 columns
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     for i in range(0, 3):
         # for j in range(0, 2):
             axs[i].plot(eigen_voltages[i * 3 + 0])
-            axs[i].set_title(f"Eigen voltage {i * 3 + 0}")
+        axs[i].set_title(f"Principal Component {i * 3 + 0}")
     # save as tikz
     # tikzplotlib.save("first_3_eigenvoltages.tikz")
     # save as pdf
@@ -275,7 +279,7 @@ def get_pos_and_neg_pc_image(component_index, train_images, train_voltage):
 
 
 if __name__ == '__main__':
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    path = "../Own_Simulation_Dataset"
     model_path = os.path.join(path, "Models")
 
     if os.path.exists(os.path.join(path, "v1_array.npy")):

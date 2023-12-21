@@ -9,7 +9,9 @@ import datetime
 
 from matplotlib import pyplot as plt
 
+WAITING_TIME_FILE_WRITE_SINGLE = 0.0001
 
+WAITING_TIME_FILE_WRITE_MULTI = 0.0025
 def read_eit_data_single_frequency(path):
     """
     Reads the data from the given path_multi and returns a dictionary with the following structure:
@@ -186,7 +188,7 @@ def convert_multi_frequency_eit_to_df(path):
     :param path:
     :return:
     """
-    time.sleep(0.0025)  # wait for file to be written
+    time.sleep(WAITING_TIME_FILE_WRITE_MULTI)  # wait for file to be written
     dictionary = _read_eit_data_multi_frequency(path)
     df = _convert_multi_frequency_voltage_dict_to_dataframe(dictionary)
     df = _convert_cols_to_complex(df)
@@ -324,7 +326,7 @@ def convert_single_frequency_eit_file_to_df(path):
     """
     Converts a single frequency EIT file to a dataframe
     """
-    time.sleep(0.001)  # wait a bit to avoid file access errors
+    time.sleep(WAITING_TIME_FILE_WRITE_SINGLE)  # wait a bit to avoid file access errors
     voltage_dict = read_eit_data_single_frequency(path)
     complex_dict = convert_voltage_dict_to_complex(voltage_dict)
     amplitude_phase, all_amplitudes, all_phases = convert_complex_dict_to_amplitude_phase(complex_dict)

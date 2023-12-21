@@ -151,6 +151,9 @@ def solve_and_get_center_with_nural_network(model, model_input,
                                                                   show=False)
     center_of_mass = find_center_of_mass(img)
     # show center of mass in image matplotlib
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     if debug:  # PLOT_THESIS
         SCALE_FACTOR = 1
         imshow = cv2.resize(img, (0, 0), fx=SCALE_FACTOR, fy=SCALE_FACTOR)
@@ -160,8 +163,8 @@ def solve_and_get_center_with_nural_network(model, model_input,
         plt.imshow(imshow)
         plt.colorbar(fraction=0.046, pad=0.04)
         plt.title("Detected center of gravity")
-        plt.xlabel("x [pixels]")
-        plt.ylabel("y [pixels]")
+        plt.xlabel("x (pixel)")
+        plt.ylabel("y (pixel)")
         plt.savefig(os.path.join("C:\\Users\\lgudjons\\Desktop", "COG" + ".pdf"))
         plt.show()
         # # plot slice row and column of the image at the center of mass

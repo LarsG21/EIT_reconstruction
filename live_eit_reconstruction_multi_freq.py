@@ -40,7 +40,7 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
             plt.xlabel("PCA component")
             plt.ylabel("Intensity")
             plt.show()
-        # solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True)
+        # solve_and_get_center_with_nural_network(model=model_temp, model_input=v1_pca, debug=True) # PLOT_THESIS
         img = solve_and_plot_with_nural_network(model=model_temp, model_input=v1_pca, chow_center_of_mass=False,
                                                 use_opencv_for_plotting=True
                                                 , title=title,
@@ -181,12 +181,12 @@ if __name__ == '__main__':
 
     # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_Superposition_2/model_2023-12-13_13-37-55_69_70.pth"
     #
-    # model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
+    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
     #
     # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
 
     # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
-    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
+    # model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
     # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU_3/continued_model_2023-12-17_12-24-19_42_60.pth"
     model_paths = [
         # model_pca_path,

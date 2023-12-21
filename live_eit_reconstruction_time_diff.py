@@ -35,7 +35,7 @@ default_frame = None
 list_for_default_frames_to_average = []
 
 
-def get_averaged_frame(path, number_of_avgs):
+def get_averaged_frame(path, number_of_avgs, frequency=1000):
     """
     Gets the averaged frame from the given path. This is used as the default frame for the time difference.
     :param path:
@@ -45,7 +45,7 @@ def get_averaged_frame(path, number_of_avgs):
     global default_frame
     global list_for_default_frames_to_average
     df = convert_multi_frequency_eit_to_df(path)
-    df = df[df["frequency"] == 1000]
+    df = df[df["frequency"] == frequency]
     v1 = df["amplitude"].to_numpy(dtype=np.float64)
     if default_frame is None:
         list_for_default_frames_to_average.append(v1)
@@ -61,23 +61,24 @@ def get_averaged_frame(path, number_of_avgs):
             default_frame = df
 
 
-def plot_time_diff_eit_image(v1_path, v0_path, debug_plots=False):
+def plot_time_diff_eit_image(v1_path, debug_plots=False):
     """
     Plots the time difference between the two given eit frames.
     :param v1_path:
-    :param v0_path:
     :param debug_plots:
     :return:
     """
     global default_frame
     df_v1 = convert_multi_frequency_eit_to_df(v1_path)
+    # find the most common frequency
+    most_common_frequency = int(df_v1["frequency"].value_counts().idxmax())
     if default_frame is None:
         # df_v0 = convert_multi_frequency_eit_to_df(v0_path)
-        get_averaged_frame(v1_path, number_of_avgs=30)
+        get_averaged_frame(v1_path, number_of_avgs=30, frequency=most_common_frequency)
         return
     else:
         df_v0 = default_frame
-    df_v1 = df_v1[df_v1["frequency"] == 1000]
+    df_v1 = df_v1[df_v1["frequency"] == most_common_frequency]
     # df_v0 = df_v0[df_v0["frequency"] == 1000]
     v1 = df_v1["amplitude"].to_numpy(dtype=np.float64)
     v0 = df_v0["amplitude"].to_numpy(dtype=np.float64)
@@ -143,8 +144,7 @@ def plot_eit_video(path):
                 if default_frame is None:
                     default_frame = current_frame
                 else:
-                    plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame),
-                                             v0_path=os.path.join(eit_path, default_frame))
+                    plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame))
                     seen_files.append(current_frame)
                     # for file in seen_files:
                     #     os.remove(file)
@@ -157,9 +157,9 @@ OUT_SIZE = 64
 
 # model_path = "Collected_Data/Combined_dataset/Models/LinearModelWithDropout2/TESTING_MORE_DATA_12_10/model_2023-10-12_11-55-44_epoche_232_of_300_best_model.pth"
 #
-# model_path = "Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/Test_06_12_2/model_2023-12-06_15-06-56_65_70.pth"
+model_path = "Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TEST_GOOD_SETTINGS/model_2023-12-21_17-29-03_79_80.pth"
 # model_path = "Collected_Data/Even_Orientation_Dataset/Models/LinearModelWithDropout2/DEBUG/model_2023-11-16_13-44-26_112_200.pth"
-model_path = "Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TESTING_19_12/model_2023-12-19_16-19-06_79_80.pth"
+# model_path = "Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/TESTING_19_12/model_2023-12-19_16-19-06_79_80.pth"
 pca = None
 pca_path = os.path.join(os.path.dirname(model_path), "pca.pkl")
 if os.path.exists(pca_path):
