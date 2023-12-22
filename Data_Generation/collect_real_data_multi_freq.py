@@ -29,7 +29,7 @@ TIME_FORMAT = "%Y-%m-%d %H_%M_%S"
 
 n_el = 32
 
-RADIUS_TARGET_IN_MM = 20
+RADIUS_TARGET_IN_MM = 40
 RADIUS_TANK_IN_MM = 190
 
 img_size = 64
@@ -47,7 +47,7 @@ CONDUCTIVITY_BG = 1000  # in S/m     # TODO: Measure this
 CONDUCTIVITY_TARGET = 0.1  # in S/m
 EIT_32_used = True
 
-model_pca_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/TESTING/model_2023-12-13_18-02-49_99_100.pth"
+model_pca_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
 model, pca, normalize = load_model_from_path(path=model_pca_path, normalize=False)
 
 
@@ -452,7 +452,7 @@ def main():
     if ender is None:
         raise Exception("No Ender 3 found")
 
-    TEST_NAME = "GREIT_TEST_3_freq_14_12_over_night_20mm"
+    TEST_NAME = "data_22_12_kartoffel_3_freq"
     save_path = f"C:/Users/lgudjons/PycharmProjects/EIT_reconstruction/Collected_Data/{TEST_NAME}"
     # warn if the folder already exists
     if os.path.exists(save_path):
@@ -463,12 +463,12 @@ def main():
     # number before mm than the actual radius
     if f"{RADIUS_TARGET_IN_MM}mm" not in TEST_NAME:
         input("WARNING: The folder name does not contain the radius. Press enter to continue")
-    collect_data(gcode_device=ender, number_of_samples=3000,
-                 eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-                 save_path=save_path)
-    # collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
-    #                             eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
-    #                             save_path=save_path)
+    # collect_data(gcode_device=ender, number_of_samples=3000,
+    #              eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+    #              save_path=save_path)
+    collect_data_circle_pattern(gcode_device=ender, number_of_runs=5,
+                                eit_data_path="C:\\Users\\lgudjons\\Desktop\\eit_data",
+                                save_path=save_path)
 
     # df_coords_complete = pd.read_csv("../points.csv")
     # collect_data_pattern_in_csv(gcode_device=ender,

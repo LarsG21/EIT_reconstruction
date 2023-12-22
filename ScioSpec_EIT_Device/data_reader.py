@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 WAITING_TIME_FILE_WRITE_SINGLE = 0.0001
 
-WAITING_TIME_FILE_WRITE_MULTI = 0.0025
+WAITING_TIME_FILE_WRITE_MULTI = 0.003
 def read_eit_data_single_frequency(path):
     """
     Reads the data from the given path_multi and returns a dictionary with the following structure:

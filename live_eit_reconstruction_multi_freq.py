@@ -45,14 +45,14 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
                                                 use_opencv_for_plotting=True
                                                 , title=title,
                                                 save_path=None)
+        images[title] = img
 
     # img = plot_with_regressor(v1)
-    # images[title] = img
-    if cv2.waitKey(1) & 0xFF == ord('s'):
+    if cv2.waitKey(8) & 0xFF == ord('s'):
         for title, img in images.items():
             plt.imshow(img)
-            plt.tight_layout()
             plt.colorbar(fraction=0.046, pad=0.04)
+            plt.tight_layout()
             save_path = f"C:\\Users\\lgudjons\\Desktop\\{title}"
             if not os.path.exists(save_path):
                 os.mkdir(save_path)
@@ -80,7 +80,7 @@ def plot_multi_frequency_eit_image(v1_path, debug_plot=False, save_video=False):
     # cv2.imshow("img", cv2.resize(img, (512, 512)))
     # cv2.waitKey(1)
     # return img, center
-    # time.sleep(3)
+    # time.sleep(0.08)
 
 
 def plot_with_regressor(v1, debug=False):
@@ -181,13 +181,13 @@ if __name__ == '__main__':
 
     # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_Superposition_2/model_2023-12-13_13-37-55_69_70.pth"
     #
-    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
+    # model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation/Models/LinearModelWithDropout2/Test_without_superposition/model_2023-12-13_14-17-56_69_70.pth"
     #
     # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
 
-    # model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
-    # model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
-    # model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU_3/continued_model_2023-12-17_12-24-19_42_60.pth"
+    model_pca_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/No_Superpositions/model_2023-12-14_15-46-57_99_100.pth"
+    model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
+    model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU_3/continued_model_2023-12-17_12-24-19_42_60.pth"
     model_paths = [
         # model_pca_path,
         model_path_2,
@@ -207,7 +207,7 @@ if __name__ == '__main__':
         "Model with superposition",
         # "New Model GPU"
                   ]
-
+    #
     # regressor_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/KNeighborsRegressor/KNeighborsRegressor.pkl"
     regressor = None
     # regressor = pickle.load(open(regressor_path, 'rb'))

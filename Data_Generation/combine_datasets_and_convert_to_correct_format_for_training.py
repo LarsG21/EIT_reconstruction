@@ -215,7 +215,7 @@ if __name__ == '__main__':
     # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Test_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Collected_Data/Even_orientation_3_freq/Training_set_circular_24_11_3_freq_40mm_eit32_orientation1"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+    path = "../Collected_Data/Data_collection_12_12_kartoffel"
     combined = combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=True)
     # combined = combine_multiple_pickles(path=path)
 

@@ -223,7 +223,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         pearson_correlations.append(corr)
         print(f"Pearson correlation: {corr}")
         if SHOW and USE_OPENCV_FOR_PLOTTING:
-            cv2.waitKey(300)
+            cv2.waitKey(100)
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,
