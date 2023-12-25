@@ -4,6 +4,8 @@
 # Distributed under the (new) BSD License. See LICENSE.txt for more info.
 from __future__ import absolute_import, division, print_function
 
+import tikzplotlib
+
 import pyeit.eit.protocol as protocol
 import pyeit.mesh as mesh
 from plot_utils import plot_results_fem_forward
@@ -20,13 +22,13 @@ if use_customize_shape:
     # Mesh shape is specified with fd parameter in the instantiation, e.g : fd=thorax
     mesh_obj = mesh.create(n_el, h0=0.1, fd=thorax)
 else:
-    mesh_obj = mesh.create(n_el, h0=0.05)
+    mesh_obj = mesh.create(n_el, h0=0.07)
 
 mesh_obj.print_stats()
 
 # change permittivity
-# anomaly = PyEITAnomaly_Circle(center=[0.4, 0.5], r=0.3, perm=100.0)
-anomaly = []
+anomaly = PyEITAnomaly_Circle(center=[0.4, 0.5], r=0.3, perm=100.0)
+# anomaly = []
 mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly, background=1.0)
 
 """ 1. FEM forward simulations """
@@ -44,7 +46,7 @@ def plot_potentail_and_e_field_for_all_injections(mesh, protocol_obj):
     for line in protocol_obj.ex_mat:
         # plot_results_fem_forward(mesh=mesh_new, line=line)
 
-        equi_potential_image, e_field_image = plot_results_fem_forward(mesh=mesh_new, line=line)
+        equi_potential_image, e_field_image, fig_e_field, fig_equipotential = plot_results_fem_forward(mesh=mesh_new, line=line)
 
         plt.figure(figsize=(12, 6))
 
@@ -72,9 +74,13 @@ def plot_potential_lines_for_all_injections(mesh, protocol_obj):
     :return:
     """
     equi_potential_images = []
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
 
     for line in protocol_obj.ex_mat:
-        equi_potential_image, _ = plot_results_fem_forward(mesh=mesh, line=line)
+        equi_potential_image, e_field_image, fig_e_field, fig_equipotential = plot_results_fem_forward(mesh=mesh, line=line)
         equi_potential_images.append(equi_potential_image)
     # take only every 4th image
     equi_potential_images = equi_potential_images[::4]
@@ -94,6 +100,10 @@ def plot_potential_lines_for_all_injections(mesh, protocol_obj):
 
     # Adjust layout and display the plot
     plt.tight_layout()
+    # save as tikz file
+    # tikzplotlib.save("equi-potential-lines.tex")
+    # save as pdf
+    plt.savefig("equi-potential-lines.pdf")
     # save the plot
     plt.savefig("equi-potential-lines.png")
     plt.show()

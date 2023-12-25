@@ -26,10 +26,10 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
     :param n_components: number of principal components to keep
     :return:
     """
-     # if len of data > 1000000, use sample of 1000000
-    if len(voltage_data_tensor) > 1000000:
-        print("INFO: Using a sample of 1000000 voltages for PCA")
-        indices = np.random.choice(len(voltage_data_tensor), 1000000, replace=False)
+    SAMPLE_SIZE = 5000
+    if len(voltage_data_tensor) > SAMPLE_SIZE:
+        print(f"INFO: Using a sample of {SAMPLE_SIZE} voltages for PCA")
+        indices = np.random.choice(len(voltage_data_tensor), SAMPLE_SIZE, replace=False)
         voltage_data_tensor = voltage_data_tensor[indices]
 
     transform_back_to_tensor = False
@@ -43,8 +43,8 @@ def perform_pca_on_input_data(voltage_data_tensor, image_data_tensor, train_volt
         raise ValueError("voltage_data_tensor must be a numpy array or torch tensor")
     pca.fit(voltage_data_tensor_np)
     if debug:
-        # pass
-        plot_first_n_eigenvoltages(pca, 3)
+        pass
+        # plot_first_n_eigenvoltages(pca, 3)
     # save the pca for later reconstruction
     if not os.path.exists(os.path.dirname(model_path)):
         os.makedirs(os.path.dirname(model_path))
@@ -164,7 +164,7 @@ def plot_first_n_eigenvoltages(pca, n_components=128):
     # combine the fist 9 in one plot with 3 rows and 3 columns
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     for i in range(0, 3):
-        # for j in range(0, 2):
+        for j in range(0, 2):
             axs[i].plot(eigen_voltages[i * 3 + 0])
         axs[i].set_title(f"Principal Component {i * 3 + 0}")
     # save as tikz

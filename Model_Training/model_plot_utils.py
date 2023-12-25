@@ -173,11 +173,15 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
     # voltage_data = voltage_data.view(-1, voltage_data.shape[0])
     # Removed because of error in live_eit_reconstruction_multi_freq
     # Is needed for models that use batch normalization # TODO:Fix this
-    start = time.time()
     if "Convolutional" in model.__class__.__name__:
         voltage_data = voltage_data.view(-1, 1, voltage_data.shape[0])  # add channel dimension
-    output = model(voltage_data)
-    stop = time.time()
+    try:
+        output = model(voltage_data)
+    except RuntimeError as e:
+        if "Expected all tensors to be on the same device" in str(e):
+            # move model to cpu
+            model = model.cpu()
+            output = model(voltage_data)
     # print(f"Time for reconstruction: {(stop - start) * 1000} ms")
     output = output.cpu()
     # plot the output
@@ -286,7 +290,7 @@ def plot_loss_and_sample_reconstruction(epoch,
         infer_single_reconstruction(model=model, voltage_data=test_voltage_data,
                                     title=f"Reconstruction after {epoch} epochs",
                                     original_image=test_images[SAMPLE_RECONSTRUCTION_INDEX].cpu(),
-                                    save_path="C:\\Users\\lgudjons\\Desktop"
+                                    # save_path="C:\\Users\\lgudjons\\Desktop"
                                     )
         # train_voltage_data = train_voltage[SAMPLE_RECONSTRUCTION_INDEX]
         # # plot the voltage data

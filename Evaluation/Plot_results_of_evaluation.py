@@ -217,9 +217,9 @@ def plot_evaluation_results(df, open_plots_over_space=True, save_path=""):
 
 
 def main():
-    ABSOLUTE_EIT = False
+    ABSOLUTE_EIT = True
     normalize = False
-    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/Test_06_12_2/model_2023-12-06_15-06-56_65_70.pth"
+    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/TEST/model_2023-12-25_11-37-12_99_100.pth"
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"
@@ -228,7 +228,7 @@ def main():
         # test_set_path = "../Test_Data/Test_Set_Circular_single_freq/combined.pkl.pkl"
         test_set_path = "../Test_Data_EIT32/1_Freq/Test_set_circular_10_11_1_freq_40mm/combined.pkl"
 
-    test_set_path = "../Collected_Data/Data_collection_12_12_kartoffel/combined.pkl"
+    # test_set_path = "../Collected_Data/Data_collection_12_12_kartoffel/combined.pkl"
 
     # load v0 from the same folder as the test set
     if not ABSOLUTE_EIT:
@@ -239,7 +239,7 @@ def main():
 
     model, pca, NORMALIZE = load_model_from_path(path=model_path, normalize=normalize, absoulte_eit=ABSOLUTE_EIT)
 
-    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=False,
+    df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=normalize, SHOW=True,
                                                         df_test_set=df_test_set,
                                                         v0=v0, model=model, model_path=model_path, pca=pca,
                                                         regressor=None,

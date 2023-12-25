@@ -29,8 +29,12 @@ def generate_sample_mesh_simulation(mesh_obj, n_el=32):
     Generates a sample simulation of electrode voltages with a random anomaly.
     """
     global v0
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     """ 1. problem setup """
-    anomaly_list = generate_random_anomaly_list(max_number_of_anomalies=0, min_radius=0.21, max_radius=0.21,
+    anomaly_list = generate_random_anomaly_list(max_number_of_anomalies=1, min_radius=0.21, max_radius=0.21,
                                                 min_perm=1000,
                                                 max_perm=1000, outer_circle_radius=0.75)
     mesh_new = mesh.set_perm(mesh_obj, anomaly=anomaly_list)
@@ -45,14 +49,17 @@ def generate_sample_mesh_simulation(mesh_obj, n_el=32):
         cv2.circle(img, tuple(center), int(anomaly.r * img_size / 2), 1, -1)
     # flip the image vertically because the mesh is flipped vertically
     img = np.flip(img, axis=0)
-    THESIS_SAMPLE = False
-    if THESIS_SAMPLE:
+    THESIS_SAMPLE = True
+    if THESIS_SAMPLE:   # PLOT_THESIS
         # plot the image
         plt.imshow(img)
         plt.colorbar(fraction=0.046, pad=0.04)
         plt.title("Image with anomaly")
-        plt.xlabel("x (pixels)")
-        plt.ylabel("y (pixels)")
+        plt.xlabel("x (pixel)")
+        plt.ylabel("y (pixel)")
+        plt.tight_layout()
+        # save as pdf
+        plt.savefig("thesis_sample.pdf")
         plt.show()
 
     PLOT = False
@@ -148,9 +155,11 @@ if __name__ == '__main__':
     DATASET_NAME = "Simulated_negative_016noise"
     SAMPLES = 300
 
-    generate_dataset(DATASET_NAME, SAMPLES, noise_amplitude=0.0008328659934874609)
+    # generate_dataset(DATASET_NAME, SAMPLES, noise_amplitude=0.0008328659934874609)
+    #     #
+    #     # img_array = np.load(f"{DATASET_NAME}/img_array_1.npy")
+    #     # v1_array = np.load(f"{DATASET_NAME}/v1_array_1.npy")
+    #     # v0 = np.load(f"{DATASET_NAME}/v0.npy")
+    #     # look_at_dataset(img_array, v1_array, v0)
 
-    img_array = np.load(f"{DATASET_NAME}/img_array_1.npy")
-    v1_array = np.load(f"{DATASET_NAME}/v1_array_1.npy")
-    v0 = np.load(f"{DATASET_NAME}/v0.npy")
-    look_at_dataset(img_array, v1_array, v0)
+    generate_sample_mesh_simulation(mesh_obj=mesh.create(n_el, h0=0.1), n_el=32)

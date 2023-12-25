@@ -1,4 +1,5 @@
 import os
+import time
 
 import numpy as np
 import pandas as pd
@@ -91,41 +92,43 @@ def plot_for_different_hyperparameters():
     model_name = "TESTING"
     # path = "../Training_Data/1_Freq_with_individual_v0s"
     # path = "../Trainings_Data_EIT32/3_Freq"
-    # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
     # path = "../Collected_Data/Combined_dataset"
     # path = "../Collected_Data/Training_set_circular_08_11_3_freq_40mm"
     # path = "../Own_Simulation_Dataset"
-    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
-    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
-    ABSOLUTE_EIT = True
-    learning_rate = 0.0001
+    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
+    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+    ABSOLUTE_EIT = False
+    learning_rate = 0.001
     pca_components = 0  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    epochs = 70
-    number_of_noise_augmentations = 1
+    epochs = 60
+    number_of_noise_augmentations = 6
     number_of_rotation_augmentations = 0
-    number_of_superpos_augmentations = 2
-    number_of_targets_in_superposition_samples = 2  # 2 equals 3 targets in total
-    number_of_blur_augmentations = 4
+    number_of_superpos_augmentations = 0
+    number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
+    number_of_blur_augmentations = 5
     weight_decay = 1e-6  # Adjust this value as needed (L2 regularization)
-    USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     df_eval = pd.DataFrame()
-    experiment_name = "Differnt_PCAS4"
-
-    for i in range(4):
+    experiment_name = "Differnt_PCAS7"
+    # number_of_pca_components_list = [4096, 2048, 1024]
+    number_of_pca_components_list = [1024, 512, 256, 128, 64, 32]
+    NR_OF_RUNS = 1
+    overall_runs = len(number_of_pca_components_list) * NR_OF_RUNS
+    run_durations = []
+    for i in range(NR_OF_RUNS):
         print(f"###################### Run {i} #########################")
         amplitude_responses = []
         shape_deformations = []
         ringings = []
         position_errors = []
         pearson_correlations = []
+        start_time = time.time()
 
         # wheight_decay_list = [0, 0.000001, 0.00001, 0.0001, 0.001, 0.01]
         # learning_rate_list = [0.00001, 0.0001, 0.001, 0.01]
         # dropout_pobs = [0.05, 0.1, 0.15]
         # number_of_blur_augmentations_list = [0, 2, 4, 6, 8]
-        number_of_pca_components_list = [1024, 512, 256, 128, 64]
         for nr_pca in number_of_pca_components_list:
             model_name = f"TESTING_{epochs}_epochs_{str(nr_pca).replace('.', '_')}_wd"
             print(
@@ -157,7 +160,7 @@ def plot_for_different_hyperparameters():
             # load v0 from the same folder as the test set
 
             df_evaluate_results = evaluate_reconstruction_model(ABSOLUTE_EIT=ABSOLUTE_EIT, NORMALIZE=False,
-                                                                SHOW=False, df_test_set=df_test_set,
+                                                                SHOW=True, df_test_set=df_test_set,
                                                                 v0=v0, model=model, model_path=f"/{model_name}.pkl",
                                                                 pca=pca, regressor=None)
             ar = df_evaluate_results["amplitude_response"].mean()
@@ -179,8 +182,15 @@ def plot_for_different_hyperparameters():
 
             plt.title(f"Training for {epochs} epochs")
             plt.show()
-            # plot_evaluation_results(df_evaluate_results)
-            # plot averages for each hyperparameter in a new plot with log scale x axis
+
+            time_for_run = time.time() - start_time
+            run_durations.append(time_for_run)
+            # calculate the estimated time for all runs
+            estimated_time = np.mean(run_durations) * overall_runs
+            print("############################################################################################")
+            print(f"Estimated time for all runs: {time.strftime('%H:%M:%S', time.gmtime(estimated_time))}")
+            print("############################################################################################")
+
 
         def plot_metrics(wheight_decay_list, metrics, metric_names):
             num_metrics = len(metrics)

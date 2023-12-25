@@ -211,7 +211,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
         f.write(f"patience: {early_stopping_handler.patience}\n")
         f.write(f"num_epochs: {num_epochs}\n")
         f.write(f"Augmentations: {add_augmentation}\n")
-        f.write(f"Number of augmentations: {number_of_noise_augmentations}\n")
+        f.write(f"Number of noise augmentations: {number_of_noise_augmentations}\n")
         f.write(f"Number of rotation augmentations: {number_of_rotation_augmentations}\n")
         f.write(f"Number of blur augmentations: {number_of_blur_augmentations}\n")
         f.write(f"Number of superposition augmentations: {number_of_superpos_augmentations}\n")
@@ -229,7 +229,7 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
     # dataloader = data.DataLoader(dataset, batch_size=64, shuffle=True)
 
     # Highlight Step 3: Save the model summary
-    print("model summary: ", model)
+    # print("model summary: ", model)
     # print number of trainable parameters
     nr_trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print("Number of trainable parameters: ", nr_trainable_params)
@@ -430,34 +430,31 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
 if __name__ == "__main__":
     update_dataset = False
-    ABSOLUTE_EIT = False
-    model_name = "TEST_GOOD_SETTINGS"
+    ABSOLUTE_EIT = True
+    model_name = "TEST"
     # path = "../Trainings_Data_EIT32/3_Freq"
     # path = "../Collected_Data_Variation_Experiments/High_Variation_multi"
-    # path = "../Own_Simulation_Dataset"
-    # path = "../Trainings_Data_EIT32/1_Freq"
-    path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
-    # path = "../Trainings_Data_EIT32/3_Freq_new"
+    # path = "../Trainings_Data_EIT32/1_Freq_More_Orientations"
     # path = "../Collected_Data/Even_orientation_3_freq"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation"
     # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_only_40mm"
     # path = "../Collected_Data/Training_set_circular_07_12_3_freq_40mm_eit32_orientation26"
-    # path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
+    path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
     # path = "../Collected_Data/GREIT_TEST_3_freq_20mm"
     if update_dataset:
         print("Updating dataset")
         combine_multiple_datasets_with_individual_v0(path=path, absolute_eit=ABSOLUTE_EIT)
     # path = "../Collected_Data/Even_Orientation_Dataset"
-    num_epochs = 80
+    num_epochs = 100
     learning_rate = 0.001
-    pca_components = 0  # 0 for no PCA
+    pca_components = 512  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    number_of_noise_augmentations = 3
+    number_of_noise_augmentations = 6
     number_of_rotation_augmentations = 0
-    number_of_blur_augmentations = 4
-    number_of_superpos_augmentations = 3
-    number_of_targets_in_superposition_samples = 2  # 2 equals 3 targets in total
+    number_of_blur_augmentations = 5
+    number_of_superpos_augmentations = 0
+    number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
     weight_decay = 1e-06  # Adjust this value as needed (L2 regularization)
     USE_N_SAMPLES_FOR_TRAIN = 0  # 0 for all data
     normalize = False  # better not use this

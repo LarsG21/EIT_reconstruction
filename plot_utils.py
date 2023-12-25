@@ -3,6 +3,7 @@ from __future__ import division, absolute_import, print_function
 import os
 
 import cv2
+import tikzplotlib
 from matplotlib import pyplot as plt
 
 from Model_Training.model_plot_utils import infer_single_reconstruction
@@ -22,6 +23,10 @@ def plot_results_fem_forward(mesh, line):
     :param line: Input and output electrodes as a 2x1 nparray
     :return: Tuple of PIL Image objects containing the equi-potential and E-field plots
     """
+    plt.rcParams.update({'font.size': 16})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     print(f"plot_results_fem_forward between {line[0]} and {line[1]}")
     # extract node, element, alpha
     pts = mesh.node
@@ -69,6 +74,11 @@ def plot_results_fem_forward(mesh, line):
     # Render the plot to an image
     # Draw the content
     fig_equipotential.canvas.draw()
+    plt.tight_layout()
+    # save as pdf
+    plt.savefig(f"equi-potential-lines_between{line[0]}_{line[1]}.pdf")
+    # save as tikz file
+    # tikzplotlib.save(f"equi-potential-lines_between{line[0]}_{line[1]}.tex")
     width, height = fig_equipotential.canvas.get_width_height()
     image_array = np.frombuffer(fig_equipotential.canvas.tostring_rgb(), dtype='uint8')
     equi_potential_image = image_array.reshape(height, width, 3)
@@ -95,7 +105,7 @@ def plot_results_fem_forward(mesh, line):
     # clear the figure
     plt.close(fig_equipotential)
     plt.close(fig_e_field)
-    return equi_potential_image, e_field_image
+    return equi_potential_image, e_field_image, fig_e_field, fig_equipotential
 
 
 def solve_and_plot_with_nural_network(model, model_input, original_image=None, save_path=None,
