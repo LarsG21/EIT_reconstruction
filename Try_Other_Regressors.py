@@ -167,11 +167,12 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
             print("INFO: Deleting old pca.pkl file")
             os.remove(f"{results_path}/pca.pkl")
             os.remove(f"{model_path}/pca.pkl")
-
-    new_flat_pictures = regressor.predict(testX) + mean
-    # only use the first 10 pictures
-    new_flat_pictures = new_flat_pictures[:12]
-    testY_selection = testY[:12]
+    nr_samples = 20
+    new_flat_pictures = regressor.predict(trainX) + mean
+    # only use 20 random samples
+    indices = np.random.choice(np.arange(len(new_flat_pictures)), nr_samples, replace=False)
+    new_flat_pictures = new_flat_pictures[indices]
+    testY_selection = trainY[indices]
     plt.rcParams.update({'font.size': 32})
     # set font to charter
     plt.rcParams['font.family'] = 'serif'
@@ -195,7 +196,7 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         plt.savefig(f"{results_path}/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
         # save as pdf
         file_name = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pdf"  # PLOT_THESIS
-        save_path = f"C:\\Users\\lgudjons\\Desktop\\{model_name}"
+        save_path = f"C:\\Users\\Lars\\Desktop\\{model_name}"
         if not os.path.exists(save_path):
             os.mkdir(save_path)
         plt.savefig(os.path.join(save_path, file_name))
@@ -247,21 +248,21 @@ if __name__ == "__main__":
     # path = "Trainings_Data_EIT32/3_Freq_Even_orientation"
     path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data"
 
-    pca_components = 256  # 0 means no pca
+    pca_components = 512  # 0 means no pca
     noise_level = 0.02
-    number_of_noise_augmentations = 0
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
-    number_of_superpos_augmentations = 0
-    number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
+    number_of_superpos_augmentations = 2
+    number_of_targets_in_superposition_samples = 2  # 2 equals 3 targets in total
     number_of_blur_augmentations = 5
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        # LinearRegression(),
+        LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=4),
+        # KNeighborsRegressor(n_neighbors=4),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),

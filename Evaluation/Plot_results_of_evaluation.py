@@ -217,9 +217,9 @@ def plot_evaluation_results(df, open_plots_over_space=True, save_path=""):
 
 
 def main():
-    ABSOLUTE_EIT = True
+    ABSOLUTE_EIT = False
     normalize = False
-    model_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/TEST/model_2023-12-25_11-37-12_99_100.pth"
+    model_path = "../Trainings_Data_EIT32/1_Freq_More_Orientations/Models/LinearModelWithDropout2/WITH_AUGMENTATION/model_2023-12-04_11-59-24_69_70.pth"
 
     if ABSOLUTE_EIT:
         test_set_path = "../Test_Data_EIT32/3_Freq/Test_set_circular_24_11_3_freq_40mm_eit32_orientation25_2/combined.pkl"

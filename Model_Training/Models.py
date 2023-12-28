@@ -89,6 +89,31 @@ class LinearModelWithDropout2(nn.Module):
         x = self.decoder(x)
         return x
 
+class LinearModelWithDropout2_less_deep(nn.Module):
+    def __init__(self, input_size, output_size, dropout_prob=0.1):
+        super(LinearModelWithDropout2_less_deep, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_size, 128),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the first layer
+            nn.Linear(128, 64),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the second layer
+        )
+        self.decoder = nn.Sequential(
+            nn.Dropout(dropout_prob),  # Adding dropout after the first decoder layer
+            nn.Linear(64, 128),
+            nn.ReLU(True),
+            nn.Dropout(dropout_prob),  # Adding dropout after the second decoder layer
+            nn.Linear(128, output_size)
+            # nn.Sigmoid(),  # Sigmoid activation to ensure pixel values between 0 and 1
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
 
 class LinearModelWithDropoutAndBatchNorm(nn.Module):
     def __init__(self, input_size, output_size, dropout_prob=0.1):

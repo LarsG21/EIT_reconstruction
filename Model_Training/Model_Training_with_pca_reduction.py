@@ -21,7 +21,7 @@ from Model_Training.dimensionality_reduction import perform_pca_on_input_data
 from data_augmentation import add_noise_augmentation, add_rotation_augmentation, add_gaussian_blur, \
     add_superposition_augmentation
 from Models import LinearModelWithDropout, LinearModelWithDropout2, LinearModel, \
-    LinearModelWithDropoutAndBatchNorm, ConvolutionalModelWithDropout, ConvolutionalModelWithDecoder
+    LinearModelWithDropoutAndBatchNorm, ConvolutionalModelWithDropout, ConvolutionalModelWithDecoder, LinearModelWithDropout2_less_deep
 from model_plot_utils import plot_sample_reconstructions, plot_loss, infer_single_reconstruction, \
     plot_loss_and_sample_reconstruction, plot_difference_for_some_sample_reconstruction_images
 from utils import add_normalizations
@@ -184,6 +184,9 @@ def trainings_loop(model_name: str, path_to_training_data: str, learning_rate: f
 
     model = LinearModelWithDropout2(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
                                     dropout_prob=dropout_prob).to(device)
+
+    # model = LinearModelWithDropout2_less_deep(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2,
+    #                                             dropout_prob=dropout_prob).to(device)
 
     # model = LinearModel(input_size=VOLTAGE_VECTOR_LENGTH, output_size=OUT_SIZE ** 2).to(device)
 
