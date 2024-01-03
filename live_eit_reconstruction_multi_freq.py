@@ -171,7 +171,7 @@ def convert_pngs_in_folder_to_video(path):
 if __name__ == '__main__':
 
     ### Settings ###
-    path = "C:\\Users\\lgudjons\\Desktop\\eit_data"
+    path = "C:\\Users\\lgudjons\\Desktop\\eit_data_2"
     VOLTAGE_VECTOR_LENGTH = 0
     OUT_SIZE = 64
     # Normalize the data
@@ -189,9 +189,9 @@ if __name__ == '__main__':
     model_path_2 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/More_Superpositions/model_2023-12-14_14-46-52_99_100.pth"
     model_path_3 = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/LinearModelWithDropout2/Model_16_12_many_augmentations_GPU_3/continued_model_2023-12-17_12-24-19_42_60.pth"
     model_paths = [
-        # model_pca_path,
+        model_pca_path,
         model_path_2,
-        # model_path_3
+        model_path_3
     ]
     model_list = []
     pca_list = []
@@ -203,9 +203,9 @@ if __name__ == '__main__':
         NORMALIZE_LIST.append(NORMALIZE)
 
     title_list = [
-        # "Model without superposition",
+        "Model without superposition",
         "Model with superposition",
-        # "New Model GPU"
+        "New Model GPU"
                   ]
     #
     # regressor_path = "Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/KNeighborsRegressor/KNeighborsRegressor.pkl"
