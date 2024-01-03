@@ -42,11 +42,6 @@ def plot_amplitude_response(df: pd.DataFrame, save_path: str = None):
     plt.show()
 
 
-
-
-
-
-
     # interpolate between points
     x = df["x"].to_numpy()
     y = df["y"].to_numpy()
@@ -102,6 +97,17 @@ def plot_position_error(df: pd.DataFrame, save_path: str = None):
     plt.ylabel("PE")
     plt.title("Position error over radius")
     plt.show()
+
+    # scatter plot with matplotlib and viridis color coding
+    plt.scatter(df["x"], df["y"], c=df["position_error"], cmap="viridis")
+    plt.xlabel("x (px)")
+    plt.ylabel("y (px)")
+    plt.title("Position error over space")
+    plt.colorbar(fraction=0.046, pad=0.04)
+    # save as tikz
+    tikzplotlib.save("position_error_over_space.tex")
+    plt.show()
+
 
     # interpolate between points
     x = df["x"].to_numpy()

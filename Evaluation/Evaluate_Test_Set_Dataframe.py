@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.stats import pearsonr
 
+DECIMALS = 3 # To round the results
 
 pca = None
 
@@ -58,8 +59,8 @@ def get_position_error(img_reconstructed, target_image, show_plot=True):
     # divide by radius of the tank to get the relative position error
     # error_vect = error_vect / (img_reconstructed.shape[0] / 2)
     # distance_between_centers = distance_between_centers / (img_reconstructed.shape[0] / 2)
-    print("Distance between centers: ", distance_between_centers)
-    print("Error vector: ", error_vect)
+    # print("Distance between centers: ", distance_between_centers)
+    # print("Error vector: ", error_vect)
     return distance_between_centers, error_vect
 
 
@@ -142,6 +143,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
     :param debug:
     :return: a dataframe containing the evaluation results
     """
+    print("Evaluating the model...")
     positions = []  # position of the anomaly
     position_errors = []  # distance between the center of mass of the reconstructed image and the target position
     error_vectors = []  # vector from the center of mass of the reconstructed image to the target position
@@ -155,7 +157,11 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         print(f"USING REGRESSOR: {regressor.__class__.__name__} for reconstruction")
     else:
         print(f"USING MODEL: {model.__class__.__name__} for reconstruction")
+    df_test_set.reset_index(drop=True, inplace=True)
     for i, row in df_test_set.iterrows():
+        # print progress in % every 10 iterations
+        if i % 10 == 0:
+            print(f"Progress: {np.round(i / len(df_test_set) * 100, DECIMALS)}%, AR: {np.round(np.nanmean(amplitude_responses), DECIMALS)}, PE: {np.round(np.nanmean(position_errors), DECIMALS)}, SD: {np.round(np.nanmean(shape_deformations), DECIMALS)}, R: {np.round(np.nanmean(ringings), DECIMALS)}, PC: {np.round(np.nanmean(pearson_correlations), DECIMALS)}")
         raw_voltages = row["voltages"]
         target_image = row["images"]
         target_position = find_center_of_mass(target_image)
@@ -170,7 +176,6 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
             plt.title("v1 normalized")
             plt.show()
         if pca is not None:
-            print("Transforming with PCA")
             v1 = pca.transform(v1.reshape(1, -1))
             if debug:
                 v1_plot = v1.flatten()
@@ -200,16 +205,19 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         ######################## Ringing #################################
         # Ringing is the sum of all negative values in the image devided by the sum of |all values| in the image
         ringing = - np.sum(img_non_thresh[img_non_thresh < 0]) / np.sum(np.abs(img_non_thresh))
-        print(f"Ringing: {ringing}")
+        if debug:
+            print(f"Ringing: {ringing}")
         ringings.append(ringing)
 
         ####################### Amplitude response #######################
         amplitude_response = get_amplitude_response(img_reconstructed, target_image, show_plot=SHOW)
         amplitude_responses.append(amplitude_response)
-        print(f"Amplitude response: {amplitude_response}")
+        if debug:
+            print(f"Amplitude response: {amplitude_response}")
         ####################### Position error #######################
         if amplitude_response == 0:
-            print("Amplitude response was 0, so the position error is set to NaN")
+            if debug:
+                print("Amplitude response was 0, so the position error is set to NaN")
             distance_between_centers = np.NAN
             error_vect = np.NAN
         else:
@@ -221,9 +229,10 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
         shape_deformations.append(shape_deformation)
         corr = pearsonr(img_reconstructed.flatten(), target_image.flatten())[0]
         pearson_correlations.append(corr)
-        print(f"Pearson correlation: {corr}")
+        if debug:
+            print(f"Pearson correlation: {corr}")
         if SHOW and USE_OPENCV_FOR_PLOTTING:
-            cv2.waitKey(100)
+            cv2.waitKey(1)
     df = pd.DataFrame(
         data={"positions": positions, "position_error": position_errors, "error_vector": error_vectors,
               "amplitude_response": amplitude_responses, "shape_deformation": shape_deformations,

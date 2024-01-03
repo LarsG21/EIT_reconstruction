@@ -74,7 +74,7 @@ def plot_time_diff_eit_image(v1_path, debug_plots=False):
     most_common_frequency = int(df_v1["frequency"].value_counts().idxmax())
     if default_frame is None:
         # df_v0 = convert_multi_frequency_eit_to_df(v0_path)
-        get_averaged_frame(v1_path, number_of_avgs=30, frequency=most_common_frequency)
+        get_averaged_frame(v1_path, number_of_avgs=5, frequency=most_common_frequency)
         return
     else:
         df_v0 = default_frame
@@ -97,6 +97,18 @@ def plot_time_diff_eit_image(v1_path, debug_plots=False):
         plt.show()
         plt.plot(normalized_difference)
         plt.title("Normalized Voltage difference")
+        plt.show()
+    PLOT_THESIS = True
+    print("###################")
+    if PLOT_THESIS:
+        # plot the image
+        plt.plot(v1)
+        plt.title("Input Voltage Vector")
+        plt.xlabel("Measurement Index")
+        plt.ylabel("Voltage")
+        plt.tight_layout()
+        # save as pdf
+        plt.savefig("thesis_sample_v1.pdf")
         plt.show()
     if pca is not None:
         normalized_difference = pca.transform(normalized_difference.reshape(1, -1))
@@ -129,6 +141,10 @@ def plot_eit_video(path):
     :param path:
     :return:
     """
+    plt.rcParams.update({'font.size': 12})
+    # set font to charter
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.serif'] = ['Charter'] + plt.rcParams['font.serif']
     eit_path = ""
     seen_files = []
     eit_path = wait_for_start_of_measurement(path)
@@ -144,6 +160,7 @@ def plot_eit_video(path):
                 if default_frame is None:
                     default_frame = current_frame
                 else:
+                    print("Plotting time difference")
                     plot_time_diff_eit_image(v1_path=os.path.join(eit_path, current_frame))
                     seen_files.append(current_frame)
                     # for file in seen_files:
@@ -151,7 +168,7 @@ def plot_eit_video(path):
                     # seen_files = []
 
 
-path = "C:\\Users\\lgudjons\\Desktop\\eit_data"
+path = "eit_data"
 VOLTAGE_VECTOR_LENGTH = 1024
 OUT_SIZE = 64
 
