@@ -205,6 +205,8 @@ def infer_single_reconstruction(model, voltage_data, title="Reconstructed image"
         plt.show()
     # pull everything under 0.2 to 0
     output_non_threshold = output.copy()
+    output_non_threshold = output_non_threshold / np.max(output_non_threshold)
+
     output[output < detection_threshold] = 0
     # pull everything above 0.2 to 1
     output_binary = output.copy()

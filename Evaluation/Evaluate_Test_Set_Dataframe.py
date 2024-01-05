@@ -191,14 +191,20 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
             if type(regressor) == LinearRegression:  # Subtract the mean for linear regression
                 new_flat_picture = new_flat_picture - mean
             # set mode to 0
-            mode = stats.mode(new_flat_picture)[0][0]
-            new_flat_picture[new_flat_picture == mode] = 0
+            # mode = stats.mode(new_flat_picture)[0][0]
+            # new_flat_picture[new_flat_picture == mode] = 0
             img_non_thresh = new_flat_picture.reshape(OUT_SIZE, OUT_SIZE)
             # plt.imshow(img_non_thresh)
             # plt.title("Reconstructed image")
             # plt.colorbar(fraction=0.046, pad=0.04)
             # plt.show()
             img_reconstructed = img_non_thresh.copy()
+            # normalize the image
+            img_reconstructed = img_reconstructed / np.max(img_reconstructed)
+            # plt.imshow(img_reconstructed)
+            # plt.title("Reconstructed image")
+            # plt.colorbar(fraction=0.046, pad=0.04)
+            # plt.show()
             img_reconstructed[img_non_thresh < 0.25] = 0
             # set smaller than 0.2 but bigger than 0 to 0
             # img_reconstructed[np.logical_and(img_reconstructed < 0.2, img_reconstructed > 0)] = 0
@@ -263,7 +269,7 @@ def evaluate_reconstruction_model(ABSOLUTE_EIT, NORMALIZE, SHOW, df_test_set, v0
 ABSOLUTE_EIT = True
 OUT_SIZE = 64
 VOLTAGE_VECTOR_LENGTH = 1024
-NORMALIZE = True
+NORMALIZE = False
 USE_OPENCV_FOR_PLOTTING = True
 
 
@@ -291,7 +297,7 @@ def main():
     #                           "v0.npy"))
 
     # regressor_path = "../Results_Traditional_Models_TDEIT/LinearRegression/model.pkl"
-    regressor_path = "../Trainings_Data_EIT32/3_Freq_Even_orientation_and_GREIT_data/Models/KNeighborsRegressor/KNeighborsRegressor.pkl"
+    regressor_path = "../Results_Traditional_Models_AbsoluteEIT/KNeighborsRegressor/model.pkl"
     # regressor = None
     regressor = pickle.load(open(regressor_path, 'rb'))
 

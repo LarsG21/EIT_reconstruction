@@ -252,7 +252,7 @@ if __name__ == '__main__':
     # # Path to a pickle file containing the evaluation results created by Evaluate_Test_Set_Dataframe.py
     # df = pd.read_pickle(
     #     "Results/evaluation_model_model_2023-11-15_12-54-12_99_100.pkl")
-    # df = pd.read_pickle(
-    #     "Results\evaluation_regressor_KNeighborsRegressor.pkl")
-    # plot_evaluation_results(df, open_plots_over_space=True)
-    main()
+    df = pd.read_pickle(
+        "Results\evaluation_regressor_KNeighborsRegressor.pkl")
+    plot_evaluation_results(df, open_plots_over_space=True)
+    # main()

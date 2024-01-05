@@ -102,8 +102,8 @@ def plot_for_different_hyperparameters():
     pca_components = 0  # 0 for no PCA
     add_augmentation = True
     noise_level = 0.02
-    epochs = 60
-    number_of_noise_augmentations = 6
+    epochs = 150
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
     number_of_superpos_augmentations = 0
     number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
@@ -112,9 +112,10 @@ def plot_for_different_hyperparameters():
     df_eval = pd.DataFrame()
     experiment_name = "Differnt_PCAS7"
     # number_of_pca_components_list = [4096, 2048, 1024]
-    number_of_pca_components_list = [1024, 512, 256, 128, 64, 32]
+    # number_of_pca_components_list = [1024, 512, 256, 128, 64, 32]
+    lrs = [0.00001, 0.0001, 0.001, 0.01]
     NR_OF_RUNS = 1
-    overall_runs = len(number_of_pca_components_list) * NR_OF_RUNS
+    overall_runs = len(lrs) * NR_OF_RUNS
     run_durations = []
     for i in range(NR_OF_RUNS):
         print(f"###################### Run {i} #########################")
@@ -129,15 +130,15 @@ def plot_for_different_hyperparameters():
         # learning_rate_list = [0.00001, 0.0001, 0.001, 0.01]
         # dropout_pobs = [0.05, 0.1, 0.15]
         # number_of_blur_augmentations_list = [0, 2, 4, 6, 8]
-        for nr_pca in number_of_pca_components_list:
-            model_name = f"TESTING_{epochs}_epochs_{str(nr_pca).replace('.', '_')}_wd"
+        for lr in lrs:
+            model_name = f"TESTING_{epochs}_epochs_{str(lr).replace('.', '_')}_wd"
             print(
-                f"####################Training with {nr_pca} PCA Components for {epochs} num epochs ###########################")
-            early_stopping_handler = EarlyStoppingHandler(patience=30)
+                f"####################Training with {lr} LR for {epochs} num epochs ###########################")
+            early_stopping_handler = EarlyStoppingHandler(patience=20)
             df, model, pca, model_path = trainings_loop(model_name=model_name, path_to_training_data=path,
-                                                        num_epochs=epochs, learning_rate=learning_rate,
+                                                        num_epochs=epochs, learning_rate=lr,
                                                         early_stopping_handler=early_stopping_handler,
-                                                        pca_components=nr_pca, add_augmentation=add_augmentation,
+                                                        pca_components=0, add_augmentation=add_augmentation,
                                                         noise_level=noise_level,
                                                         number_of_noise_augmentations=number_of_noise_augmentations,
                                                         number_of_rotation_augmentations=number_of_rotation_augmentations,
@@ -174,10 +175,10 @@ def plot_for_different_hyperparameters():
             position_errors.append(pe)
             pearson_correlations.append(pc)
             if len(df_eval) == 0:
-                df_eval = pd.DataFrame(data={"x": nr_pca, "ar": ar, "sd": sd, "ringing": ringing, "pe": pe, "pc": pc},
+                df_eval = pd.DataFrame(data={"x": lr, "ar": ar, "sd": sd, "ringing": ringing, "pe": pe, "pc": pc},
                                        index=[0])
             else:
-                df_eval = pd.concat([df_eval, pd.DataFrame(data={"x": nr_pca, "ar": ar, "sd": sd, "ringing": ringing,
+                df_eval = pd.concat([df_eval, pd.DataFrame(data={"x": lr, "ar": ar, "sd": sd, "ringing": ringing,
                                                                  "pe": pe, "pc": pc}, index=[0])])
 
             plt.title(f"Training for {epochs} epochs")
@@ -205,7 +206,7 @@ def plot_for_different_hyperparameters():
         metric_names = ['Amplitude response', 'Shape deformation'
                                               'Ringing', 'Position error', 'Pearson correlation']
         try:
-            plot_metrics(number_of_pca_components_list, [amplitude_responses, shape_deformations,
+            plot_metrics(lrs, [amplitude_responses, shape_deformations,
                                                          ringings, position_errors, pearson_correlations], metric_names)
             print("OK")
         except IndexError:
