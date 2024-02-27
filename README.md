@@ -46,6 +46,12 @@ To install the required packages, you can use the following command:
 pip install -r requirements.txt
 ```
 
+### Overview:
+
+- Controlling of the GCODE Device is handled in [GCodeDevice.py](G_Code_Device%2FGCodeDevice.py).
+- data handling of the EIT Devices is done in [data_reader.py](ScioSpec_EIT_Device%2Fdata_reader.py)
+- Most of the rest of the Code is used for data generation, training and evaluation of the models.
+
 ### Usage
 
 #### Data Generation
@@ -59,7 +65,7 @@ General Procedure is:
 3. The script will control the 3D Printer to move the object in the tank and collect the data
 4. The data will be saved in the output folder as an pickle file
 
-###### General Tipps:
+###### General Tips:
 - In many occasions it is necessary to choose between absolute eit or relative eit as a parameter of the function!
 
 
@@ -113,6 +119,25 @@ There are multiple types of augmentations available:
 The Scripts used for evaluation are located at [Evaluation](Evaluation).:
 - [Evaluate_Test_Set_Dataframe.py](Evaluation%2FEvaluate_Test_Set_Dataframe.py) used to evaluate the test set stored in a dataframe
 - [Live_Evaluate_Model.py](Evaluation%2FLive_Evaluate_Model.py) used to evaluate the model with live data from the EIT32
+
+
+## Usage of a trained model
+
+Sample usages can be found in:
+
+- [live_eit_reconstruction_time_diff.py](live_eit_reconstruction_time_diff.py)
+- [live_eit_reconstruction_multi_freq.py](live_eit_reconstruction_multi_freq.py)
+
+
+### Comparison Algorithms can be found in:
+[Try_Other_Reconstruction_methodes.py](Try_Other_Reconstruction_methodes.py)
+
+
+### Future ideas:
+- Integrate the EIT32 controlling Software into the Python Code
+- started first  steps in: [ISX_3_eit.py](ScioSpec_EIT_Device%2FISX_3_eit.py)
+- Checkout: https://github.com/spatialaudio/sciopy for more information
+
 
 ## Further Information
 For more in depth info you can look at my [Master Thesis](Thesis/Masterarbeit_final.pdf).
