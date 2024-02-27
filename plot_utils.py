@@ -74,8 +74,16 @@ def plot_results_fem_forward(mesh, line):
     # Render the plot to an image
     # Draw the content
     fig_equipotential.canvas.draw()
-    plt.tight_layout()
+     #remove x and y ticks
+    ax1.set_xticks([])
+    ax1.set_yticks([])
+    # increase line width of equi-potential lines
+    for c in contour.collections:
+        c.set_linewidth(3)
+    # set color of fem mesh to gray
+    mesh_plot.set_facecolor("gray")
     # save as pdf
+    plt.tight_layout()
     plt.savefig(f"equi-potential-lines_between{line[0]}_{line[1]}.pdf")
     # save as tikz file
     # tikzplotlib.save(f"equi-potential-lines_between{line[0]}_{line[1]}.tex")

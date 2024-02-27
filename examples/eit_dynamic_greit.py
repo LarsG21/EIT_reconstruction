@@ -6,6 +6,7 @@ from __future__ import division, absolute_import, print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
+import tikzplotlib
 
 import pyeit.mesh as mesh
 from pyeit.eit.fem import EITForward
@@ -51,7 +52,11 @@ v0 = fwd.solve_eit()
 v1 = fwd.solve_eit(perm=mesh_new.perm)
 
 plt.plot(v1)
-plt.title("Simulated data v1")
+plt.title("EIT Frame")
+plt.xlabel("Measurment Index")
+plt.ylabel("Voltage (V)")
+# save as tikz
+tikzplotlib.save("eit_frame.tex")
 plt.show()
 
 difference = (v1 - v0)

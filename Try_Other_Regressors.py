@@ -166,6 +166,8 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         if os.path.exists(f"{results_path}/pca.pkl"):
             print("INFO: Deleting old pca.pkl file")
             os.remove(f"{results_path}/pca.pkl")
+        if os.path.exists(f"{model_path}/pca.pkl"):
+            print("INFO: Deleting old pca.pkl file")
             os.remove(f"{model_path}/pca.pkl")
     # get train images back in the right shape
 
@@ -189,6 +191,12 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
     plt.plot(testX[0])
     plt.title("Input data example")
     plt.show()
+    # calculate the waviness of the input data
+    w = new_flat_pictures.std() / new_flat_pictures.mean()
+    print("Waviness overall dataset: ", w)
+    # calculate the ringing of the input data
+    ringing = - np.sum(new_flat_pictures[new_flat_pictures < 0]) / np.sum(np.abs(new_flat_pictures))
+    print("Ringing overall dataset: ", ringing)
     for picture, testY_sample in zip(new_flat_pictures, testY_selection):
         plt.figure(figsize=[20, 10])
         plt.subplot(121)
@@ -197,7 +205,14 @@ def train_regressor(model_name: str, regressor, path_to_training_data: str,
         # colorbar with same height as the image
         plt.colorbar(fraction=0.046, pad=0.04)
         plt.subplot(122)
-        plt.imshow(picture.reshape(OUT_SIZE, OUT_SIZE), cmap='viridis', aspect='equal')
+        img = picture.reshape(OUT_SIZE, OUT_SIZE)
+        # calcate the wavieness standard deviation / mean
+        w = img.std() / img.mean()
+        print("Waviness: ", w)
+        # calculate the ringing
+        ringing = - np.sum(img[img < 0]) / np.sum(np.abs(img))
+        print("Ringing: ", ringing)
+        plt.imshow(img, cmap='viridis', aspect='equal')
         plt.title(model_name)
         # colorbar with same height as the image
         plt.colorbar(fraction=0.046, pad=0.04)
@@ -259,19 +274,19 @@ if __name__ == "__main__":
 
     pca_components = 512  # 0 means no pca
     noise_level = 0.02
-    number_of_noise_augmentations = 10
+    number_of_noise_augmentations = 2
     number_of_rotation_augmentations = 0
-    number_of_superpos_augmentations = 0
-    number_of_targets_in_superposition_samples = 0  # 2 equals 3 targets in total
+    number_of_superpos_augmentations = 2
+    number_of_targets_in_superposition_samples = 2  # 2 equals 3 targets in total
     number_of_blur_augmentations = 5
     add_augmentations = True
     results_folder = "Results_Traditional_Models_AbsoluteEIT" if ABSOLUTE_EIT else "Results_Traditional_Models_TDEIT"
     # hyperparameter_tuning()
     regressors = [
-        # LinearRegression(),
+        LinearRegression(),
         # Ridge(alpha=1),
         # Lasso(alpha=0.001, tol=0.01),
-        KNeighborsRegressor(n_neighbors=10),
+        # KNeighborsRegressor(n_neighbors=4),
         # DecisionTreeRegressor(max_depth=80),
         # RandomForestRegressor(max_depth=40, n_estimators=20),
         # GradientBoostingRegressor(),
@@ -287,7 +302,7 @@ if __name__ == "__main__":
                         add_augmentation=add_augmentations, results_folder=results_folder,
                         pca_components=pca_components,
                         number_of_superpos_augmentations=number_of_superpos_augmentations,
-                        number_of_targets_in_superposition_samples=number_of_targets_in_superposition_samples,
+                        number_of_targets_in_superposition_samples=number_of_targets_in_superposition_samples
                         )
         print("Training took: ", time.time() - start_time)
         time.sleep(5)
